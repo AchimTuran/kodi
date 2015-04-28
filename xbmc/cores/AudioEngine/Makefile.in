@@ -23,6 +23,9 @@ SRCS  = AEFactory.cpp
 SRCS += AESinkFactory.cpp
 SRCS += Sinks/AESinkNULL.cpp
 
+SRCS +=AESourceFactory.cpp
+SRCS +=Sources/AESourceNULL.cpp
+
 SRCS += Sinks/AESinkPi.cpp
 
 SRCS += AEResampleFactory.cpp

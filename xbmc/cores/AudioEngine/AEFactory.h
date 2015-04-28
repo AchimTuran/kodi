@@ -42,7 +42,9 @@ public:
   static void SetSoundMode(const int mode);
   static void OnSettingsChange(std::string setting);
   static void EnumerateOutputDevices(AEDeviceList &devices, bool passthrough);
+  static void EnumerateInputDevices(AEDeviceList &devices, bool passthrough);
   static void VerifyOutputDevice(std::string &device, bool passthrough);
+  static void VerifyInputDevice(std::string &device, bool passthrough);
   static std::string GetDefaultDevice(bool passthrough);
   static bool SupportsRaw(AEDataFormat format, int samplerate);
   static bool SupportsSilenceTimeout();
@@ -61,6 +63,8 @@ public:
   static void Shutdown();
   static IAEStream *MakeStream(enum AEDataFormat dataFormat, unsigned int sampleRate, 
     unsigned int encodedSampleRate, CAEChannelInfo channelLayout, unsigned int options = 0);
+  static IAEStream *MakeCaptureStream(enum AEDataFormat dataFormat, unsigned int sampleRate,
+                                      CAEChannelInfo channelLayout, unsigned int options = 0);
   static IAEStream *FreeStream(IAEStream *stream);
   static void GarbageCollect();
 
