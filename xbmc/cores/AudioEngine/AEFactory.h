@@ -46,6 +46,7 @@ public:
   static void VerifyOutputDevice(std::string &device, bool passthrough);
   static void VerifyInputDevice(std::string &device, bool passthrough);
   static std::string GetDefaultDevice(bool passthrough);
+  static std::string GetDefaultInputDevice(bool passthrough);
   static bool SupportsRaw(AEDataFormat format, int samplerate);
   static bool SupportsSilenceTimeout();
   static bool HasStereoAudioChannelCount();

@@ -188,7 +188,7 @@ static void CAEFactory::VerifyInputDevice(std::string &device, bool passthrough)
     }
   }
 
-  /* if the device wasnt found, set it to the first viable output */
+  /* if the device wasnt found, set it to the first viable input */
   device = firstDevice;
 }
 
@@ -196,6 +196,14 @@ std::string CAEFactory::GetDefaultDevice(bool passthrough)
 {
   if(AE)
     return AE->GetDefaultDevice(passthrough);
+
+  return "default";
+}
+
+std::string CAEFactory::GetDefaultInputDevice(bool passthrough)
+{
+  if(AE)
+    return AE->GetDefaultInputDevice(passthrough);
 
   return "default";
 }
