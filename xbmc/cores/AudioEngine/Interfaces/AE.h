@@ -161,6 +161,15 @@ public:
   virtual IAEStream *MakeStream(enum AEDataFormat dataFormat, unsigned int sampleRate, unsigned int encodedSampleRate, CAEChannelInfo& channelLayout, unsigned int options = 0) = 0;
 
   /**
+   * Creates and returns a new IAEStream in the format specified, this function should never fail
+   * @param dataFormat The data format the incoming audio will be in (eg, AE_FMT_S16LE)
+   * @param sampleRate The sample rate of the audio data (eg, 48000)
+   * @param channelLayout The order of the channels in the audio data
+   * @param options A bit field of stream options (see: enum AEStreamOptions)
+   * @return a new IAEStream that will accept data in the requested format
+   */
+  virtual IAEStream *MakeCaptureStream(enum AEDataFormat dataFormat, unsigned int sampleRate, CAEChannelInfo& channelLayout, unsigned int options = 0) = 0;
+  /**
    * This method will remove the specifyed stream from the engine.
    * For OSX/IOS this is essential to reconfigure the audio output.
    * @param stream The stream to be altered
@@ -194,11 +203,25 @@ public:
   virtual void EnumerateOutputDevices(AEDeviceList &devices, bool passthrough) = 0;
 
   /**
+   * Enumerate the supported audio input devices
+   * @param devices The device list to append supported devices to
+   * @param passthrough True if only passthrough devices are wanted
+   */
+    virtual void EnumerateInputDevices(AEDeviceList &devices, bool passthrough) = 0;
+
+  /**
    * Returns the default audio device
    * @param passthrough True if the default passthrough device is wanted
    * @return the default audio device
    */
   virtual std::string GetDefaultDevice(bool passthrough) { return "default"; }
+
+  /**
+   * Returns the default audio input device
+   * @param passthrough True if the default passthrough device is wanted
+   * @return the default audio input device
+   */
+  virtual std::string GetDefaultInputDevice(bool passthrough) { return "default"; }
 
   /**
    * Returns true if the AudioEngine supports AE_FMT_RAW streams for use with formats such as IEC61937

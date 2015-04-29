@@ -65,6 +65,16 @@ public:
   virtual unsigned int AddData(uint8_t* const *data, unsigned int offset, unsigned int frames, double pts = 0.0) = 0;
 
   /**
+     * Get planar or interleaved PCM data from the stream
+     * @param data array of pointers to the planes
+     * @param offset to frame in frames
+     * @param frames number of frames
+     * @param pts timestamp
+     * @return The number of frames consumed
+     */
+    virtual unsigned int GetData(uint8_t* const *data, unsigned int offset, unsigned int frames, double pts = 0.0) = 0;
+
+  /**
    * Returns the time in seconds that it will take
    * for the next added packet to be heard from the speakers.
    * @return seconds
