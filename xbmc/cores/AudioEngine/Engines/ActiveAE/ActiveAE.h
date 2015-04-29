@@ -23,6 +23,7 @@
 #include "threads/Thread.h"
 
 #include "ActiveAESink.h"
+#include "ActiveAESource.h"
 #include "cores/AudioEngine/Interfaces/AEResample.h"
 #include "cores/AudioEngine/Interfaces/AEStream.h"
 #include "cores/AudioEngine/Interfaces/AESound.h"
@@ -174,6 +175,7 @@ class CEngineStats
 public:
   void Reset(unsigned int sampleRate);
   void UpdateSinkDelay(const AEDelayStatus& status, int samples, int64_t pts, int clockId = 0);
+  void UpdateSourceDelay(const AEDelayStatus& status, int samples, int64_t pts, int clockId = 0);
   void AddSamples(int samples, std::list<CActiveAEStream*> &streams);
   void GetDelay(AEDelayStatus& status);
   void GetDelay(AEDelayStatus& status, CActiveAEStream *stream);
@@ -185,7 +187,9 @@ public:
   void SetSuspended(bool state);
   void SetDSP(bool state);
   void SetSinkCacheTotal(float time) { m_sinkCacheTotal = time; }
+  void SetSourceCacheTotal(float time) { m_sourceCacheTotal = time; }
   void SetSinkLatency(float time) { m_sinkLatency = time; }
+  void SetSourceLatency(float time) { m_sourceLatency = time; }
   bool IsSuspended();
   bool HasDSP();
   CCriticalSection *GetLock() { return &m_lock; }
@@ -193,10 +197,14 @@ protected:
   int64_t m_playingPTS;
   int m_clockId;
   float m_sinkCacheTotal;
+  float m_sourceCacheTotal;
   float m_sinkLatency;
+  float m_sourceLatency;
   int m_bufferedSamples;
   unsigned int m_sinkSampleRate;
+  unsigned int m_sourceSampleRate;
   AEDelayStatus m_sinkDelay;
+  AEDelayStatus m_sourceDelay;
   bool m_suspended;
   bool m_hasDSP;
   CCriticalSection m_lock;
@@ -233,6 +241,7 @@ public:
 
   /* returns a new stream for data in the specified format */
   virtual IAEStream *MakeStream(enum AEDataFormat dataFormat, unsigned int sampleRate, unsigned int encodedSampleRate, CAEChannelInfo& channelLayout, unsigned int options = 0);
+  virtual IAEStream *MakeCaptureStream(enum AEDataFormat dataFormat, unsigned int sampleRate, CAEChannelInfo& channelLayout, unsigned int options = 0);
   virtual IAEStream *FreeStream(IAEStream *stream);
 
   /* returns a new sound object */
@@ -242,7 +251,9 @@ public:
   virtual void GarbageCollect() {};
 
   virtual void EnumerateOutputDevices(AEDeviceList &devices, bool passthrough);
+  virtual void EnumerateInputDevices(AEDeviceList &devices, bool passthrough);
   virtual std::string GetDefaultDevice(bool passthrough);
+  virtual std::string GetDefaultInputDevice(bool passthrough);
   virtual bool SupportsRaw(AEDataFormat format, int samplerate);
   virtual bool SupportsSilenceTimeout();
   virtual bool HasStereoAudioChannelCount();
@@ -283,13 +294,17 @@ protected:
   void Process();
   void StateMachine(int signal, Protocol *port, Message *msg);
   bool InitSink();
+  bool InitSource();
   void DrainSink();
+  void DrainSource();
   void UnconfigureSink();
+  void UnconfigureSource();
   void Start();
   void Dispose();
   void LoadSettings();
   bool NeedReconfigureBuffers();
   bool NeedReconfigureSink();
+  bool NeedReconfigureSource();
   void ApplySettingsToFormat(AEAudioFormat &format, AudioSettings &settings, int *mode = NULL);
   void Configure(AEAudioFormat *desiredFmt = NULL);
   AEAudioFormat GetInputFormat(AEAudioFormat *desiredFmt = NULL);
@@ -334,8 +349,11 @@ protected:
   }m_mode;
 
   CActiveAESink m_sink;
+  CActiveAESource m_source;
   AEAudioFormat m_sinkFormat;
+  AEAudioFormat m_sourceFormat;
   AEAudioFormat m_sinkRequestFormat;
+  AEAudioFormat m_sourceRequestFormat;
   AEAudioFormat m_encoderFormat;
   AEAudioFormat m_internalFormat;
   AEAudioFormat m_inputFormat;
@@ -346,6 +364,7 @@ protected:
 
   // buffers
   CActiveAEBufferPoolResample *m_sinkBuffers;
+  CActiveAEBufferPoolResample *m_sourceBuffers;
   CActiveAEBufferPoolResample *m_vizBuffers;
   CActiveAEBufferPool *m_vizBuffersInput;
   CActiveAEBufferPool *m_silenceBuffers;  // needed to drive gui sounds if we have no streams
@@ -368,6 +387,7 @@ protected:
   float m_volumeScaled; // multiplier to scale samples in order to achieve the volume specified in m_volume
   bool m_muted;
   bool m_sinkHasVolume;
+  bool m_sourceHasVolume;
 
   // viz
   IAudioCallback *m_audioCallback;
