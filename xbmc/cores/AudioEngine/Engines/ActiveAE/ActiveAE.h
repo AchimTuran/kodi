@@ -108,26 +108,30 @@ public:
   };
 };
 
+// This class is used for as data protocoll to manage
+// source and sink communication & data (audio samples) handling
 class CActiveAEDataProtocol : public Protocol
 {
 public:
   CActiveAEDataProtocol(std::string name, CEvent* inEvent, CEvent *outEvent) : Protocol(name, inEvent, outEvent) {};
   enum OutSignal
   {
-    NEWSOUND = 0,
-    PLAYSOUND,
-    FREESOUND,
-    NEWSTREAM,
-    FREESTREAM,
-    STREAMSAMPLE,
-    DRAINSTREAM,
+    NEWSOUND = 0,     // Creating a new sound e.g. a GUI sound
+    PLAYSOUND,        // Playing a sound e.g. GUI sounds
+    FREESOUND,        // Delete/Free sound
+    NEWSTREAM,        // Creating a new audio stream
+    FREESTREAM,       // Delete/Free stream
+    STREAMSAMPLE,     // Streaming samples to sink
+    CAPTURESAMPLE,    // Capturing samples from source
+    DRAINSTREAM,      // ?
   };
   enum InSignal
   {
-    ACC,
-    ERR,
-    STREAMBUFFER,
-    STREAMDRAINED,
+    ACC,              // Acknowledge
+    ERR,              // Error
+    STREAMBUFFER,     // Get a stream buffer with sink connection
+    STREAMDRAINED,    // ?
+    CAPTUREBUFFER,    // Get a stream buffer with source connection
   };
 };
 
@@ -177,6 +181,7 @@ public:
   void UpdateSinkDelay(const AEDelayStatus& status, int samples, int64_t pts, int clockId = 0);
   void UpdateSourceDelay(const AEDelayStatus& status, int samples, int64_t pts, int clockId = 0);
   void AddSamples(int samples, std::list<CActiveAEStream*> &streams);
+  void GetSamples(int samples, std::list<CActiveAEStream*> &streams);
   void GetDelay(AEDelayStatus& status);
   void GetDelay(AEDelayStatus& status, CActiveAEStream *stream);
   float GetCacheTime(CActiveAEStream *stream);
@@ -241,7 +246,9 @@ public:
 
   /* returns a new stream for data in the specified format */
   virtual IAEStream *MakeStream(enum AEDataFormat dataFormat, unsigned int sampleRate, unsigned int encodedSampleRate, CAEChannelInfo& channelLayout, unsigned int options = 0);
+  /* returns a new capture stream in the specified format */
   virtual IAEStream *MakeCaptureStream(enum AEDataFormat dataFormat, unsigned int sampleRate, CAEChannelInfo& channelLayout, unsigned int options = 0);
+  /* Delete an no more used stream */
   virtual IAEStream *FreeStream(IAEStream *stream);
 
   /* returns a new sound object */
@@ -250,9 +257,13 @@ public:
 
   virtual void GarbageCollect() {};
 
+  /* get all supported device that can be used as a valid sink */
   virtual void EnumerateOutputDevices(AEDeviceList &devices, bool passthrough);
+  /* get all supported device that can be used as a valid source */
   virtual void EnumerateInputDevices(AEDeviceList &devices, bool passthrough);
+  /* returns the default audio sink device */
   virtual std::string GetDefaultDevice(bool passthrough);
+  /* returns the default audio source device */
   virtual std::string GetDefaultInputDevice(bool passthrough);
   virtual bool SupportsRaw(AEDataFormat format, int samplerate);
   virtual bool SupportsSilenceTimeout();
@@ -274,7 +285,7 @@ public:
 protected:
   void PlaySound(CActiveAESound *sound);
   uint8_t **AllocSoundSample(SampleConfig &config, int &samples, int &bytes_per_sample, int &planes, int &linesize);
-  void FreeSoundSample(uint8_t **data);
+  void FreeSoundSample(uint8_t **m_streamPortdata);
   void GetDelay(AEDelayStatus& status, CActiveAEStream *stream) { m_stats.GetDelay(status, stream); }
   int64_t GetPlayingPTS() { return m_stats.GetPlayingPTS(); }
   int Discontinuity() { return m_stats.Discontinuity(); }
@@ -308,6 +319,8 @@ protected:
   void ApplySettingsToFormat(AEAudioFormat &format, AudioSettings &settings, int *mode = NULL);
   void Configure(AEAudioFormat *desiredFmt = NULL);
   AEAudioFormat GetInputFormat(AEAudioFormat *desiredFmt = NULL);
+  // Gets the output format from the source
+  AEAudioFormat GetOutputFormat(AEAudioFormat *desiredFmt = NULL);
   CActiveAEStream* CreateStream(MsgStreamNew *streamMsg);
   void DiscardStream(CActiveAEStream *stream);
   void SFlushStream(CActiveAEStream *stream);
@@ -357,6 +370,7 @@ protected:
   AEAudioFormat m_encoderFormat;
   AEAudioFormat m_internalFormat;
   AEAudioFormat m_inputFormat;
+  AEAudioFormat m_outputFormat;
   AudioSettings m_settings;
   CEngineStats m_stats;
   IAEEncoder *m_encoder;
