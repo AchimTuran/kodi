@@ -41,6 +41,7 @@ extern "C" {
 }
 
 class IAESink;
+class IAESource;
 class IAEEncoder;
 
 namespace ActiveAE
