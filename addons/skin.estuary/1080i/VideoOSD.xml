@@ -310,12 +310,19 @@
 						<label>$LOCALIZE[13395]</label>
 						<onclick>ActivateWindow(osdvideosettings)</onclick>
 					</control>
+					<control type="button" id="11105">
+						<width>470</width>
+						<include>DefaultSettingButton</include>
+						<label>$LOCALIZE[15047]</label>
+						<onclick>ActivateWindow(OSDAudioDSPSettings)</onclick>
+						<visible>system.getbool(audiooutput.dspaddonsenabled)</visible>
+					</control>
 					<control type="button" id="11103">
 						<width>470</width>
 						<include>DefaultSettingButton</include>
 						<label>$LOCALIZE[15020]</label>
 						<onclick>ActivateWindow(AudioDSPManager)</onclick>
-						<visible>ADSP.HasModes</visible>
+						<visible>system.getbool(audiooutput.dspaddonsenabled)</visible>
 					</control>
 					<control type="button" id="11104">
 						<width>470</width>
