@@ -21,7 +21,7 @@
 
 #include "cores/AudioEngine/Utils/AEAudioFormat.h"
 #include "cores/AudioEngine/Interfaces/AE.h"
-#include "cores/AudioEngine/DSPAddons/ActiveAEDSP.h"
+#include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/ActiveAEDSP.h"
 #include <deque>
 
 extern "C" {
@@ -104,7 +104,8 @@ public:
   float GetDelay();
   void Flush();
   AEAudioFormat m_inputFormat;
-  AEAudioFormat m_dspFormat;
+  AEAudioFormat m_adspInFormat;
+  AEAudioFormat m_adspOutFormat;
   std::deque<CSampleBuffer*> m_inputSamples;
   std::deque<CSampleBuffer*> m_outputSamples;
   CSampleBuffer *m_procSample;

@@ -40,6 +40,14 @@ using namespace ADDON;
 using namespace ActiveAE;
 
 #define MIN_DSP_ARRAY_SIZE 4096
+#define FFMPEG_PROC_ARRAY_IN  0
+#define FFMPEG_PROC_ARRAY_OUT 1
+
+#if defined(ADSP_COUT_DEBUG_OUTPUT)
+#include <iostream>
+using namespace std;
+#endif
+
 
 CActiveAEDSPProcess::CActiveAEDSPProcess(AE_DSP_STREAM_ID streamId)
  : m_streamId(streamId)
@@ -73,11 +81,8 @@ CActiveAEDSPProcess::~CActiveAEDSPProcess()
 {
   ResetStreamFunctionsSelection();
 
-  if (m_resamplerDSPProcessor)
-  {
-    delete m_resamplerDSPProcessor;
-    m_resamplerDSPProcessor = NULL;
-  }
+  delete m_resamplerDSPProcessor;
+  m_resamplerDSPProcessor = NULL;
 
   /* Clear the buffer arrays */
   for (int i = 0; i < AE_DSP_CH_MAX; ++i)
@@ -111,10 +116,9 @@ bool CActiveAEDSPProcess::Create(const AEAudioFormat &inputFormat, const AEAudio
 {
   m_inputFormat       = inputFormat;                        /*!< Input format of processed stream */
   m_outputFormat      = outputFormat;                       /*!< Output format of required stream (set from ADSP system on startup, to have ffmpeg compatible format */
-  m_outputSamplerate  = m_inputFormat.m_sampleRate;         /*!< If no resampler addon is present output samplerate is the same as input */
-  m_outputFrames      = m_inputFormat.m_frames;
+  m_outputFormat.m_sampleRate = m_inputFormat.m_sampleRate;         /*!< If no resampler addon is present output samplerate is the same as input */
+  m_outputFormat.m_frames = m_inputFormat.m_frames;
   m_streamQuality     = quality;                            /*!< from KODI on settings selected resample quality, also passed to addons to support different quality */
-  m_dataFormat        = AE_FMT_FLOAT;                       /*!< the base stream format, hard set to float */
   m_activeMode        = AE_DSP_MASTER_MODE_ID_PASSOVER;     /*!< Reset the pointer for m_MasterModes about active master process, set here during mode selection */
   m_ffMpegMatrixEncoding  = matrix_encoding;
   m_ffMpegAudioServiceType= audio_service_type;
@@ -123,6 +127,26 @@ bool CActiveAEDSPProcess::Create(const AEAudioFormat &inputFormat, const AEAudio
   CSingleLock lock(m_restartSection);
 
   CLog::Log(LOGDEBUG, "ActiveAE DSP - %s - Audio DSP processing id %d created:", __FUNCTION__, m_streamId);
+
+#if defined(ADSP_COUT_DEBUG_OUTPUT)
+  cout << "CActiveAEDSPProcess::Create(...)" << endl;
+  cout << " CAEUtil::GetAVChannelLayout(m_inputFormat.m_channelLayout)=" << CAEUtil::GetAVChannelLayout(m_inputFormat.m_channelLayout) << endl;
+  cout << " CAEUtil::GetAVSampleFormat(m_inputFormat.m_dataFormat)=" << CAEUtil::GetAVSampleFormat(m_inputFormat.m_dataFormat) << endl;
+  cout << "  m_inputFormat.m_channelLayout.Count()=" << m_inputFormat.m_channelLayout.Count() << endl;
+  cout << "  m_inputFormat.m_dataFormat=" << CAEUtil::DataFormatToStr(m_inputFormat.m_dataFormat) << endl;
+  cout << "  m_inputFormat.m_frames=" << m_inputFormat.m_frames << endl;
+  cout << "  m_inputFormat.m_frameSize=" << m_inputFormat.m_frameSize << endl;
+  cout << "  m_inputFormat.m_sampleRate=" << m_inputFormat.m_sampleRate << endl;
+  cout << "  m_inputFormat.m_channelLayout.HasChannel(...)=";
+  for (int ch = AE_CH_FL; ch <= AE_CH_BROC; ch++)
+  {
+    if (m_inputFormat.m_channelLayout.HasChannel((AEChannel)ch))
+    {
+      cout << m_inputFormat.m_channelLayout.GetChName((AEChannel)ch) << ", ";
+    }
+  }
+  cout << endl;
+#endif
 
   m_convertInput = swr_alloc_set_opts(m_convertInput,
                                       CAEUtil::GetAVChannelLayout(m_inputFormat.m_channelLayout),
@@ -143,6 +167,25 @@ bool CActiveAEDSPProcess::Create(const AEAudioFormat &inputFormat, const AEAudio
     CLog::Log(LOGERROR, "ActiveAE DSP - %s - DSP input convert failed", __FUNCTION__);
     return false;
   }
+
+#if defined(ADSP_COUT_DEBUG_OUTPUT)
+  cout << " CAEUtil::GetAVChannelLayout(m_outputFormat.m_channelLayout)=" << CAEUtil::GetAVChannelLayout(m_outputFormat.m_channelLayout) << endl;
+  cout << " CAEUtil::GetAVSampleFormat(m_outputFormat.m_dataFormat)=" << CAEUtil::GetAVSampleFormat(m_outputFormat.m_dataFormat) << endl;
+  cout << "  m_outputFormat.m_channelLayout.Count()=" << m_outputFormat.m_channelLayout.Count() << endl;
+  cout << "  m_outputFormat.m_dataFormat=" << CAEUtil::DataFormatToStr(m_outputFormat.m_dataFormat) << endl;
+  cout << "  m_outputFormat.m_frames=" << m_outputFormat.m_frames << endl;
+  cout << "  m_outputFormat.m_frameSize=" << m_outputFormat.m_frameSize << endl;
+  cout << "  m_outputFormat.m_sampleRate=" << m_outputFormat.m_sampleRate << endl;
+  cout << "  m_outputFormat.m_channelLayout.HasChannel(...)=";
+  for (int ch = AE_CH_FL; ch <= AE_CH_BROC; ch++)
+  {
+    if (m_outputFormat.m_channelLayout.HasChannel((AEChannel)ch))
+    {
+      cout << m_outputFormat.m_channelLayout.GetChName((AEChannel)ch) << ", ";
+    }
+  }
+  cout << endl << endl;
+#endif
 
   m_convertOutput = swr_alloc_set_opts(m_convertOutput,
                                        CAEUtil::GetAVChannelLayout(m_outputFormat.m_channelLayout),
@@ -240,47 +283,24 @@ bool CActiveAEDSPProcess::Create(const AEAudioFormat &inputFormat, const AEAudio
   m_addonSettings.bInputResamplingActive  = false;                                /*! Becomes true if input resampling is in use */
   m_addonSettings.iQualityLevel           = m_streamQuality;                      /*! Requested stream processing quality, is optional and can be from addon ignored */
 
-  if (m_inputFormat.m_channelLayout.HasChannel(AE_CH_FL))   m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_FL;
-  if (m_inputFormat.m_channelLayout.HasChannel(AE_CH_FR))   m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_FR;
-  if (m_inputFormat.m_channelLayout.HasChannel(AE_CH_FC))   m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_FC;
-  if (m_inputFormat.m_channelLayout.HasChannel(AE_CH_LFE))  m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_LFE;
-  if (m_inputFormat.m_channelLayout.HasChannel(AE_CH_BL))   m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_BL;
-  if (m_inputFormat.m_channelLayout.HasChannel(AE_CH_BR))   m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_BR;
-  if (m_inputFormat.m_channelLayout.HasChannel(AE_CH_FLOC)) m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_FLOC;
-  if (m_inputFormat.m_channelLayout.HasChannel(AE_CH_FROC)) m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_FROC;
-  if (m_inputFormat.m_channelLayout.HasChannel(AE_CH_BC))   m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_BC;
-  if (m_inputFormat.m_channelLayout.HasChannel(AE_CH_SL))   m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_SL;
-  if (m_inputFormat.m_channelLayout.HasChannel(AE_CH_SR))   m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_SR;
-  if (m_inputFormat.m_channelLayout.HasChannel(AE_CH_TFL))  m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_TFL;
-  if (m_inputFormat.m_channelLayout.HasChannel(AE_CH_TFR))  m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_TFR;
-  if (m_inputFormat.m_channelLayout.HasChannel(AE_CH_TFC))  m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_TFC;
-  if (m_inputFormat.m_channelLayout.HasChannel(AE_CH_TC))   m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_TC;
-  if (m_inputFormat.m_channelLayout.HasChannel(AE_CH_TBL))  m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_TBL;
-  if (m_inputFormat.m_channelLayout.HasChannel(AE_CH_TBR))  m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_TBR;
-  if (m_inputFormat.m_channelLayout.HasChannel(AE_CH_TBC))  m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_TBC;
-  if (m_inputFormat.m_channelLayout.HasChannel(AE_CH_BLOC)) m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_BLOC;
-  if (m_inputFormat.m_channelLayout.HasChannel(AE_CH_BROC)) m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_BROC;
+  /*! NOTE: If you change or add new channel enums to AEChannel in
+   * xbmc/cores/AudioEngine/Utils/AEChannelData.h you have to adapt this loop
+   */
+  for (int ii = 0; ii < AE_DSP_CH_MAX; ii++)
+  {
+    if (m_inputFormat.m_channelLayout.HasChannel((AEChannel)(ii + 1)))
+    {
+      m_addonSettings.lInChannelPresentFlags |= 1 << ii;
+    }
+  }
 
-  if (m_outputFormat.m_channelLayout.HasChannel(AE_CH_FL))   m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_FL;
-  if (m_outputFormat.m_channelLayout.HasChannel(AE_CH_FR))   m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_FR;
-  if (m_outputFormat.m_channelLayout.HasChannel(AE_CH_FC))   m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_FC;
-  if (m_outputFormat.m_channelLayout.HasChannel(AE_CH_LFE))  m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_LFE;
-  if (m_outputFormat.m_channelLayout.HasChannel(AE_CH_BL))   m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_BL;
-  if (m_outputFormat.m_channelLayout.HasChannel(AE_CH_BR))   m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_BR;
-  if (m_outputFormat.m_channelLayout.HasChannel(AE_CH_FLOC)) m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_FLOC;
-  if (m_outputFormat.m_channelLayout.HasChannel(AE_CH_FROC)) m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_FROC;
-  if (m_outputFormat.m_channelLayout.HasChannel(AE_CH_BC))   m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_BC;
-  if (m_outputFormat.m_channelLayout.HasChannel(AE_CH_SL))   m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_SL;
-  if (m_outputFormat.m_channelLayout.HasChannel(AE_CH_SR))   m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_SR;
-  if (m_outputFormat.m_channelLayout.HasChannel(AE_CH_TFL))  m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_TFL;
-  if (m_outputFormat.m_channelLayout.HasChannel(AE_CH_TFR))  m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_TFR;
-  if (m_outputFormat.m_channelLayout.HasChannel(AE_CH_TFC))  m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_TFC;
-  if (m_outputFormat.m_channelLayout.HasChannel(AE_CH_TC))   m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_TC;
-  if (m_outputFormat.m_channelLayout.HasChannel(AE_CH_TBL))  m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_TBL;
-  if (m_outputFormat.m_channelLayout.HasChannel(AE_CH_TBR))  m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_TBR;
-  if (m_outputFormat.m_channelLayout.HasChannel(AE_CH_TBC))  m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_TBC;
-  if (m_outputFormat.m_channelLayout.HasChannel(AE_CH_BLOC)) m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_BLOC;
-  if (m_outputFormat.m_channelLayout.HasChannel(AE_CH_BROC)) m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_BROC;
+  for (int ii = 0; ii < AE_DSP_CH_MAX; ii++)
+  {
+    if (m_outputFormat.m_channelLayout.HasChannel((AEChannel)(ii + 1)))
+    {
+      m_addonSettings.lOutChannelPresentFlags |= 1 << ii;
+    }
+  }
 
   /*!
    * Setup off mode, used if dsp master processing is set off, required to have data
@@ -341,10 +361,10 @@ bool CActiveAEDSPProcess::Create(const AEAudioFormat &inputFormat, const AEAudio
             {
               CLog::Log(LOGDEBUG, "  | - %s with resampling from %i to %i", addon->GetAudioDSPName().c_str(), m_inputFormat.m_sampleRate, processSamplerate);
 
-              m_outputSamplerate                      = processSamplerate;                  /*!< overwrite output sample rate with the new rate */
-              m_outputFrames                          = (int) ceil((1.0 * processSamplerate) / m_addonSettings.iInSamplerate * m_addonSettings.iInFrames);
-              m_addonSettings.iProcessSamplerate      = m_outputSamplerate;                 /*!< the processing sample rate required for all behind called processes */
-              m_addonSettings.iProcessFrames          = m_outputFrames;
+              m_outputFormat.m_sampleRate             = processSamplerate;                  /*!< overwrite output sample rate with the new rate */
+              m_outputFormat.m_frames                 = (int) ceil((1.0 * processSamplerate) / m_addonSettings.iInSamplerate * m_addonSettings.iInFrames);
+              m_addonSettings.iProcessSamplerate      = processSamplerate;                 /*!< the processing sample rate required for all behind called processes */
+              m_addonSettings.iProcessFrames          = m_outputFormat.m_frames;
               m_addonSettings.bInputResamplingActive  = true;
 
               m_addon_InputResample.iAddonModeNumber  = pMode->AddonModeNumber();
@@ -564,8 +584,8 @@ bool CActiveAEDSPProcess::Create(const AEAudioFormat &inputFormat, const AEAudio
           {
             CLog::Log(LOGDEBUG, "  | - %s with resampling to %i", addon->GetAudioDSPName().c_str(), outSamplerate);
 
-            m_outputSamplerate                      = outSamplerate;
-            m_outputFrames                          = (int) ceil((1.0 * outSamplerate) / m_addonSettings.iProcessSamplerate * m_addonSettings.iProcessFrames);
+            m_outputFormat.m_sampleRate             = outSamplerate;
+            m_outputFormat.m_frames                 = (int) ceil((1.0 * outSamplerate) / m_addonSettings.iProcessSamplerate * m_addonSettings.iProcessFrames);
 
             m_addon_OutputResample.iAddonModeNumber = pMode->AddonModeNumber();
             m_addon_OutputResample.pMode            = pMode;
@@ -621,11 +641,11 @@ bool CActiveAEDSPProcess::Create(const AEAudioFormat &inputFormat, const AEAudio
     CLog::Log(LOGDEBUG, "  | Frames               : %d", m_addonSettings.iProcessFrames);
     CLog::Log(LOGDEBUG, "  | Internal processing  : %s", m_resamplerDSPProcessor ? "yes" : "no");
     CLog::Log(LOGDEBUG, "  ----  Output format ----");
-    CLog::Log(LOGDEBUG, "  | Sample Rate          : %d", m_outputSamplerate);
+    CLog::Log(LOGDEBUG, "  | Sample Rate          : %d", m_outputFormat.m_sampleRate);
     CLog::Log(LOGDEBUG, "  | Sample Format        : %s", CAEUtil::DataFormatToStr(m_outputFormat.m_dataFormat));
     CLog::Log(LOGDEBUG, "  | Channel Count        : %d", m_outputFormat.m_channelLayout.Count());
     CLog::Log(LOGDEBUG, "  | Channel Layout       : %s", ((std::string)m_outputFormat.m_channelLayout).c_str());
-    CLog::Log(LOGDEBUG, "  | Frames               : %d", m_outputFrames);
+    CLog::Log(LOGDEBUG, "  | Frames               : %d", m_outputFormat.m_frames);
   }
 
   m_forceInit = true;
@@ -897,12 +917,12 @@ std::string CActiveAEDSPProcess::GetOutputChannelNames()
 
 unsigned int CActiveAEDSPProcess::GetOutputSamplerate()
 {
-  return m_outputSamplerate;
+  return m_outputFormat.m_sampleRate;
 }
 
 unsigned int CActiveAEDSPProcess::GetOutputFrames()
 {
-  return m_outputFrames;
+  return m_outputFormat.m_frames;
 }
 
 float CActiveAEDSPProcess::GetCPUUsage(void) const
@@ -917,7 +937,7 @@ CAEChannelInfo CActiveAEDSPProcess::GetChannelLayout()
 
 AEDataFormat CActiveAEDSPProcess::GetDataFormat()
 {
-  return m_dataFormat;
+  return m_outputFormat.m_dataFormat;
 }
 
 AEAudioFormat CActiveAEDSPProcess::GetInputFormat()
@@ -1118,6 +1138,36 @@ void CActiveAEDSPProcess::ClearArray(float **array, unsigned int samples)
 
 bool CActiveAEDSPProcess::Process(CSampleBuffer *in, CSampleBuffer *out)
 {
+#if defined(ADSP_COUT_DEBUG_OUTPUT)
+   cout << "CActiveAEDSPProcess::Process(...)" << endl;
+   cout << " in->timestamp=" << in->timestamp << endl
+        << " in->pkt_start_offset=" << in->pkt_start_offset << endl
+        << " in->pkt->config.fmt=" << in->pkt->config.fmt << endl
+        << " in->pkt->config.bits_per_sample=" << in->pkt->config.bits_per_sample << endl
+        << " in->pkt->config.channels=" << in->pkt->config.channels << endl
+        << " in->pkt->config.channel_layout=" << in->pkt->config.channel_layout << endl
+        << " in->pkt->config.dither_bits=" << in->pkt->config.dither_bits << endl
+        << " in->pkt->config.sample_rate=" << in->pkt->config.sample_rate << endl
+        << " in->pkt->max_nb_samples=" << in->pkt->max_nb_samples << endl
+        << " in->pkt->nb_samples=" << in->pkt->nb_samples << endl
+        << " in->pkt->planes=" << in->pkt->planes << endl
+        << " in->pkt->linesize=" << in->pkt->planes << endl;
+
+   cout << endl;
+   cout << " out->timestamp=" << out->timestamp << endl
+        << " out->pkt_start_offset=" << out->pkt_start_offset << endl
+        << " out->pkt->config.fmt=" << out->pkt->config.fmt << endl
+        << " out->pkt->config.bits_per_sample=" << out->pkt->config.bits_per_sample << endl
+        << " out->pkt->config.channels=" << out->pkt->config.channels << endl
+        << " out->pkt->config.channel_layout=" << out->pkt->config.channel_layout << endl
+        << " out->pkt->config.dither_bits=" << out->pkt->config.dither_bits << endl
+        << " out->pkt->config.sample_rate=" << out->pkt->config.sample_rate << endl
+        << " out->pkt->max_nb_samples=" << out->pkt->max_nb_samples << endl
+        << " out->pkt->nb_samples=" << out->pkt->nb_samples << endl
+        << " out->pkt->planes=" << out->pkt->planes << endl
+        << " out->pkt->linesize=" << out->pkt->planes << endl;
+#endif
+
   CSingleLock lock(m_restartSection);
 
   bool needDSPAddonsReinit  = m_forceInit;
@@ -1185,50 +1235,29 @@ bool CActiveAEDSPProcess::Process(CSampleBuffer *in, CSampleBuffer *out)
 
   if (needDSPAddonsReinit)
   {
+    /*! NOTE: If you change or add new channel enums to AEChannel in
+     * xbmc/cores/AudioEngine/Utils/AEChannelData.h you have to adapt this loop
+     */
     m_addonSettings.lInChannelPresentFlags = 0;
-    if (m_idx_in[AE_CH_FL] >= 0)    m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_FL;
-    if (m_idx_in[AE_CH_FR] >= 0)    m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_FR;
-    if (m_idx_in[AE_CH_FC] >= 0)    m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_FC;
-    if (m_idx_in[AE_CH_LFE] >= 0)   m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_LFE;
-    if (m_idx_in[AE_CH_BL] >= 0)    m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_BL;
-    if (m_idx_in[AE_CH_BR] >= 0)    m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_BR;
-    if (m_idx_in[AE_CH_FLOC] >= 0)  m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_FLOC;
-    if (m_idx_in[AE_CH_FROC] >= 0)  m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_FROC;
-    if (m_idx_in[AE_CH_BC] >= 0)    m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_BC;
-    if (m_idx_in[AE_CH_SL] >= 0)    m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_SL;
-    if (m_idx_in[AE_CH_SR] >= 0)    m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_SR;
-    if (m_idx_in[AE_CH_TFL] >= 0)   m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_TFL;
-    if (m_idx_in[AE_CH_TFR] >= 0)   m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_TFR;
-    if (m_idx_in[AE_CH_TFC] >= 0)   m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_TFC;
-    if (m_idx_in[AE_CH_TC] >= 0)    m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_TC;
-    if (m_idx_in[AE_CH_TBL] >= 0)   m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_TBL;
-    if (m_idx_in[AE_CH_TBR] >= 0)   m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_TBR;
-    if (m_idx_in[AE_CH_TBC] >= 0)   m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_TBC;
-    if (m_idx_in[AE_CH_TBR] >= 0)   m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_TBR;
-    if (m_idx_in[AE_CH_BLOC] >= 0)  m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_BLOC;
-    if (m_idx_in[AE_CH_BROC] >= 0)  m_addonSettings.lInChannelPresentFlags |= AE_DSP_PRSNT_CH_BROC;
+    for (int ii = 0; ii < AE_DSP_CH_MAX; ii++)
+    {
+      if (m_idx_in[ii+1] >= 0)
+      {
+        m_addonSettings.lInChannelPresentFlags |= 1 << ii;
+      }
+    }
 
+    /*! NOTE: If you change or add new channel enums to AEChannel in
+     * xbmc/cores/AudioEngine/Utils/AEChannelData.h you have to adapt this loop
+     */
     m_addonSettings.lOutChannelPresentFlags = 0;
-    if (m_idx_out[AE_CH_FL] >= 0)   m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_FL;
-    if (m_idx_out[AE_CH_FR] >= 0)   m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_FR;
-    if (m_idx_out[AE_CH_FC] >= 0)   m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_FC;
-    if (m_idx_out[AE_CH_LFE] >= 0)  m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_LFE;
-    if (m_idx_out[AE_CH_BL] >= 0)   m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_BL;
-    if (m_idx_out[AE_CH_BR] >= 0)   m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_BR;
-    if (m_idx_out[AE_CH_FLOC] >= 0) m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_FLOC;
-    if (m_idx_out[AE_CH_FROC] >= 0) m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_FROC;
-    if (m_idx_out[AE_CH_BC] >= 0)   m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_BC;
-    if (m_idx_out[AE_CH_SL] >= 0)   m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_SL;
-    if (m_idx_out[AE_CH_SR] >= 0)   m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_SR;
-    if (m_idx_out[AE_CH_TFL] >= 0)  m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_TFL;
-    if (m_idx_out[AE_CH_TFR] >= 0)  m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_TFR;
-    if (m_idx_out[AE_CH_TFC] >= 0)  m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_TFC;
-    if (m_idx_out[AE_CH_TC] >= 0)   m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_TC;
-    if (m_idx_out[AE_CH_TBL] >= 0)  m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_TBL;
-    if (m_idx_out[AE_CH_TBR] >= 0)  m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_TBR;
-    if (m_idx_out[AE_CH_TBC] >= 0)  m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_TBC;
-    if (m_idx_out[AE_CH_BLOC] >= 0) m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_BLOC;
-    if (m_idx_out[AE_CH_BROC] >= 0) m_addonSettings.lOutChannelPresentFlags |= AE_DSP_PRSNT_CH_BROC;
+    for (int ii = 0; ii < AE_DSP_CH_MAX; ii++)
+    {
+      if (m_idx_out[ii + 1] >= 0)
+      {
+        m_addonSettings.lOutChannelPresentFlags |= 1 << ii;
+      }
+    }
 
     m_addonSettings.iStreamID           = m_streamId;
     m_addonSettings.iInChannels         = in->pkt->config.channels;
@@ -1265,7 +1294,7 @@ bool CActiveAEDSPProcess::Process(CSampleBuffer *in, CSampleBuffer *out)
     /**
      * Setup ffmpeg convert array for input stream
      */
-    SetFFMpegDSPProcessorArray(m_ffMpegConvertArray, m_processArray[0], NULL);
+    SetFFMpegDSPProcessorArray(m_ffMpegConvertArray[FFMPEG_PROC_ARRAY_IN], m_processArray[0], m_idx_in, m_addonSettings.lInChannelPresentFlags);
   }
 
   int64_t startTime;
@@ -1275,7 +1304,10 @@ bool CActiveAEDSPProcess::Process(CSampleBuffer *in, CSampleBuffer *out)
   /**
    * Convert to required planar float format inside dsp system
    */
-  if (swr_convert(m_convertInput, (uint8_t **)m_ffMpegConvertArray[0], m_processArraySize, (const uint8_t **)in->pkt->data , frames) < 0)
+#if defined(ADSP_COUT_DEBUG_OUTPUT)
+  cout << "swr_convert(m_convertInput, ...)" << endl;
+#endif
+  if (swr_convert(m_convertInput, (uint8_t **)m_ffMpegConvertArray[FFMPEG_PROC_ARRAY_IN], m_processArraySize, (const uint8_t **)in->pkt->data, in->pkt->nb_samples) < 0)
   {
     CLog::Log(LOGERROR, "ActiveAE DSP - %s - input audio convert failed", __FUNCTION__);
     return false;
@@ -1290,6 +1322,9 @@ bool CActiveAEDSPProcess::Process(CSampleBuffer *in, CSampleBuffer *out)
    * Can be used to have unchanged input stream..
    * All DSP addons allowed todo this.
    */
+#if defined(ADSP_COUT_DEBUG_OUTPUT)
+  cout << "InputProcess(...)" << endl;
+#endif
   for (unsigned int i = 0; i < m_addons_InputProc.size(); ++i)
   {
     if (!m_addons_InputProc[i].pAddon->InputProcess(&m_addons_InputProc[i].handle, (const float **)lastOutArray, frames))
@@ -1304,6 +1339,9 @@ bool CActiveAEDSPProcess::Process(CSampleBuffer *in, CSampleBuffer *out)
    * Here a high quality resample can be performed.
    * Only one DSP addon is allowed todo this!
    */
+#if defined(ADSP_COUT_DEBUG_OUTPUT)
+  cout << "InputResampleProcess(...)" << endl;
+#endif
   if (m_addon_InputResample.pAddon)
   {
     startTime = CurrentHostCounter();
@@ -1322,6 +1360,9 @@ bool CActiveAEDSPProcess::Process(CSampleBuffer *in, CSampleBuffer *out)
    * DSP pre processing
    * All DSP addons allowed todo this and order of it set on settings.
    */
+#if defined(ADSP_COUT_DEBUG_OUTPUT)
+  cout << "PreProcess(...)" << endl;
+#endif
   for (unsigned int i = 0; i < m_addons_PreProc.size(); ++i)
   {
     startTime = CurrentHostCounter();
@@ -1360,12 +1401,19 @@ bool CActiveAEDSPProcess::Process(CSampleBuffer *in, CSampleBuffer *out)
    * from output and not becomes processed by active master processing mode or
    * perform ffmpeg related internal master processes.
    */
+#if defined(ADSP_COUT_DEBUG_OUTPUT)
+  cout << "Resample(...)" << endl;
+#endif
   if (m_resamplerDSPProcessor)
   {
     startTime = CurrentHostCounter();
 
     if (needDSPAddonsReinit)
-      SetFFMpegDSPProcessorArray(m_ffMpegProcessArray, lastOutArray, m_processArray[togglePtr]);
+    {
+      // TODO: test this with an resampler add-on
+      SetFFMpegDSPProcessorArray(m_ffMpegConvertArray[FFMPEG_PROC_ARRAY_IN], lastOutArray, m_idx_in, m_addonSettings.lInChannelPresentFlags);
+      SetFFMpegDSPProcessorArray(m_ffMpegConvertArray[FFMPEG_PROC_ARRAY_OUT], m_processArray[togglePtr], m_idx_out, m_addonSettings.lOutChannelPresentFlags);
+    }
 
     frames = m_resamplerDSPProcessor->Resample((uint8_t**)m_ffMpegProcessArray[FFMPEG_PROC_ARRAY_OUT], frames, (uint8_t**)m_ffMpegProcessArray[FFMPEG_PROC_ARRAY_IN], frames, 1.0);
     if (frames <= 0)
@@ -1386,6 +1434,9 @@ bool CActiveAEDSPProcess::Process(CSampleBuffer *in, CSampleBuffer *out)
    * or frequency/volume corrections, speaker distance handling, equalizer... .
    * All DSP addons allowed todo this and order of it set on settings.
    */
+#if defined(ADSP_COUT_DEBUG_OUTPUT)
+  cout << "PostProcess(...)" << endl;
+#endif
   for (unsigned int i = 0; i < m_addons_PostProc.size(); ++i)
   {
     startTime = CurrentHostCounter();
@@ -1405,6 +1456,9 @@ bool CActiveAEDSPProcess::Process(CSampleBuffer *in, CSampleBuffer *out)
    * Here a high quality resample can be performed.
    * Only one DSP addon is allowed todo this!
    */
+#if defined(ADSP_COUT_DEBUG_OUTPUT)
+  cout << "OutputResampleProcess(...)" << endl;
+#endif
   if (m_addon_OutputResample.pAddon)
   {
     startTime = CurrentHostCounter();
@@ -1423,17 +1477,25 @@ bool CActiveAEDSPProcess::Process(CSampleBuffer *in, CSampleBuffer *out)
    * Setup ffmpeg convert array for output stream, performed here to now last array
    */
   if (needDSPAddonsReinit)
-    SetFFMpegDSPProcessorArray(m_ffMpegConvertArray, NULL, lastOutArray);
+    SetFFMpegDSPProcessorArray(m_ffMpegConvertArray[FFMPEG_PROC_ARRAY_OUT], lastOutArray, m_idx_out, m_addonSettings.lOutChannelPresentFlags);
 
   /**
    * Convert back to required output format
    */
-  if (swr_convert(m_convertOutput, (uint8_t **)out->pkt->data, m_processArraySize, (const uint8_t **)m_ffMpegConvertArray[1], frames) < 0)
+#if defined(ADSP_COUT_DEBUG_OUTPUT)
+   for (int ii = 0; ii < AE_DSP_CH_MAX; ii++)
+   {
+    cout << "m_ffMpegConvertArray[" << ii << "]=0x" << hex << m_ffMpegConvertArray[FFMPEG_PROC_ARRAY_OUT][ii] << dec << endl;
+   }
+   cout << "swr_convert(m_convertOutput, ...)" << endl;
+#endif
+  if (swr_convert(m_convertOutput, (uint8_t **)out->pkt->data, out->pkt->max_nb_samples, (const uint8_t **)m_ffMpegConvertArray[FFMPEG_PROC_ARRAY_OUT], frames) < 0)
   {
     CLog::Log(LOGERROR, "ActiveAE DSP - %s - output audio convert failed", __FUNCTION__);
     return false;
   }
   out->pkt->nb_samples = frames;
+  out->pkt_start_offset = out->pkt->nb_samples;
 
   /**
    * Update cpu process percent usage values for modes and total (every second)
@@ -1564,7 +1626,7 @@ void CActiveAEDSPProcess::CalculateCPUUsage(uint64_t iTime)
   m_iLastProcessTime  = iTime;
 }
 
-void CActiveAEDSPProcess::SetFFMpegDSPProcessorArray(float *array_ffmpeg[2][AE_DSP_CH_MAX], float **array_in, float **array_out)
+void CActiveAEDSPProcess::SetFFMpegDSPProcessorArray(float *array_ffmpeg[AE_DSP_CH_MAX], float *array_dsp[AE_DSP_CH_MAX], int idx[AE_CH_MAX], unsigned long ChannelFlags)
 {
   /*!
    * Setup ffmpeg resampler channel setup, this way is not my favorite but it works to become
@@ -1575,54 +1637,17 @@ void CActiveAEDSPProcess::SetFFMpegDSPProcessorArray(float *array_ffmpeg[2][AE_D
    * already present channel memory storage.
    */
 
-  //! Initialize input channel alignmment for ffmpeg process array
-  if (array_in)
+  /*! NOTE: If you change or add new channel enums to AEChannel in 
+    * xbmc/cores/AudioEngine/Utils/AEChannelData.h you have to adapt this loop
+    */
+  memset(array_ffmpeg, 0, sizeof(float*)*AE_DSP_CH_MAX);
+  for (int ii = 0; ii < AE_DSP_CH_MAX; ii++)
   {
-    if (m_addonSettings.lInChannelPresentFlags & AE_DSP_PRSNT_CH_FL)   array_ffmpeg[FFMPEG_PROC_ARRAY_IN][m_idx_in[AE_CH_FL]]    = array_in[AE_DSP_CH_FL];
-    if (m_addonSettings.lInChannelPresentFlags & AE_DSP_PRSNT_CH_FR)   array_ffmpeg[FFMPEG_PROC_ARRAY_IN][m_idx_in[AE_CH_FR]]    = array_in[AE_DSP_CH_FR];
-    if (m_addonSettings.lInChannelPresentFlags & AE_DSP_PRSNT_CH_FC)   array_ffmpeg[FFMPEG_PROC_ARRAY_IN][m_idx_in[AE_CH_FC]]    = array_in[AE_DSP_CH_FC];
-    if (m_addonSettings.lInChannelPresentFlags & AE_DSP_PRSNT_CH_LFE)  array_ffmpeg[FFMPEG_PROC_ARRAY_IN][m_idx_in[AE_CH_LFE]]   = array_in[AE_DSP_CH_LFE];
-    if (m_addonSettings.lInChannelPresentFlags & AE_DSP_PRSNT_CH_BL)   array_ffmpeg[FFMPEG_PROC_ARRAY_IN][m_idx_in[AE_CH_BL]]    = array_in[AE_DSP_CH_BL];
-    if (m_addonSettings.lInChannelPresentFlags & AE_DSP_PRSNT_CH_BR)   array_ffmpeg[FFMPEG_PROC_ARRAY_IN][m_idx_in[AE_CH_BR]]    = array_in[AE_DSP_CH_BR];
-    if (m_addonSettings.lInChannelPresentFlags & AE_DSP_PRSNT_CH_FLOC) array_ffmpeg[FFMPEG_PROC_ARRAY_IN][m_idx_in[AE_CH_FLOC]]  = array_in[AE_DSP_CH_FLOC];
-    if (m_addonSettings.lInChannelPresentFlags & AE_DSP_PRSNT_CH_FROC) array_ffmpeg[FFMPEG_PROC_ARRAY_IN][m_idx_in[AE_CH_FROC]]  = array_in[AE_DSP_CH_FROC];
-    if (m_addonSettings.lInChannelPresentFlags & AE_DSP_PRSNT_CH_BC)   array_ffmpeg[FFMPEG_PROC_ARRAY_IN][m_idx_in[AE_CH_BC]]    = array_in[AE_DSP_CH_BC];
-    if (m_addonSettings.lInChannelPresentFlags & AE_DSP_PRSNT_CH_SL)   array_ffmpeg[FFMPEG_PROC_ARRAY_IN][m_idx_in[AE_CH_SL]]    = array_in[AE_DSP_CH_SL];
-    if (m_addonSettings.lInChannelPresentFlags & AE_DSP_PRSNT_CH_SR)   array_ffmpeg[FFMPEG_PROC_ARRAY_IN][m_idx_in[AE_CH_SR]]    = array_in[AE_DSP_CH_SR];
-    if (m_addonSettings.lInChannelPresentFlags & AE_DSP_PRSNT_CH_TFL)  array_ffmpeg[FFMPEG_PROC_ARRAY_IN][m_idx_in[AE_CH_TFL]]   = array_in[AE_DSP_CH_TFL];
-    if (m_addonSettings.lInChannelPresentFlags & AE_DSP_PRSNT_CH_TFR)  array_ffmpeg[FFMPEG_PROC_ARRAY_IN][m_idx_in[AE_CH_TFR]]   = array_in[AE_DSP_CH_TFR];
-    if (m_addonSettings.lInChannelPresentFlags & AE_DSP_PRSNT_CH_TFC)  array_ffmpeg[FFMPEG_PROC_ARRAY_IN][m_idx_in[AE_CH_TFC]]   = array_in[AE_DSP_CH_TFC];
-    if (m_addonSettings.lInChannelPresentFlags & AE_DSP_PRSNT_CH_TC)   array_ffmpeg[FFMPEG_PROC_ARRAY_IN][m_idx_in[AE_CH_TC]]    = array_in[AE_DSP_CH_TC];
-    if (m_addonSettings.lInChannelPresentFlags & AE_DSP_PRSNT_CH_TBL)  array_ffmpeg[FFMPEG_PROC_ARRAY_IN][m_idx_in[AE_CH_TBL]]   = array_in[AE_DSP_CH_TBL];
-    if (m_addonSettings.lInChannelPresentFlags & AE_DSP_PRSNT_CH_TBR)  array_ffmpeg[FFMPEG_PROC_ARRAY_IN][m_idx_in[AE_CH_TBR]]   = array_in[AE_DSP_CH_TBR];
-    if (m_addonSettings.lInChannelPresentFlags & AE_DSP_PRSNT_CH_TBC)  array_ffmpeg[FFMPEG_PROC_ARRAY_IN][m_idx_in[AE_CH_TBC]]   = array_in[AE_DSP_CH_TBC];
-    if (m_addonSettings.lInChannelPresentFlags & AE_DSP_PRSNT_CH_BLOC) array_ffmpeg[FFMPEG_PROC_ARRAY_IN][m_idx_in[AE_CH_BLOC]]  = array_in[AE_DSP_CH_BLOC];
-    if (m_addonSettings.lInChannelPresentFlags & AE_DSP_PRSNT_CH_BROC) array_ffmpeg[FFMPEG_PROC_ARRAY_IN][m_idx_in[AE_CH_BROC]]  = array_in[AE_DSP_CH_BROC];
-  }
+    if (ChannelFlags & 1 << ii)
+    {
+      array_ffmpeg[m_idx_in[ii + 1]] = array_dsp[ii];
+    }
 
-  //! Initialize output channel alignmment for ffmpeg process array
-  if (array_out)
-  {
-    if (m_addonSettings.lOutChannelPresentFlags & AE_DSP_PRSNT_CH_FL)   array_ffmpeg[FFMPEG_PROC_ARRAY_OUT][m_idx_out[AE_CH_FL]]    = array_out[AE_DSP_CH_FL];
-    if (m_addonSettings.lOutChannelPresentFlags & AE_DSP_PRSNT_CH_FR)   array_ffmpeg[FFMPEG_PROC_ARRAY_OUT][m_idx_out[AE_CH_FR]]    = array_out[AE_DSP_CH_FR];
-    if (m_addonSettings.lOutChannelPresentFlags & AE_DSP_PRSNT_CH_FC)   array_ffmpeg[FFMPEG_PROC_ARRAY_OUT][m_idx_out[AE_CH_FC]]    = array_out[AE_DSP_CH_FC];
-    if (m_addonSettings.lOutChannelPresentFlags & AE_DSP_PRSNT_CH_LFE)  array_ffmpeg[FFMPEG_PROC_ARRAY_OUT][m_idx_out[AE_CH_LFE]]   = array_out[AE_DSP_CH_LFE];
-    if (m_addonSettings.lOutChannelPresentFlags & AE_DSP_PRSNT_CH_BL)   array_ffmpeg[FFMPEG_PROC_ARRAY_OUT][m_idx_out[AE_CH_BL]]    = array_out[AE_DSP_CH_BL];
-    if (m_addonSettings.lOutChannelPresentFlags & AE_DSP_PRSNT_CH_BR)   array_ffmpeg[FFMPEG_PROC_ARRAY_OUT][m_idx_out[AE_CH_BR]]    = array_out[AE_DSP_CH_BR];
-    if (m_addonSettings.lOutChannelPresentFlags & AE_DSP_PRSNT_CH_FLOC) array_ffmpeg[FFMPEG_PROC_ARRAY_OUT][m_idx_out[AE_CH_FLOC]]  = array_out[AE_DSP_CH_FLOC];
-    if (m_addonSettings.lOutChannelPresentFlags & AE_DSP_PRSNT_CH_FROC) array_ffmpeg[FFMPEG_PROC_ARRAY_OUT][m_idx_out[AE_CH_FROC]]  = array_out[AE_DSP_CH_FROC];
-    if (m_addonSettings.lOutChannelPresentFlags & AE_DSP_PRSNT_CH_BC)   array_ffmpeg[FFMPEG_PROC_ARRAY_OUT][m_idx_out[AE_CH_BC]]    = array_out[AE_DSP_CH_BC];
-    if (m_addonSettings.lOutChannelPresentFlags & AE_DSP_PRSNT_CH_SL)   array_ffmpeg[FFMPEG_PROC_ARRAY_OUT][m_idx_out[AE_CH_SL]]    = array_out[AE_DSP_CH_SL];
-    if (m_addonSettings.lOutChannelPresentFlags & AE_DSP_PRSNT_CH_SR)   array_ffmpeg[FFMPEG_PROC_ARRAY_OUT][m_idx_out[AE_CH_SR]]    = array_out[AE_DSP_CH_SR];
-    if (m_addonSettings.lOutChannelPresentFlags & AE_DSP_PRSNT_CH_TFL)  array_ffmpeg[FFMPEG_PROC_ARRAY_OUT][m_idx_out[AE_CH_TFL]]   = array_out[AE_DSP_CH_TFL];
-    if (m_addonSettings.lOutChannelPresentFlags & AE_DSP_PRSNT_CH_TFR)  array_ffmpeg[FFMPEG_PROC_ARRAY_OUT][m_idx_out[AE_CH_TFR]]   = array_out[AE_DSP_CH_TFR];
-    if (m_addonSettings.lOutChannelPresentFlags & AE_DSP_PRSNT_CH_TFC)  array_ffmpeg[FFMPEG_PROC_ARRAY_OUT][m_idx_out[AE_CH_TFC]]   = array_out[AE_DSP_CH_TFC];
-    if (m_addonSettings.lOutChannelPresentFlags & AE_DSP_PRSNT_CH_TC)   array_ffmpeg[FFMPEG_PROC_ARRAY_OUT][m_idx_out[AE_CH_TC]]    = array_out[AE_DSP_CH_TC];
-    if (m_addonSettings.lOutChannelPresentFlags & AE_DSP_PRSNT_CH_TBL)  array_ffmpeg[FFMPEG_PROC_ARRAY_OUT][m_idx_out[AE_CH_TBL]]   = array_out[AE_DSP_CH_TBL];
-    if (m_addonSettings.lOutChannelPresentFlags & AE_DSP_PRSNT_CH_TBR)  array_ffmpeg[FFMPEG_PROC_ARRAY_OUT][m_idx_out[AE_CH_TBR]]   = array_out[AE_DSP_CH_TBR];
-    if (m_addonSettings.lOutChannelPresentFlags & AE_DSP_PRSNT_CH_TBC)  array_ffmpeg[FFMPEG_PROC_ARRAY_OUT][m_idx_out[AE_CH_TBC]]   = array_out[AE_DSP_CH_TBC];
-    if (m_addonSettings.lOutChannelPresentFlags & AE_DSP_PRSNT_CH_BLOC) array_ffmpeg[FFMPEG_PROC_ARRAY_OUT][m_idx_out[AE_CH_BLOC]]  = array_out[AE_DSP_CH_BLOC];
-    if (m_addonSettings.lOutChannelPresentFlags & AE_DSP_PRSNT_CH_BROC) array_ffmpeg[FFMPEG_PROC_ARRAY_OUT][m_idx_out[AE_CH_BROC]]  = array_out[AE_DSP_CH_BROC];
   }
 }
 

@@ -20,12 +20,18 @@
 
 #include "ActiveAEBuffer.h"
 #include "cores/AudioEngine/AEFactory.h"
-#include "cores/AudioEngine/DSPAddons/ActiveAEDSPProcess.h"
+#include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/ActiveAEDSPProcess.h"
 #include "cores/AudioEngine/Engines/ActiveAE/ActiveAE.h"
 #include "cores/AudioEngine/Utils/AEUtil.h"
 #include "cores/AudioEngine/AEResampleFactory.h"
 
+
 using namespace ActiveAE;
+
+#if defined(ADSP_COUT_DEBUG_OUTPUT)
+#include <iostream>
+using namespace std;
+#endif
 
 /* typecast AE to CActiveAE */
 #define AE (*((CActiveAE*)CAEFactory::GetEngine()))
@@ -123,6 +129,19 @@ bool CActiveAEBufferPool::Create(unsigned int totaltime)
   config.sample_rate = m_format.m_sampleRate;
   config.channel_layout = CAEUtil::GetAVChannelLayout(m_format.m_channelLayout);
 
+  // discard already created buffers
+  if (m_allSamples.size() > 0 || m_freeSamples.size() > 0)
+  {
+    m_freeSamples.clear();
+    while (m_allSamples.size() > 0)
+    {
+      buffer = m_allSamples.front();
+      m_allSamples.pop_front();
+      delete buffer;
+    }
+    buffer = nullptr;
+  }
+
   unsigned int time = 0;
   unsigned int buffertime = (m_format.m_frames*1000) / m_format.m_sampleRate;
   if (m_format.m_dataFormat == AE_FMT_RAW)
@@ -150,6 +169,10 @@ bool CActiveAEBufferPool::Create(unsigned int totaltime)
 CActiveAEBufferPoolResample::CActiveAEBufferPoolResample(AEAudioFormat inputFormat, AEAudioFormat outputFormat, AEQuality quality)
   : CActiveAEBufferPool(outputFormat)
 {
+#if defined(ADSP_COUT_DEBUG_OUTPUT)
+  CLog::Log(LOGDEBUG, "------CActiveAEBufferPoolResample::CActiveAEBufferPoolResample(...): inputFormat.m_dataFormat=%f, inputFormat.m_frames=%f, inputFormat.m_frameSize=%f, inputFormat.m_sampleRate=%f", (double)inputFormat.m_dataFormat, (double)inputFormat.m_frames, (double)inputFormat.m_frameSize, (double)inputFormat.m_sampleRate);
+  CLog::Log(LOGDEBUG, "------CActiveAEBufferPoolResample::CActiveAEBufferPoolResample(...): outputFormat.m_dataFormat=%f, outputFormat.m_frames=%f, outputFormat.m_frameSize=%f, outputFormat.m_sampleRate=%f", (double)outputFormat.m_dataFormat, (double)outputFormat.m_frames, (double)outputFormat.m_frameSize, (double)outputFormat.m_sampleRate);
+#endif
   m_inputFormat = inputFormat;
   if (m_inputFormat.m_dataFormat == AE_FMT_RAW)
   {
@@ -220,21 +243,31 @@ bool CActiveAEBufferPoolResample::Create(unsigned int totaltime, bool remap, boo
    */
   if ((useDSP || m_changeDSP) && !m_bypassDSP)
   {
-    m_dspFormat = m_inputFormat;
-    m_useDSP = CServiceBroker::GetADSP().CreateDSPs(m_streamId, m_processor, m_dspFormat, m_format, upmix, m_resampleQuality, m_MatrixEncoding, m_AudioServiceType, m_Profile);
+    // use input format from this CActiveAEBufferPoolResample as input for AudioDSP
+    // and use CActiveAEBufferPool::m_format as output format of AudioDSP
+    m_useDSP = CServiceBroker::GetADSP().CreateDSPs(m_streamId, m_processor, m_inputFormat, CActiveAEBufferPool::m_format, 
+                                                    upmix, m_resampleQuality, m_MatrixEncoding, m_AudioServiceType, m_Profile);
     if (m_useDSP)
     {
-
-      m_inputFormat.m_channelLayout = m_processor->GetChannelLayout();    /* Overide input format with DSP's supported format */
-      m_inputFormat.m_sampleRate    = m_processor->GetOutputSamplerate(); /* Overide input format with DSP's generated samplerate */
-      m_inputFormat.m_dataFormat    = m_processor->GetDataFormat();       /* Overide input format with DSP's processed data format, normally it is float */
-      m_inputFormat.m_frames        = m_processor->GetOutputFrames();
+      m_adspOutFormat = CActiveAEBufferPool::m_format;
+      m_adspOutFormat.m_channelLayout = m_processor->GetChannelLayout();    /* Overide input format with DSP's supported format */
+      m_adspOutFormat.m_sampleRate    = m_processor->GetOutputSamplerate(); /* Overide input format with DSP's generated samplerate */
+      m_adspOutFormat.m_dataFormat    = m_processor->GetDataFormat();       /* Overide input format with DSP's processed data format, normally it is float */
+      m_adspOutFormat.m_frames        = m_processor->GetOutputFrames();
       m_forceResampler              = true;                               /* Force load of ffmpeg resampler, required to detect exact input and output channel alignment pointers */
       if (m_processor->GetChannelLayout().Count() > 2)                    /* Disable upmix for CActiveAEResample if DSP layout > 2.0, becomes perfomed by DSP */
         upmix = false;
 
-      m_dspBuffer = new CActiveAEBufferPool(m_inputFormat);               /* Get dsp processing buffer class, based on dsp output format */
+      if (!m_dspBuffer)
+      {
+        m_dspBuffer = new CActiveAEBufferPool(m_adspOutFormat); /* Get dsp processing buffer class, based on dsp output format */
+      }
+      else
+      {
+        m_dspBuffer->m_format = m_adspOutFormat;
+      }
       m_dspBuffer->Create(totaltime);
+      CActiveAEBufferPool::Create(totaltime); // recreate output buffer cause format has changed
     }
   }
   m_changeDSP  = false;
@@ -248,7 +281,7 @@ bool CActiveAEBufferPoolResample::Create(unsigned int totaltime, bool remap, boo
    * kodi based resample processing.
    *
    * The input format can be become modified if addon dsp processing is enabled. For this
-   * reason somethings are no more required for it. As example, if resampling is performed
+   * reason some things are no more required for it. As example, if resampling is performed
    * by the addons it is no more required here, also the channel layout can be modified
    * from addons. The output data format from dsp is always float and if something other
    * is required here, the CActiveAEResample must change it.
@@ -261,19 +294,31 @@ bool CActiveAEBufferPoolResample::Create(unsigned int totaltime, bool remap, boo
 
   if (m_useResampler || m_changeResampler)
   {
-    m_resampler = CAEResampleFactory::Create();
+    if(!m_resampler)
+      m_resampler = CAEResampleFactory::Create();
+
+    AEAudioFormat m_resamplerInFormat;
+    if (m_useDSP)
+    {
+      m_resamplerInFormat = m_adspOutFormat;
+    }
+    else
+    {
+      m_resamplerInFormat = m_inputFormat;
+    }
+
     m_resampler->Init(CAEUtil::GetAVChannelLayout(m_format.m_channelLayout),
                                 m_format.m_channelLayout.Count(),
                                 m_format.m_sampleRate,
                                 CAEUtil::GetAVSampleFormat(m_format.m_dataFormat),
                                 CAEUtil::DataFormatToUsedBits(m_format.m_dataFormat),
                                 CAEUtil::DataFormatToDitherBits(m_format.m_dataFormat),
-                                CAEUtil::GetAVChannelLayout(m_inputFormat.m_channelLayout),
-                                m_inputFormat.m_channelLayout.Count(),
-                                m_inputFormat.m_sampleRate,
-                                CAEUtil::GetAVSampleFormat(m_inputFormat.m_dataFormat),
-                                CAEUtil::DataFormatToUsedBits(m_inputFormat.m_dataFormat),
-                                CAEUtil::DataFormatToDitherBits(m_inputFormat.m_dataFormat),
+                                CAEUtil::GetAVChannelLayout(m_resamplerInFormat.m_channelLayout),
+                                m_resamplerInFormat.m_channelLayout.Count(),
+                                m_resamplerInFormat.m_sampleRate,
+                                CAEUtil::GetAVSampleFormat(m_resamplerInFormat.m_dataFormat),
+                                CAEUtil::DataFormatToUsedBits(m_resamplerInFormat.m_dataFormat),
+                                CAEUtil::DataFormatToDitherBits(m_resamplerInFormat.m_dataFormat),
                                 upmix,
                                 m_normalize,
                                 remap ? &m_format.m_channelLayout : NULL,
@@ -299,18 +344,29 @@ void CActiveAEBufferPoolResample::ChangeResampler()
     upmix = false;
 
   m_resampler = CAEResampleFactory::Create();
+
+  AEAudioFormat m_resamplerInFormat;
+  if (m_useDSP)
+  {
+    m_resamplerInFormat = m_adspOutFormat;
+  }
+  else
+  {
+    m_resamplerInFormat = m_inputFormat;
+  }
+
   m_resampler->Init(CAEUtil::GetAVChannelLayout(m_format.m_channelLayout),
                                 m_format.m_channelLayout.Count(),
                                 m_format.m_sampleRate,
                                 CAEUtil::GetAVSampleFormat(m_format.m_dataFormat),
                                 CAEUtil::DataFormatToUsedBits(m_format.m_dataFormat),
                                 CAEUtil::DataFormatToDitherBits(m_format.m_dataFormat),
-                                CAEUtil::GetAVChannelLayout(m_inputFormat.m_channelLayout),
-                                m_inputFormat.m_channelLayout.Count(),
-                                m_inputFormat.m_sampleRate,
-                                CAEUtil::GetAVSampleFormat(m_inputFormat.m_dataFormat),
-                                CAEUtil::DataFormatToUsedBits(m_inputFormat.m_dataFormat),
-                                CAEUtil::DataFormatToDitherBits(m_inputFormat.m_dataFormat),
+                                CAEUtil::GetAVChannelLayout(m_resamplerInFormat.m_channelLayout),
+                                m_resamplerInFormat.m_channelLayout.Count(),
+                                m_resamplerInFormat.m_sampleRate,
+                                CAEUtil::GetAVSampleFormat(m_resamplerInFormat.m_dataFormat),
+                                CAEUtil::DataFormatToUsedBits(m_resamplerInFormat.m_dataFormat),
+                                CAEUtil::DataFormatToDitherBits(m_resamplerInFormat.m_dataFormat),
                                 upmix,
                                 m_normalize,
                                 m_remap ? &m_format.m_channelLayout : NULL,
@@ -326,17 +382,20 @@ void CActiveAEBufferPoolResample::ChangeAudioDSP()
   bool wasActive = false;
   if (m_useDSP && m_processor != NULL)
   {
-    m_inputFormat = m_processor->GetInputFormat();
     wasActive = true;
   }
 
-  m_useDSP = CServiceBroker::GetADSP().CreateDSPs(m_streamId, m_processor, m_dspFormat, m_format, m_stereoUpmix, m_resampleQuality, m_MatrixEncoding, m_AudioServiceType, m_Profile, wasActive);
+  m_useDSP = CServiceBroker::GetADSP().CreateDSPs(m_streamId, m_processor, m_inputFormat,
+                                                  CActiveAEBufferPool::m_format, m_stereoUpmix, 
+                                                  m_resampleQuality, m_MatrixEncoding, 
+                                                  m_AudioServiceType, m_Profile, wasActive);
   if (m_useDSP)
   {
-    m_inputFormat.m_channelLayout = m_processor->GetChannelLayout();    /* Overide input format with DSP's supported format */
-    m_inputFormat.m_sampleRate    = m_processor->GetOutputSamplerate(); /* Overide input format with DSP's generated samplerate */
-    m_inputFormat.m_dataFormat    = m_processor->GetDataFormat();       /* Overide input format with DSP's processed data format, normally it is float */
-    m_inputFormat.m_frames        = m_processor->GetOutputFrames();
+    m_adspOutFormat = CActiveAEBufferPool::m_format;
+    m_adspOutFormat.m_channelLayout = m_processor->GetChannelLayout();    /* Overide output format with DSP's supported format */
+    m_adspOutFormat.m_sampleRate    = m_processor->GetOutputSamplerate(); /* Overide output format with DSP's generated samplerate */
+    m_adspOutFormat.m_dataFormat    = m_processor->GetDataFormat();       /* Overide output format with DSP's processed data format, normally it is float */
+    m_adspOutFormat.m_frames        = m_processor->GetOutputFrames();
     m_changeResampler             = true;                               /* Force load of ffmpeg resampler, required to detect exact input and output channel alignment pointers */
   }
   else if (wasActive)
@@ -423,6 +482,10 @@ bool CActiveAEBufferPoolResample::ResampleBuffers(int64_t timestamp)
       {
         in = m_inputSamples.front();
         m_inputSamples.pop_front();
+#if defined(ADSP_COUT_DEBUG_OUTPUT)
+        CLog::Log(LOGDEBUG, "------in->timestamp: %i, in->pkt_start_offset:%i, in->pkt->bytes_per_sample:%i, in->pkt->nb_samples:%i, in->pkt->pause_burst_ms:%i, in->pkt->planes:%i, in->pkt->linesize:%i, in->pkt->max_nb_samples:%i", in->timestamp, in->pkt_start_offset, in->pkt->bytes_per_sample, in->pkt->nb_samples, in->pkt->pause_burst_ms, in->pkt->planes, in->pkt->linesize, in->pkt->max_nb_samples);
+        CLog::Log(LOGDEBUG, "------in->pkt->config.bits_per_sample:%i, in->pkt->config.channels:%i, in->pkt->config.channel_layout:%lld, in->pkt->config.dither_bits:%i, in->pkt->config.sample_rate:%i", in->pkt->config.bits_per_sample, in->pkt->config.channels, (unsigned long long)in->pkt->config.channel_layout, in->pkt->config.dither_bits, in->pkt->config.sample_rate);
+#endif
       }
       else
         in = NULL;
@@ -436,9 +499,16 @@ bool CActiveAEBufferPoolResample::ResampleBuffers(int64_t timestamp)
         if (!m_dspSample)
           m_dspSample = m_dspBuffer->GetFreeBuffer();
 
+#if defined(ADSP_COUT_DEBUG_OUTPUT)
+        CLog::Log(LOGDEBUG, "------m_dspSample->timestamp: %i, m_dspSample->pkt_start_offset:%i, m_dspSample->pkt->bytes_per_sample:%i, m_dspSample->pkt->nb_samples:%i, m_dspSample->pkt->pause_burst_ms:%i, m_dspSample->pkt->planes:%i, m_dspSample->pkt->linesize:%i, m_dspSample->pkt->max_nb_samples:%i", m_dspSample->timestamp, m_dspSample->pkt_start_offset, m_dspSample->pkt->bytes_per_sample, m_dspSample->pkt->nb_samples, m_dspSample->pkt->pause_burst_ms, m_dspSample->pkt->planes, m_dspSample->pkt->linesize, m_dspSample->pkt->max_nb_samples);
+        CLog::Log(LOGDEBUG, "------m_dspSample->pkt->config.bits_per_sample:%i, m_dspSample->pkt->config.channels:%i, m_dspSample->pkt->config.channel_layout:%lld, m_dspSample->pkt->config.dither_bits:%i, m_dspSample->pkt->config.sample_rate:%i", m_dspSample->pkt->config.bits_per_sample, m_dspSample->pkt->config.channels, (unsigned long long)m_dspSample->pkt->config.channel_layout, m_dspSample->pkt->config.dither_bits, m_dspSample->pkt->config.sample_rate);
+#endif
+        // currently AudioDSP doesn't do any internal buffering that's why timestamp and pkt_start_offset
+        // is the same as the input
+        m_dspSample->timestamp = in->timestamp;
+        m_dspSample->pkt_start_offset = in->pkt_start_offset;
         if (m_dspSample && m_processor->Process(in, m_dspSample))
         {
-          m_dspSample->timestamp = in->timestamp;
           in->Return();
           in = m_dspSample;
           m_dspSample = NULL;
@@ -478,6 +548,10 @@ bool CActiveAEBufferPoolResample::ResampleBuffers(int64_t timestamp)
 
       if (in)
       {
+#if defined(ADSP_COUT_DEBUG_OUTPUT)
+        CLog::Log(LOGDEBUG, "------in->timestamp: %i, in->pkt_start_offset:%i, in->pkt->bytes_per_sample:%i, in->pkt->nb_samples:%i, in->pkt->pause_burst_ms:%i, in->pkt->planes:%i, in->pkt->linesize:%i, in->pkt->max_nb_samples:%i", in->timestamp, in->pkt_start_offset, in->pkt->bytes_per_sample, in->pkt->nb_samples, in->pkt->pause_burst_ms, in->pkt->planes, in->pkt->linesize, in->pkt->max_nb_samples);
+        CLog::Log(LOGDEBUG, "------in->pkt->config.bits_per_sample:%i, in->pkt->config.channels:%i, in->pkt->config.channel_layout:%lld, in->pkt->config.dither_bits:%i, in->pkt->config.sample_rate:%i", in->pkt->config.bits_per_sample, in->pkt->config.channels, (unsigned long long)in->pkt->config.channel_layout, in->pkt->config.dither_bits, in->pkt->config.sample_rate);
+#endif
         if (!timestamp)
         {
           if (in->timestamp)
@@ -551,8 +625,8 @@ float CActiveAEBufferPoolResample::GetDelay()
 
   if (m_procSample)
     delay += (float)m_procSample->pkt->nb_samples / m_procSample->pkt->config.sample_rate;
-  if (m_dspSample)
-    delay += (float)m_dspSample->pkt->nb_samples / m_dspSample->pkt->config.sample_rate;
+  //if (m_dspSample) // TODO this needs to be implemented when adsp supports asynchronous processing
+  //  delay += (float)m_dspSample->pkt->nb_samples / m_dspSample->pkt->config.sample_rate;
 
   for(itBuf=m_inputSamples.begin(); itBuf!=m_inputSamples.end(); ++itBuf)
   {
@@ -570,10 +644,14 @@ float CActiveAEBufferPoolResample::GetDelay()
     delay += (float)samples / m_format.m_sampleRate;
   }
 
+#if defined(ADSP_COUT_DEBUG_OUTPUT)
+  CLog::Log(LOGDEBUG, "------delay: %f", delay);
   if (m_useDSP)
   {
-    delay += m_processor->GetDelay();
+    CLog::Log(LOGDEBUG, "------m_processor->GetDelay(): %f", m_processor->GetDelay());
+    //delay += m_processor->GetDelay();  // TODO this needs to be implemented when adsp supports asynchronous processing
   }
+#endif
 
   return delay;
 }
