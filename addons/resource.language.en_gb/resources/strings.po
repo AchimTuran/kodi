@@ -7900,7 +7900,7 @@ msgstr ""
 
 #: xbmc/cores/AudioEngine/DSPAddons/ActiveAEDSPMode.cpp
 msgctxt "#15023"
-msgid "Master mode"
+msgid "Current active master mode"
 msgstr ""
 
 #empty string with id 15024 - 15027 is reserved for AudioDSP
