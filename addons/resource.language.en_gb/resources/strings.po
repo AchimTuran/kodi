@@ -7896,62 +7896,36 @@ msgctxt "#15021"
 msgid "Content type"
 msgstr ""
 
-#: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
-msgctxt "#15022"
-msgid "Listening mode"
-msgstr ""
+#empty string with id 15022 is reserved for AudioDSP
 
 #: xbmc/cores/AudioEngine/DSPAddons/ActiveAEDSPMode.cpp
 msgctxt "#15023"
 msgid "Master mode"
 msgstr ""
 
-#: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
-msgctxt "#15024"
-msgid "Pre-process setup..."
-msgstr ""
-
-#: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
-msgctxt "#15025"
-msgid "Listening mode setup..."
-msgstr ""
-
-#: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
-msgctxt "#15026"
-msgid "Speaker / Output setup..."
-msgstr ""
-
-#: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
-msgctxt "#15027"
-msgid "Audio information..."
-msgstr ""
+#empty string with id 15024 - 15027 is reserved for AudioDSP
 
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
 msgctxt "#15028"
-msgid "Audio DSP settings - Main"
+msgid "Main Audio DSP settings"
 msgstr ""
 
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
 msgctxt "#15029"
-msgid "Audio DSP settings - Listening mode"
+msgid "Master modes settings"
 msgstr ""
 
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
 msgctxt "#15030"
-msgid "Audio DSP settings - Speaker / Output"
+msgid "Post-processing modes settings"
 msgstr ""
 
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
 msgctxt "#15031"
-msgid "Audio DSP settings - Audio information"
+msgid "Audio DSP informations"
 msgstr ""
 
-#empty string with id 15032
-
-#: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
-msgctxt "#15033"
-msgid "Resampler setup..."
-msgstr ""
+#empty string with id 15032 - 15033 is reserved for AudioDSP
 
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
 msgctxt "#15034"
@@ -7960,15 +7934,10 @@ msgstr ""
 
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
 msgctxt "#15035"
-msgid "Audio DSP settings - Resampler"
+msgid "Resampling modes setup"
 msgstr ""
 
-#empty string with id 15036
-
-#: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
-msgctxt "#15037"
-msgid "Audio DSP settings - Pre-process"
-msgstr ""
+#empty string with id from 15036 to 15037 is reserved for AudioDSP
 
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
 msgctxt "#15038"
@@ -7977,7 +7946,7 @@ msgstr ""
 
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
 msgctxt "#15039"
-msgid "Pre-processing setup..."
+msgid "Pre-processing modes setup"
 msgstr ""
 
 #: xbmc/settings/dialogs/GUIDialogAudioDSPManager.cpp
@@ -8169,13 +8138,13 @@ msgstr ""
 #. Audio DSP process chain indication
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
 msgctxt "#15091"
-msgid "Positions"
+msgid "Audio channel names"
 msgstr ""
 
 #. Audio DSP process chain indication
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
 msgctxt "#15092"
-msgid "CPU usage for DSP"
+msgid "CPU usage for the entire Audio DSP system"
 msgstr ""
 
 #empty strings from id 15093 to 15099
@@ -13063,7 +13032,7 @@ msgstr ""
 #: xbmc/playlists/SmartPlaylist.cpp
 #: addons/skin.estuary/1080i/MusicVisualisation.xml
 msgctxt "#21444"
-msgid "Audio channels"
+msgid "Amount of audio channels"
 msgstr ""
 
 #: xbmc/playlists/SmartPlaylist.cpp
