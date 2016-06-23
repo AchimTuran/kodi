@@ -125,7 +125,7 @@ void CGUIDialogAudioDSPSettings::OpenMenu(const std::string &id)
   else if (id == SETTING_AUDIO_CAT_RESAMPLING)
     m_MenuName = 15035;
   else if (id == SETTING_AUDIO_CAT_PRE_PROCESS)
-    m_MenuName = 15037;
+    m_MenuName = 15039;
   else if (id == SETTING_AUDIO_CAT_MISC)
     m_MenuName = 15038;
   else if (id == SETTING_AUDIO_CAT_PROC_INFO)
@@ -496,7 +496,7 @@ void CGUIDialogAudioDSPSettings::InitializeSettings()
   }
 
   m_modeTypeUsed = CMediaSettings::GetInstance().GetCurrentAudioSettings().m_MasterModes[m_streamTypeUsed][m_baseTypeUsed];
-  CSettingInt *spinner = AddSpinner(groupAudioModeSel, SETTING_AUDIO_MAIN_MODETYPE, 15022, 0, m_modeTypeUsed, AudioModeOptionFiller);
+  CSettingInt *spinner = AddSpinner(groupAudioModeSel, SETTING_AUDIO_MAIN_MODETYPE, 15023, 0, m_modeTypeUsed, AudioModeOptionFiller);
   spinner->SetOptionsFiller(AudioModeOptionFiller, this);
 
   ///-----------------------
@@ -516,12 +516,12 @@ void CGUIDialogAudioDSPSettings::InitializeSettings()
 
   ///-----------------------
 
-  AddButton(groupAudioSubmenuSel, SETTING_AUDIO_MAIN_BUTTON_MASTER,   15025, 0, false, AddonMasterModeSetupPresent, -1);
-  AddButton(groupAudioSubmenuSel, SETTING_AUDIO_MAIN_BUTTON_OUTPUT,   15026, 0, false, HaveActiveMenuHooks(AE_DSP_MENUHOOK_POST_PROCESS) || SupportsAudioFeature(IPC_AUD_OFFSET), -1);
-  AddButton(groupAudioSubmenuSel, SETTING_AUDIO_MAIN_BUTTON_RESAMPLE, 15033, 0, false, HaveActiveMenuHooks(AE_DSP_MENUHOOK_RESAMPLE), -1);
+  AddButton(groupAudioSubmenuSel, SETTING_AUDIO_MAIN_BUTTON_MASTER,   15029, 0, false, AddonMasterModeSetupPresent, -1);
+  AddButton(groupAudioSubmenuSel, SETTING_AUDIO_MAIN_BUTTON_OUTPUT,   15030, 0, false, HaveActiveMenuHooks(AE_DSP_MENUHOOK_POST_PROCESS) || SupportsAudioFeature(IPC_AUD_OFFSET), -1);
+  AddButton(groupAudioSubmenuSel, SETTING_AUDIO_MAIN_BUTTON_RESAMPLE, 15035, 0, false, HaveActiveMenuHooks(AE_DSP_MENUHOOK_RESAMPLE), -1);
   AddButton(groupAudioSubmenuSel, SETTING_AUDIO_MAIN_BUTTON_PRE_PROC, 15039, 0, false, HaveActiveMenuHooks(AE_DSP_MENUHOOK_PRE_PROCESS), -1);
   AddButton(groupAudioSubmenuSel, SETTING_AUDIO_MAIN_BUTTON_MISC,     15034, 0, false, HaveActiveMenuHooks(AE_DSP_MENUHOOK_MISCELLANEOUS), -1);
-  AddButton(groupAudioSubmenuSel, SETTING_AUDIO_MAIN_BUTTON_INFO,     15027, 0, false, true, -1);
+  AddButton(groupAudioSubmenuSel, SETTING_AUDIO_MAIN_BUTTON_INFO,     15031, 0, false, true, -1);
 
   ///-----------------------
 
