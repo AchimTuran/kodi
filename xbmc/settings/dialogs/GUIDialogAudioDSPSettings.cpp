@@ -62,7 +62,6 @@
 #define SETTING_AUDIO_MAIN_BUTTON_INFO            "audiodsp.main.menuinfo"
 #define SETTING_AUDIO_MAIN_MAKE_DEFAULT           "audiodsp.main.makedefault"
 #define SETTING_AUDIO_MASTER_SETTINGS_MENUS       "audiodsp.master.menu_"
-#define SETTING_AUDIO_POST_PROC_AUDIO_DELAY       "audiodsp.postproc.delay"
 #define SETTING_AUDIO_PROC_SETTINGS_MENUS         "audiodsp.proc.menu_"
 
 #define SETTING_STREAM_INFO_INPUT_CHANNELS        "audiodsp.info.inputchannels"
@@ -224,10 +223,6 @@ void CGUIDialogAudioDSPSettings::FrameMove()
   {
     const CVideoSettings &videoSettings = CMediaSettings::GetInstance().GetCurrentVideoSettings();
 
-    // these settings can change on the fly
-    if (SupportsAudioFeature(IPC_AUD_OFFSET))
-      m_settingsManager->SetNumber(SETTING_AUDIO_POST_PROC_AUDIO_DELAY, videoSettings.m_AudioDelay);
-
     bool forceReload = false;
     unsigned int  streamId = CServiceBroker::GetADSP().GetActiveStreamId();
     if (m_ActiveStreamId != streamId)
@@ -278,16 +273,6 @@ void CGUIDialogAudioDSPSettings::FrameMove()
   }
 
   CGUIDialogSettingsManualBase::FrameMove();
-}
-
-std::string CGUIDialogAudioDSPSettings::FormatDelay(float value, float interval)
-{
-  if (fabs(value) < 0.5f * interval)
-    return StringUtils::Format(g_localizeStrings.Get(22003).c_str(), 0.0);
-  if (value < 0)
-    return StringUtils::Format(g_localizeStrings.Get(22004).c_str(), fabs(value));
-
-  return StringUtils::Format(g_localizeStrings.Get(22005).c_str(), value);
 }
 
 std::string CGUIDialogAudioDSPSettings::FormatDecibel(float value)
@@ -350,11 +335,6 @@ void CGUIDialogAudioDSPSettings::OnSettingChanged(const CSetting *setting)
   {
     videoSettings.m_VolumeAmplification = static_cast<float>(static_cast<const CSettingNumber*>(setting)->GetValue());
     g_application.m_pPlayer->SetDynamicRangeCompression((long)(videoSettings.m_VolumeAmplification * 100));
-  }
-  else if (settingId == SETTING_AUDIO_POST_PROC_AUDIO_DELAY)
-  {
-    videoSettings.m_AudioDelay = static_cast<float>(static_cast<const CSettingNumber*>(setting)->GetValue());
-    g_application.m_pPlayer->SetAVDelay(videoSettings.m_AudioDelay);
   }
 }
 
@@ -625,12 +605,6 @@ void CGUIDialogAudioDSPSettings::InitializeSettings()
       return;
     }
 
-    // audio delay setting
-    if (SupportsAudioFeature(IPC_AUD_OFFSET))
-    {
-      CSettingNumber *settingAudioDelay = AddSlider(groupInternal, SETTING_AUDIO_POST_PROC_AUDIO_DELAY, 297, 0, videoSettings.m_AudioDelay, 0, -g_advancedSettings.m_videoAudioDelayRange, 0.025f, g_advancedSettings.m_videoAudioDelayRange, 297, usePopup);
-      static_cast<CSettingControlSlider*>(settingAudioDelay->GetControl())->SetFormatter(SettingFormatterDelay);
-    }
     GetAudioDSPMenus(groupAddon, AE_DSP_MENUHOOK_POST_PROCESS);
   }
 
@@ -841,22 +815,6 @@ void CGUIDialogAudioDSPSettings::AudioModeOptionFiller(const CSetting *setting, 
     list.push_back(make_pair(g_localizeStrings.Get(231), -1));
     current = -1;
   }
-}
-
-std::string CGUIDialogAudioDSPSettings::SettingFormatterDelay(const CSettingControlSlider *control, const CVariant &value, const CVariant &minimum, const CVariant &step, const CVariant &maximum)
-{
-  if (!value.isDouble())
-    return "";
-
-  float fValue = value.asFloat();
-  float fStep = step.asFloat();
-
-  if (fabs(fValue) < 0.5f * fStep)
-    return StringUtils::Format(g_localizeStrings.Get(22003).c_str(), 0.0);
-  if (fValue < 0)
-    return StringUtils::Format(g_localizeStrings.Get(22004).c_str(), fabs(fValue));
-
-  return StringUtils::Format(g_localizeStrings.Get(22005).c_str(), fValue);
 }
 
 std::string CGUIDialogAudioDSPSettings::SettingFormatterPercentAsDecibel(const CSettingControlSlider *control, const CVariant &value, const CVariant &minimum, const CVariant &step, const CVariant &maximum)

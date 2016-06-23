@@ -40,7 +40,6 @@ namespace ActiveAE
     // specialization of CGUIWindow
     virtual void FrameMove();
 
-    static std::string FormatDelay(float value, float interval);
     static std::string FormatDecibel(float value);
     static std::string FormatPercentAsDecibel(float value);
 
@@ -61,7 +60,6 @@ namespace ActiveAE
 
     static void AudioModeOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data);
 
-    static std::string SettingFormatterDelay(const CSettingControlSlider *control, const CVariant &value, const CVariant &minimum, const CVariant &step, const CVariant &maximum);
     static std::string SettingFormatterPercentAsDecibel(const CSettingControlSlider *control, const CVariant &value, const CVariant &minimum, const CVariant &step, const CVariant &maximum);
 
     std::string GetSettingsLabel(CSetting *pSetting);
