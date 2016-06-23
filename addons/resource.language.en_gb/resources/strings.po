@@ -8073,11 +8073,7 @@ msgctxt "#15064"
 msgid "Apply changes directly"
 msgstr ""
 
-#. Warning if no dsp modes are present
-#: xbmc/settings/dialogs/GUIDialogAudioDSPManager.cpp
-msgctxt "#15065"
-msgid "No audio DSP modes available"
-msgstr ""
+# 15065 is reserved for AudioDSP
 
 #. Button to disable all enabled modes on current selected type
 msgctxt "#15066"
