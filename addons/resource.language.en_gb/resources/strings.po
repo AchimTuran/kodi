@@ -6838,6 +6838,7 @@ msgctxt "#13550"
 msgid "Delay after change of refresh rate"
 msgstr ""
 
+#: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
 msgctxt "#13551"
 msgid "Off"
 msgstr ""
@@ -7909,7 +7910,10 @@ msgctxt "#15021"
 msgid "Content type"
 msgstr ""
 
-#empty string with id 15022 is reserved for AudioDSP
+#: xbmc/cores/AudioEngine/DSPAddons/ActiveAEDSPMode.cpp
+msgctxt "#15022"
+msgid "Set active master mode"
+msgstr ""
 
 #: xbmc/cores/AudioEngine/DSPAddons/ActiveAEDSPMode.cpp
 msgctxt "#15023"
