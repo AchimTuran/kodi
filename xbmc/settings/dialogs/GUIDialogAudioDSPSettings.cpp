@@ -27,6 +27,7 @@
 #include "cores/AudioEngine/Utils/AEUtil.h"
 #include "dialogs/GUIDialogKaiToast.h"
 #include "dialogs/GUIDialogYesNo.h"
+#include "dialogs/GUIDialogSelect.h"
 #include "guilib/GUIMessage.h"
 #include "guilib/GUIWindowManager.h"
 #include "guilib/LocalizeStrings.h"
@@ -158,6 +159,34 @@ bool CGUIDialogAudioDSPSettings::OnMessage(CGUIMessage &message)
             OpenMenu(SETTING_AUDIO_CAT_PRE_PROCESS);
           else if (setting->GetId() == SETTING_AUDIO_MAIN_BUTTON_MISC)
             OpenMenu(SETTING_AUDIO_CAT_MISC);
+          else if (setting->GetId() == SETTING_AUDIO_MAIN_MODETYPE)
+          {
+            CGUIDialogSelect* pDlgSelect = (CGUIDialogSelect*)g_windowManager.GetWindow(WINDOW_DIALOG_SELECT);
+            pDlgSelect->Reset();
+            pDlgSelect->SetHeading(CVariant{15022});
+
+            for (int ii = 0; ii < m_ModeList.size(); ii++)
+            {
+              pDlgSelect->Add(m_ModeList[ii].first);
+            }
+
+            pDlgSelect->Open();
+
+            int iItem = pDlgSelect->GetSelectedItem();
+            if (iItem >= 0)
+            {
+              m_ActiveStreamProcess->SetMasterMode(m_streamTypeUsed, m_ModeList[iItem].second);
+              //m_ActiveStreamProcess->GetActiveMasterModeID()
+
+              //m_modeTypeUsed = CMediaSettings::GetInstance().GetCurrentAudioSettings().m_MasterModes[m_streamTypeUsed][m_baseTypeUsed];
+              //std::string masterModeName = m_MasterModes[m_streamTypeUsed][m_modeTypeUsed]->AddonModeName();
+              //if (masterModeName == "Passover")
+              //{
+              //  masterModeName = "Off";
+              //}
+              //CSettingString *settingMasterMode = AddInfoLabelButton(groupAudioModeSel, SETTING_AUDIO_MAIN_MODETYPE, 15023, 0, masterModeName, true);
+            }
+          }
           else if (setting->GetId() == SETTING_AUDIO_MAIN_BUTTON_INFO)
           {
             SetupView();
@@ -496,8 +525,15 @@ void CGUIDialogAudioDSPSettings::InitializeSettings()
   }
 
   m_modeTypeUsed = CMediaSettings::GetInstance().GetCurrentAudioSettings().m_MasterModes[m_streamTypeUsed][m_baseTypeUsed];
-  CSettingInt *spinner = AddSpinner(groupAudioModeSel, SETTING_AUDIO_MAIN_MODETYPE, 15023, 0, m_modeTypeUsed, AudioModeOptionFiller);
-  spinner->SetOptionsFiller(AudioModeOptionFiller, this);
+  std::string masterModeName = m_MasterModes[m_streamTypeUsed][m_modeTypeUsed]->AddonModeName();
+  if (masterModeName == "Passover")
+  {
+    masterModeName = g_localizeStrings.Get(13551);
+  }
+  CSettingString *settingMasterMode = AddInfoLabelButton(groupAudioModeSel, SETTING_AUDIO_MAIN_MODETYPE, 15023, 0, masterModeName, true);
+  //static_cast<CSettingControlButton*>(settingMasterMode->GetControl())->
+  //CSettingInt *spinner = AddSpinner(groupAudioModeSel, SETTING_AUDIO_MAIN_MODETYPE, 15023, 0, m_modeTypeUsed, AudioModeOptionFiller);
+  //spinner->SetOptionsFiller(AudioModeOptionFiller, this);
 
   ///-----------------------
 
@@ -805,17 +841,17 @@ bool CGUIDialogAudioDSPSettings::SupportsAudioFeature(int feature)
   return false;
 }
 
-void CGUIDialogAudioDSPSettings::AudioModeOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data)
-{
-  CGUIDialogAudioDSPSettings *dialog  = (CGUIDialogAudioDSPSettings *)data;
-  list = dialog->m_ModeList;
-
-  if (list.empty())
-  {
-    list.push_back(make_pair(g_localizeStrings.Get(231), -1));
-    current = -1;
-  }
-}
+//void CGUIDialogAudioDSPSettings::AudioModeOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data)
+//{
+//  CGUIDialogAudioDSPSettings *dialog  = (CGUIDialogAudioDSPSettings *)data;
+//  list = dialog->m_ModeList;
+//
+//  if (list.empty())
+//  {
+//    list.push_back(make_pair(g_localizeStrings.Get(231), -1));
+//    current = -1;
+//  }
+//}
 
 std::string CGUIDialogAudioDSPSettings::SettingFormatterPercentAsDecibel(const CSettingControlSlider *control, const CVariant &value, const CVariant &minimum, const CVariant &step, const CVariant &maximum)
 {
