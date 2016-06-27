@@ -21,7 +21,6 @@
 #include "GUIDialogAudioDSPSettings.h"
 #include "Application.h"
 #include "addons/Skin.h"
-#include "cores/IPlayer.h"
 #include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/ActiveAEDSPDatabase.h"
 #include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/ActiveAEDSPMode.h"
 #include "cores/AudioEngine/Utils/AEUtil.h"
@@ -53,8 +52,6 @@
 
 #define SETTING_AUDIO_MAIN_STREAMTYPE             "audiodsp.main.streamtype"
 #define SETTING_AUDIO_MAIN_MODETYPE               "audiodsp.main.modetype"
-#define SETTING_AUDIO_MAIN_VOLUME                 "audiodsp.main.volume"
-#define SETTING_AUDIO_MAIN_VOLUME_AMPLIFICATION   "audiodsp.main.volumeamplification"
 #define SETTING_AUDIO_MAIN_BUTTON_MASTER          "audiodsp.main.menumaster"
 #define SETTING_AUDIO_MAIN_BUTTON_OUTPUT          "audiodsp.main.menupostproc"
 #define SETTING_AUDIO_MAIN_BUTTON_RESAMPLE        "audiodsp.main.menuresample"
@@ -243,11 +240,6 @@ bool CGUIDialogAudioDSPSettings::OnBack(int actionID)
 
 void CGUIDialogAudioDSPSettings::FrameMove()
 {
-  // update the volume setting if necessary
-  float newVolume = g_application.GetVolume(false);
-  if (newVolume != m_volume)
-    m_settingsManager->SetNumber(SETTING_AUDIO_MAIN_VOLUME, newVolume);
-
   if (g_application.m_pPlayer->HasPlayer())
   {
     const CVideoSettings &videoSettings = CMediaSettings::GetInstance().GetCurrentVideoSettings();
@@ -351,19 +343,18 @@ void CGUIDialogAudioDSPSettings::OnSettingChanged(const CSetting *setting)
   }
   else if (settingId == SETTING_AUDIO_MAIN_MODETYPE)
   {
-    m_modeTypeUsed = static_cast<const CSettingInt*>(setting)->GetValue();
-    if (m_ActiveStreamProcess->SetMasterMode(m_streamTypeUsed, m_modeTypeUsed))
+    std::string newMode = static_cast<const CSettingString*>(setting)->GetValue();
+
+    for(int ii = 0; ii < m_MasterModeList.size(); ii++)
+    {
+      if(newMode == m_MasterModeList[ii].first)
+      {
+        m_modeTypeUsed = ii;
+      }
+    }
+
+    if (m_ActiveStreamProcess->SetMasterMode(m_streamTypeUsed, m_MasterModeList[m_modeTypeUsed].second))
       CMediaSettings::GetInstance().GetCurrentAudioSettings().m_MasterModes[m_streamTypeUsed][m_baseTypeUsed] = m_modeTypeUsed;
-  }
-  else if (settingId == SETTING_AUDIO_MAIN_VOLUME)
-  {
-    m_volume = static_cast<float>(static_cast<const CSettingNumber*>(setting)->GetValue());
-    g_application.SetVolume(m_volume, false); // false - value is not in percent
-  }
-  else if (settingId == SETTING_AUDIO_MAIN_VOLUME_AMPLIFICATION)
-  {
-    videoSettings.m_VolumeAmplification = static_cast<float>(static_cast<const CSettingNumber*>(setting)->GetValue());
-    g_application.m_pPlayer->SetDynamicRangeCompression((long)(videoSettings.m_VolumeAmplification * 100));
   }
 }
 
@@ -530,30 +521,12 @@ void CGUIDialogAudioDSPSettings::InitializeSettings()
   {
     masterModeName = g_localizeStrings.Get(13551);
   }
-  CSettingString *settingMasterMode = AddInfoLabelButton(groupAudioModeSel, SETTING_AUDIO_MAIN_MODETYPE, 15023, 0, masterModeName, true);
-  //static_cast<CSettingControlButton*>(settingMasterMode->GetControl())->
-  //CSettingInt *spinner = AddSpinner(groupAudioModeSel, SETTING_AUDIO_MAIN_MODETYPE, 15023, 0, m_modeTypeUsed, AudioModeOptionFiller);
-  //spinner->SetOptionsFiller(AudioModeOptionFiller, this);
-
-  ///-----------------------
-
-  // audio settings
-  // audio volume setting
-  m_volume = g_application.GetVolume(false);
-  if (!g_windowManager.IsWindowActive(WINDOW_DIALOG_AUDIO_OSD_SETTINGS))
-  {
-    CSettingNumber *settingAudioVolume = AddSlider(groupAudioVolumeSel, SETTING_AUDIO_MAIN_VOLUME, 13376, 0, m_volume, 14054, VOLUME_MINIMUM, VOLUME_MAXIMUM / 100.0f, VOLUME_MAXIMUM);
-    static_cast<CSettingControlSlider*>(settingAudioVolume->GetControl())->SetFormatter(SettingFormatterPercentAsDecibel);
-  }
-
-  // audio volume amplification setting
-  if (SupportsAudioFeature(IPC_AUD_AMP))
-    AddSlider(groupAudioVolumeSel, SETTING_AUDIO_MAIN_VOLUME_AMPLIFICATION, 660, 0, videoSettings.m_VolumeAmplification, 14054, VOLUME_DRC_MINIMUM * 0.01f, (VOLUME_DRC_MAXIMUM - VOLUME_DRC_MINIMUM) / 6000.0f, VOLUME_DRC_MAXIMUM * 0.01f);
+  AddInfoLabelButton(groupAudioModeSel, SETTING_AUDIO_MAIN_MODETYPE, 15023, 0, masterModeName, true);
 
   ///-----------------------
 
   AddButton(groupAudioSubmenuSel, SETTING_AUDIO_MAIN_BUTTON_MASTER,   15029, 0, false, AddonMasterModeSetupPresent, -1);
-  AddButton(groupAudioSubmenuSel, SETTING_AUDIO_MAIN_BUTTON_OUTPUT,   15030, 0, false, HaveActiveMenuHooks(AE_DSP_MENUHOOK_POST_PROCESS) || SupportsAudioFeature(IPC_AUD_OFFSET), -1);
+  AddButton(groupAudioSubmenuSel, SETTING_AUDIO_MAIN_BUTTON_OUTPUT,   15030, 0, false, HaveActiveMenuHooks(AE_DSP_MENUHOOK_POST_PROCESS), -1);
   AddButton(groupAudioSubmenuSel, SETTING_AUDIO_MAIN_BUTTON_RESAMPLE, 15035, 0, false, HaveActiveMenuHooks(AE_DSP_MENUHOOK_RESAMPLE), -1);
   AddButton(groupAudioSubmenuSel, SETTING_AUDIO_MAIN_BUTTON_PRE_PROC, 15039, 0, false, HaveActiveMenuHooks(AE_DSP_MENUHOOK_PRE_PROCESS), -1);
   AddButton(groupAudioSubmenuSel, SETTING_AUDIO_MAIN_BUTTON_MISC,     15034, 0, false, HaveActiveMenuHooks(AE_DSP_MENUHOOK_MISCELLANEOUS), -1);
@@ -829,29 +802,6 @@ void CGUIDialogAudioDSPSettings::InitializeSettings()
     }
   }
 }
-
-bool CGUIDialogAudioDSPSettings::SupportsAudioFeature(int feature)
-{
-  for (Features::iterator itr = m_audioCaps.begin(); itr != m_audioCaps.end(); ++itr)
-  {
-    if (*itr == feature || *itr == IPC_AUD_ALL)
-      return true;
-  }
-
-  return false;
-}
-
-//void CGUIDialogAudioDSPSettings::AudioModeOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data)
-//{
-//  CGUIDialogAudioDSPSettings *dialog  = (CGUIDialogAudioDSPSettings *)data;
-//  list = dialog->m_ModeList;
-//
-//  if (list.empty())
-//  {
-//    list.push_back(make_pair(g_localizeStrings.Get(231), -1));
-//    current = -1;
-//  }
-//}
 
 std::string CGUIDialogAudioDSPSettings::SettingFormatterPercentAsDecibel(const CSettingControlSlider *control, const CVariant &value, const CVariant &minimum, const CVariant &step, const CVariant &maximum)
 {

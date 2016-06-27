@@ -56,8 +56,6 @@ namespace ActiveAE
     // specialization of CGUIDialogSettingsManualBase
     virtual void InitializeSettings();
 
-    bool SupportsAudioFeature(int feature);
-
     static void AudioModeOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data);
 
     static std::string SettingFormatterPercentAsDecibel(const CSettingControlSlider *control, const CVariant &value, const CVariant &minimum, const CVariant &step, const CVariant &maximum);
@@ -108,6 +106,5 @@ namespace ActiveAE
     std::string                                 m_OutputChannelNames;
     std::string                                 m_OutputSamplerate;
     std::string                                 m_CPUUsage;
-    float                                       m_volume;
   };
 }

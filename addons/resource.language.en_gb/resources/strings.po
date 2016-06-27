@@ -7156,10 +7156,7 @@ msgctxt "#14053"
 msgid "GUI filters"
 msgstr ""
 
-#: xbmc/video/dialogs/GUIDialogAudioSubtitleSettings.cpp
-msgctxt "#14054"
-msgid "%2.1f dB"
-msgstr ""
+#empty strings from id 14054
 
 msgctxt "#14055"
 msgid "Use background scanning"
