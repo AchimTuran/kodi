@@ -162,26 +162,24 @@ bool CGUIDialogAudioDSPSettings::OnMessage(CGUIMessage &message)
             pDlgSelect->Reset();
             pDlgSelect->SetHeading(CVariant{15022});
 
-            for (int ii = 0; ii < m_ModeList.size(); ii++)
+            int selectedItem=0;
+            CSettingString *masterModeSelectionButton = dynamic_cast<CSettingString*>(GetSetting(SETTING_AUDIO_MAIN_MODETYPE));
+            for (int ii = 0; ii < m_MasterModeList.size(); ii++)
             {
-              pDlgSelect->Add(m_ModeList[ii].first);
+              pDlgSelect->Add(m_MasterModeList[ii].first);
+              if(m_MasterModeList[ii].first == masterModeSelectionButton->GetValue())
+              {
+                selectedItem = ii;
+              }
             }
 
+            pDlgSelect->SetSelected(selectedItem);
             pDlgSelect->Open();
 
             int iItem = pDlgSelect->GetSelectedItem();
             if (iItem >= 0)
             {
-              m_ActiveStreamProcess->SetMasterMode(m_streamTypeUsed, m_ModeList[iItem].second);
-              //m_ActiveStreamProcess->GetActiveMasterModeID()
-
-              //m_modeTypeUsed = CMediaSettings::GetInstance().GetCurrentAudioSettings().m_MasterModes[m_streamTypeUsed][m_baseTypeUsed];
-              //std::string masterModeName = m_MasterModes[m_streamTypeUsed][m_modeTypeUsed]->AddonModeName();
-              //if (masterModeName == "Passover")
-              //{
-              //  masterModeName = "Off";
-              //}
-              //CSettingString *settingMasterMode = AddInfoLabelButton(groupAudioModeSel, SETTING_AUDIO_MAIN_MODETYPE, 15023, 0, masterModeName, true);
+              masterModeSelectionButton->SetValue(m_MasterModeList[iItem].first);
             }
           }
           else if (setting->GetId() == SETTING_AUDIO_MAIN_BUTTON_INFO)
@@ -495,7 +493,7 @@ void CGUIDialogAudioDSPSettings::InitializeSettings()
   }
 
   bool AddonMasterModeSetupPresent = false;
-  m_ModeList.clear();
+  m_MasterModeList.clear();
   for (unsigned int i = 0; i < m_MasterModes[m_streamTypeUsed].size(); i++)
   {
     if (m_MasterModes[m_streamTypeUsed][i])
@@ -504,11 +502,11 @@ void CGUIDialogAudioDSPSettings::InitializeSettings()
       int modeId = m_MasterModes[m_streamTypeUsed][i]->ModeID();
       if (modeId == AE_DSP_MASTER_MODE_ID_PASSOVER || modeId >= AE_DSP_MASTER_MODE_ID_INTERNAL_TYPES)
       {
-        m_ModeList.push_back(make_pair(g_localizeStrings.Get(m_MasterModes[m_streamTypeUsed][i]->ModeName()), modeId));
+        m_MasterModeList.push_back(make_pair(g_localizeStrings.Get(m_MasterModes[m_streamTypeUsed][i]->ModeName()), modeId));
       }
       else if (CServiceBroker::GetADSP().GetAudioDSPAddon(m_MasterModes[m_streamTypeUsed][i]->AddonID(), addon))
       {
-        m_ModeList.push_back(make_pair(g_localizeStrings.GetAddonString(addon->ID(), m_MasterModes[m_streamTypeUsed][i]->ModeName()), modeId));
+        m_MasterModeList.push_back(make_pair(g_localizeStrings.GetAddonString(addon->ID(), m_MasterModes[m_streamTypeUsed][i]->ModeName()), modeId));
         if (!AddonMasterModeSetupPresent)
           AddonMasterModeSetupPresent = m_MasterModes[m_streamTypeUsed][i]->HasSettingsDialog();
       }
