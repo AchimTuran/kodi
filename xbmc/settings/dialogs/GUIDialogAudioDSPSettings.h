@@ -93,7 +93,7 @@ namespace ActiveAE
     std::map<std::string, int>                  m_MenuPositions;                          /*!< The differnet menu selection positions */
     std::vector<int>                            m_MenuHierarchy;                          /*!< Menu selection flow hierachy */
     std::vector<MenuHookMember>                 m_Menus;                                  /*!< storage about present addon menus on currently selected submenu */
-    std::vector< std::pair<std::string, int> >  m_ModeList;                               /*!< currently present modes */
+    std::vector< std::pair<std::string, int> >  m_MasterModeList;                         /*!< currently present master modes */
     bool                                        m_GetCPUUsage;                            /*!< if true cpu usage detection is active */
     Features                                    m_audioCaps;                              /*!< the on current playback on KODI supported audio features */
     int                                         m_MenuName;                               /*!< current menu name, needed to get after the dialog was closed for addon */
