@@ -40,9 +40,6 @@ namespace ActiveAE
     // specialization of CGUIWindow
     virtual void FrameMove();
 
-    static std::string FormatDecibel(float value);
-    static std::string FormatPercentAsDecibel(float value);
-
   protected:
     // implementations of ISettingCallback
     virtual void OnSettingChanged(const CSetting *setting);
@@ -57,8 +54,6 @@ namespace ActiveAE
     virtual void InitializeSettings();
 
     static void AudioModeOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data);
-
-    static std::string SettingFormatterPercentAsDecibel(const CSettingControlSlider *control, const CVariant &value, const CVariant &minimum, const CVariant &step, const CVariant &maximum);
 
     std::string GetSettingsLabel(CSetting *pSetting);
 
