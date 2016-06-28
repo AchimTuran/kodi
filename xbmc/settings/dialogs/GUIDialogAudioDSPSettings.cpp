@@ -50,7 +50,6 @@
 #define SETTING_AUDIO_CAT_MISC                    "audiodspmiscsettings"
 #define SETTING_AUDIO_CAT_PROC_INFO               "audiodspprocinfo"
 
-#define SETTING_AUDIO_MAIN_STREAMTYPE             "audiodsp.main.streamtype"
 #define SETTING_AUDIO_MAIN_MODETYPE               "audiodsp.main.modetype"
 #define SETTING_AUDIO_MAIN_BUTTON_MASTER          "audiodsp.main.menumaster"
 #define SETTING_AUDIO_MAIN_BUTTON_OUTPUT          "audiodsp.main.menupostproc"
@@ -294,16 +293,6 @@ void CGUIDialogAudioDSPSettings::FrameMove()
   CGUIDialogSettingsManualBase::FrameMove();
 }
 
-std::string CGUIDialogAudioDSPSettings::FormatDecibel(float value)
-{
-  return StringUtils::Format(g_localizeStrings.Get(14054).c_str(), value);
-}
-
-std::string CGUIDialogAudioDSPSettings::FormatPercentAsDecibel(float value)
-{
-  return StringUtils::Format(g_localizeStrings.Get(14054).c_str(), CAEUtil::PercentToGain(value));
-}
-
 void CGUIDialogAudioDSPSettings::OnSettingChanged(const CSetting *setting)
 {
   if (setting == NULL)
@@ -311,35 +300,8 @@ void CGUIDialogAudioDSPSettings::OnSettingChanged(const CSetting *setting)
 
   CGUIDialogSettingsManualBase::OnSettingChanged(setting);
 
-  CVideoSettings &videoSettings = CMediaSettings::GetInstance().GetCurrentVideoSettings();
   const std::string &settingId = setting->GetId();
-  if (settingId == SETTING_AUDIO_MAIN_STREAMTYPE)
-  {
-    int type = (AE_DSP_STREAMTYPE)static_cast<const CSettingInt*>(setting)->GetValue();
-    CMediaSettings::GetInstance().GetCurrentAudioSettings().m_MasterStreamTypeSel = type;
-    if (type == AE_DSP_ASTREAM_AUTO)
-      type = m_ActiveStreamProcess->GetDetectedStreamType();
-
-    CMediaSettings::GetInstance().GetCurrentAudioSettings().m_MasterStreamType = type;
-
-    /* Set the input stream type if any modes are available for this type */
-    if (type >= AE_DSP_ASTREAM_BASIC && type < AE_DSP_ASTREAM_AUTO && !m_MasterModes[type].empty())
-    {
-      /* Find the master mode id for the selected stream type if it was not known before */
-      if (CMediaSettings::GetInstance().GetCurrentAudioSettings().m_MasterModes[type][m_baseTypeUsed] < 0)
-        CMediaSettings::GetInstance().GetCurrentAudioSettings().m_MasterModes[type][m_baseTypeUsed] = m_MasterModes[type][0]->ModeID();
-
-      /* Switch now the master mode and stream type for audio dsp processing */
-      m_ActiveStreamProcess->SetMasterMode((AE_DSP_STREAMTYPE)type,
-                                           CMediaSettings::GetInstance().GetCurrentAudioSettings().m_MasterModes[type][m_baseTypeUsed],
-                                           true);
-    }
-    else
-    {
-      CLog::Log(LOGERROR, "ActiveAE DSP Settings - %s - Change of audio stream type failed (type = %i)", __FUNCTION__, type);
-    }
-  }
-  else if (settingId == SETTING_AUDIO_MAIN_MODETYPE)
+  if (settingId == SETTING_AUDIO_MAIN_MODETYPE)
   {
     std::string newMode = static_cast<const CSettingString*>(setting)->GetValue();
 
@@ -437,14 +399,6 @@ void CGUIDialogAudioDSPSettings::InitializeSettings()
     return;
   }
 
-  bool usePopup = g_SkinInfo->HasSkinFile("DialogSlider.xml");
-
-  CVideoSettings &videoSettings = CMediaSettings::GetInstance().GetCurrentVideoSettings();
-
-  m_audioCaps.clear();
-  if (g_application.m_pPlayer->HasPlayer())
-    g_application.m_pPlayer->GetAudioCapabilities(m_audioCaps);
-
   m_ActiveStreamId      = CServiceBroker::GetADSP().GetActiveStreamId();
   m_ActiveStreamProcess = CServiceBroker::GetADSP().GetDSPProcess(m_ActiveStreamId);
   if (m_ActiveStreamId == (unsigned int)-1 || !m_ActiveStreamProcess)
@@ -485,11 +439,6 @@ void CGUIDialogAudioDSPSettings::InitializeSettings()
       modeEntries.push_back(std::pair<int, int>(CServiceBroker::GetADSP().GetStreamTypeName(AE_DSP_ASTREAM_PHONE),   AE_DSP_ASTREAM_PHONE));
     if (modesAvailable > 1 && m_MasterModes[m_streamTypeUsed].size() > 1)
       modeEntries.insert(modeEntries.begin(), std::pair<int, int>(CServiceBroker::GetADSP().GetStreamTypeName(AE_DSP_ASTREAM_AUTO), AE_DSP_ASTREAM_AUTO));
-
-    AddSpinner(groupAudioModeSel,
-                SETTING_AUDIO_MAIN_STREAMTYPE, 15021, 0,
-                (AE_DSP_STREAMTYPE)CMediaSettings::GetInstance().GetCurrentAudioSettings().m_MasterStreamTypeSel,
-                modeEntries);
   }
 
   bool AddonMasterModeSetupPresent = false;
@@ -799,18 +748,6 @@ void CGUIDialogAudioDSPSettings::InitializeSettings()
       }
     }
   }
-}
-
-std::string CGUIDialogAudioDSPSettings::SettingFormatterPercentAsDecibel(const CSettingControlSlider *control, const CVariant &value, const CVariant &minimum, const CVariant &step, const CVariant &maximum)
-{
-  if (control == NULL || !value.isDouble())
-    return "";
-
-  std::string formatString = control->GetFormatString();
-  if (control->GetFormatLabel() > -1)
-    formatString = g_localizeStrings.Get(control->GetFormatLabel());
-
-  return StringUtils::Format(formatString.c_str(), CAEUtil::PercentToGain(value.asFloat()));
 }
 
 bool CGUIDialogAudioDSPSettings::HaveActiveMenuHooks(AE_DSP_MENUHOOK_CAT category)
