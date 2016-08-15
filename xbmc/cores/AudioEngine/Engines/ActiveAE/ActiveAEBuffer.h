@@ -141,7 +141,7 @@ protected:
   enum AVMatrixEncoding m_MatrixEncoding;
   enum AVAudioServiceType m_AudioServiceType;
   CSampleBuffer *m_dspSample;
-  AEAudioFormat m_dspFormat;
+  AEAudioFormat m_adspOutFormat;
   CActiveAEDSPProcessPtr m_processor;
   CActiveAEBufferPool *m_dspBuffer;
   bool m_changeDSP;
