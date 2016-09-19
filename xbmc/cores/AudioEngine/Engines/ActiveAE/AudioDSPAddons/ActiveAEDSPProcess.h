@@ -34,7 +34,7 @@ namespace ActiveAE
 {
   class CSampleBuffer;
   class IAEResample;
-  class CActiveAEResample;
+  class CActiveAEBufferPoolADSP;
 
   //@{
   /*!
@@ -230,7 +230,7 @@ namespace ActiveAE
       bool IsMenuHookModeActive(AE_DSP_MENUHOOK_CAT category, int iAddonId, unsigned int iModeNumber);
 
     protected:
-      friend class CActiveAEBufferPoolResample;
+      friend class CActiveAEBufferPoolADSP;
 
       /*!>
        * Master processing

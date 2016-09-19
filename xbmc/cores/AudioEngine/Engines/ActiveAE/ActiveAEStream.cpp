@@ -584,12 +584,14 @@ CActiveAEStreamBuffers::CActiveAEStreamBuffers(AEAudioFormat inputFormat, AEAudi
   m_inputFormat = inputFormat;
   m_resampleBuffers = new CActiveAEBufferPoolResample(inputFormat, outputFormat, quality);
   m_atempoBuffers = new CActiveAEBufferPoolAtempo(outputFormat);
+  m_adspBuffers = new CActiveAEBufferPoolADSP(inputFormat, outputFormat);
 }
 
 CActiveAEStreamBuffers::~CActiveAEStreamBuffers()
 {
   delete m_resampleBuffers;
   delete m_atempoBuffers;
+  delete m_adspBuffers;
 }
 
 bool CActiveAEStreamBuffers::HasInputLevel(int level)
@@ -603,18 +605,25 @@ bool CActiveAEStreamBuffers::HasInputLevel(int level)
 
 bool CActiveAEStreamBuffers::Create(unsigned int totaltime, bool remap, bool upmix, bool normalize, bool useDSP)
 {
-  if (!m_resampleBuffers->Create(totaltime, remap, upmix, normalize, useDSP))
+  if (!m_resampleBuffers->Create(totaltime, remap, upmix, normalize))
     return false;
 
   if (!m_atempoBuffers->Create(totaltime))
     return false;
+  if (useDSP)
+  {
+    if (!m_adspBuffers->Create(totaltime, upmix))
+    {
+      return false;
+    }
+  }
 
   return true;
 }
 
 void CActiveAEStreamBuffers::SetExtraData(int profile, enum AVMatrixEncoding matrix_encoding, enum AVAudioServiceType audio_service_type)
 {
-  m_resampleBuffers->SetExtraData(profile, matrix_encoding, audio_service_type);
+  m_adspBuffers->SetExtraData(profile, matrix_encoding, audio_service_type);
 }
 
 bool CActiveAEStreamBuffers::ProcessBuffers()
@@ -637,6 +646,15 @@ bool CActiveAEStreamBuffers::ProcessBuffers()
     buf = m_resampleBuffers->m_outputSamples.front();
     m_resampleBuffers->m_outputSamples.pop_front();
     m_atempoBuffers->m_inputSamples.push_back(buf);
+    busy = true;
+  }
+
+  busy |= m_adspBuffers->ProcessBuffers();
+  while (!m_adspBuffers->m_outputSamples.empty())
+  {
+    buf = m_adspBuffers->m_outputSamples.front();
+    m_adspBuffers->m_outputSamples.pop_front();
+    m_outputSamples.push_back(buf);
     busy = true;
   }
 
@@ -669,6 +687,7 @@ float CActiveAEStreamBuffers::GetDelay()
 
   delay += m_resampleBuffers->GetDelay();
   delay += m_atempoBuffers->GetDelay();
+  delay += m_adspBuffers->GetDelay();
 
   for (auto &buf : m_outputSamples)
   {
@@ -682,6 +701,7 @@ void CActiveAEStreamBuffers::Flush()
 {
   m_resampleBuffers->Flush();
   m_atempoBuffers->Flush();
+  m_adspBuffers->Flush();
 
   while (!m_inputSamples.empty())
   {
@@ -699,6 +719,7 @@ void CActiveAEStreamBuffers::SetDrain(bool drain)
 {
   m_resampleBuffers->SetDrain(drain);
   m_atempoBuffers->SetDrain(drain);
+  m_adspBuffers->SetDrain(drain);
 }
 
 bool CActiveAEStreamBuffers::IsDrained()
@@ -707,6 +728,8 @@ bool CActiveAEStreamBuffers::IsDrained()
       m_resampleBuffers->m_outputSamples.empty() &&
       m_atempoBuffers->m_inputSamples.empty() &&
       m_atempoBuffers->m_outputSamples.empty() &&
+      m_adspBuffers->m_inputSamples.empty() &&
+      m_adspBuffers->m_outputSamples.empty() &&
       m_inputSamples.empty() &&
       m_outputSamples.empty())
     return true;
@@ -739,6 +762,7 @@ void CActiveAEStreamBuffers::FillBuffer()
 {
   m_resampleBuffers->FillBuffer();
   m_atempoBuffers->FillBuffer();
+  m_adspBuffers->FillBuffer();
 }
 
 bool CActiveAEStreamBuffers::DoesNormalize()
@@ -753,7 +777,7 @@ void CActiveAEStreamBuffers::ForceResampler(bool force)
 
 void CActiveAEStreamBuffers::SetDSPConfig(bool usedsp, bool bypassdsp)
 {
-  m_resampleBuffers->SetDSPConfig(usedsp, bypassdsp);
+  m_adspBuffers->SetDSPConfig(usedsp, bypassdsp);
 }
 
 CActiveAEBufferPool* CActiveAEStreamBuffers::GetResampleBuffers()
@@ -770,6 +794,13 @@ CActiveAEBufferPool* CActiveAEStreamBuffers::GetAtempoBuffers()
   return ret;
 }
 
+CActiveAEBufferPool * ActiveAE::CActiveAEStreamBuffers::GetADSPBuffers()
+{
+  CActiveAEBufferPoolADSP *ret = m_adspBuffers;
+  m_adspBuffers = nullptr;
+  return ret;
+}
+
 bool CActiveAEStreamBuffers::HasWork()
 {
   if (!m_inputSamples.empty())
@@ -783,6 +814,10 @@ bool CActiveAEStreamBuffers::HasWork()
   if (!m_atempoBuffers->m_inputSamples.empty())
     return true;
   if (!m_atempoBuffers->m_outputSamples.empty())
+    return true;
+  if (!m_adspBuffers->m_inputSamples.empty())
+    return true;
+  if (!m_adspBuffers->m_outputSamples.empty())
     return true;
 
   return false;
