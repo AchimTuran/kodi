@@ -649,14 +649,15 @@ bool CActiveAEStreamBuffers::ProcessBuffers()
     busy = true;
   }
 
-  busy |= m_adspBuffers->ProcessBuffers();
-  while (!m_adspBuffers->m_outputSamples.empty())
-  {
-    buf = m_adspBuffers->m_outputSamples.front();
-    m_adspBuffers->m_outputSamples.pop_front();
-    m_outputSamples.push_back(buf);
-    busy = true;
-  }
+  // TODO: implement processBuffers() properly and enable it here
+  //busy |= m_adspBuffers->ProcessBuffers();
+  //while (!m_adspBuffers->m_outputSamples.empty())
+  //{
+  //  buf = m_adspBuffers->m_outputSamples.front();
+  //  m_adspBuffers->m_outputSamples.pop_front();
+  //  m_outputSamples.push_back(buf);
+  //  busy = true;
+  //}
 
   busy |= m_atempoBuffers->ProcessBuffers();
 
