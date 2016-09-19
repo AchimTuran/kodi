@@ -276,8 +276,8 @@ namespace ActiveAE
                     int profile, bool wasActive = false);
 
     /*!>
-     * Destroy all allocated dsp addons for this stream id and stops the processing.
-     * @param streamId The id of this stream
+     * Destroy all allocated dsp add-ons streamId and stop processing.
+     * @param streamId Stream id that should be destroyed.
      */
     void DestroyDSPs(unsigned int streamId);
 

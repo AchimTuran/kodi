@@ -112,6 +112,7 @@ public:
   bool HasWork();
   CActiveAEBufferPool *GetResampleBuffers();
   CActiveAEBufferPool *GetAtempoBuffers();
+  CActiveAEBufferPool *GetADSPBuffers();
   
   AEAudioFormat m_inputFormat;
   std::deque<CSampleBuffer*> m_outputSamples;
@@ -120,6 +121,7 @@ public:
 protected:
   CActiveAEBufferPoolResample *m_resampleBuffers;
   CActiveAEBufferPoolAtempo *m_atempoBuffers;
+  CActiveAEBufferPoolADSP *m_adspBuffers;
 };
 
 class CActiveAEStream : public IAEStream
