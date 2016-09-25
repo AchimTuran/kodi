@@ -130,19 +130,6 @@ bool CActiveAEBufferPool::Create(unsigned int totaltime)
   config.sample_rate = m_format.m_sampleRate;
   config.channel_layout = CAEUtil::GetAVChannelLayout(m_format.m_channelLayout);
 
-  // discard already created buffers
-  if (m_allSamples.size() > 0 || m_freeSamples.size() > 0)
-  {
-    m_freeSamples.clear();
-    while (m_allSamples.size() > 0)
-    {
-      buffer = m_allSamples.front();
-      m_allSamples.pop_front();
-      delete buffer;
-    }
-    buffer = nullptr;
-  }
-
   unsigned int time = 0;
   unsigned int buffertime = (m_format.m_frames*1000) / m_format.m_sampleRate;
   if (m_format.m_dataFormat == AE_FMT_RAW)
@@ -218,7 +205,10 @@ bool CActiveAEBufferPoolResample::Create(unsigned int totaltime, bool remap, boo
     m_normalize = false;
   }
 
-  if (m_changeResampler)
+  if (m_inputFormat.m_channelLayout != m_format.m_channelLayout ||
+      m_inputFormat.m_sampleRate != m_format.m_sampleRate ||
+      m_inputFormat.m_dataFormat != m_format.m_dataFormat ||
+      m_changeResampler)
   {
     if (!m_resampler)
     {
@@ -256,6 +246,7 @@ void CActiveAEBufferPoolResample::ChangeResampler()
     m_resampler = NULL;
   }
 
+  m_resampler = CAEResampleFactory::Create();
   m_resampler->Init(CAEUtil::GetAVChannelLayout(m_format.m_channelLayout),
                                 m_format.m_channelLayout.Count(),
                                 m_format.m_sampleRate,
@@ -282,7 +273,7 @@ bool CActiveAEBufferPoolResample::ResampleBuffers(int64_t timestamp)
   bool busy = false;
   CSampleBuffer *in;
   
-  if (m_changeResampler)
+  if (m_changeResampler || !m_resampler)
   {
     ChangeResampler();
     return true;
