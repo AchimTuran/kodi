@@ -1275,6 +1275,7 @@ void CActiveAE::Configure(AEAudioFormat *desiredFmt)
         (*it)->m_processingBuffers->Flush();
         m_discardBufferPools.push_back((*it)->m_processingBuffers->GetResampleBuffers());
         m_discardBufferPools.push_back((*it)->m_processingBuffers->GetAtempoBuffers());
+        m_discardBufferPools.push_back((*it)->m_processingBuffers->GetADSPBuffers());
         delete (*it)->m_processingBuffers;
         (*it)->m_processingBuffers = nullptr;
       }
@@ -1284,7 +1285,6 @@ void CActiveAE::Configure(AEAudioFormat *desiredFmt)
 
         (*it)->m_processingBuffers = new CActiveAEStreamBuffers((*it)->m_inputBuffers->m_format, outputFormat, m_settings.resampleQuality);
         (*it)->m_processingBuffers->ForceResampler((*it)->m_forceResampler);
-        (*it)->m_processingBuffers->SetDSPConfig(useDSP, (*it)->m_bypassDSP);
 
         if (useDSP && !(*it)->m_bypassDSP)
           (*it)->m_processingBuffers->SetExtraData((*it)->m_profile, (*it)->m_matrixEncoding, (*it)->m_audioServiceType);
@@ -1445,6 +1445,7 @@ void CActiveAE::DiscardStream(CActiveAEStream *stream)
         (*it)->m_processingBuffers->Flush();
         m_discardBufferPools.push_back((*it)->m_processingBuffers->GetResampleBuffers());
         m_discardBufferPools.push_back((*it)->m_processingBuffers->GetAtempoBuffers());
+        m_discardBufferPools.push_back((*it)->m_processingBuffers->GetADSPBuffers());
       }
       delete (*it)->m_processingBuffers;
       CLog::Log(LOGDEBUG, "CActiveAE::DiscardStream - audio stream deleted");
@@ -2622,7 +2623,8 @@ void CActiveAE::OnSettingsChange(const std::string& setting)
       setting == CSettings::SETTING_AUDIOOUTPUT_PASSTHROUGH            ||
       setting == CSettings::SETTING_AUDIOOUTPUT_SAMPLERATE             ||
       setting == CSettings::SETTING_AUDIOOUTPUT_MAINTAINORIGINALVOLUME ||
-      setting == CSettings::SETTING_AUDIOOUTPUT_GUISOUNDMODE)
+      setting == CSettings::SETTING_AUDIOOUTPUT_GUISOUNDMODE           ||
+      setting == CSettings::SETTING_AUDIOOUTPUT_DSPSETTINGS)
   {
     m_controlPort.SendOutMessage(CActiveAEControlProtocol::RECONFIGURE);
   }

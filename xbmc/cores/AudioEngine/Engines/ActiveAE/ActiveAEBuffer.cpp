@@ -319,10 +319,6 @@ bool CActiveAEBufferPoolResample::ResampleBuffers(int64_t timestamp)
       {
         in = m_inputSamples.front();
         m_inputSamples.pop_front();
-#if defined(ADSP_COUT_DEBUG_OUTPUT)
-        CLog::Log(LOGDEBUG, "------in->timestamp: %i, in->pkt_start_offset:%i, in->pkt->bytes_per_sample:%i, in->pkt->nb_samples:%i, in->pkt->pause_burst_ms:%i, in->pkt->planes:%i, in->pkt->linesize:%i, in->pkt->max_nb_samples:%i", in->timestamp, in->pkt_start_offset, in->pkt->bytes_per_sample, in->pkt->nb_samples, in->pkt->pause_burst_ms, in->pkt->planes, in->pkt->linesize, in->pkt->max_nb_samples);
-        CLog::Log(LOGDEBUG, "------in->pkt->config.bits_per_sample:%i, in->pkt->config.channels:%i, in->pkt->config.channel_layout:%lld, in->pkt->config.dither_bits:%i, in->pkt->config.sample_rate:%i", in->pkt->config.bits_per_sample, in->pkt->config.channels, (unsigned long long)in->pkt->config.channel_layout, in->pkt->config.dither_bits, in->pkt->config.sample_rate);
-#endif
       }
       else
       {
@@ -357,10 +353,6 @@ bool CActiveAEBufferPoolResample::ResampleBuffers(int64_t timestamp)
 
       if (in)
       {
-#if defined(ADSP_COUT_DEBUG_OUTPUT)
-        CLog::Log(LOGDEBUG, "------in->timestamp: %i, in->pkt_start_offset:%i, in->pkt->bytes_per_sample:%i, in->pkt->nb_samples:%i, in->pkt->pause_burst_ms:%i, in->pkt->planes:%i, in->pkt->linesize:%i, in->pkt->max_nb_samples:%i", in->timestamp, in->pkt_start_offset, in->pkt->bytes_per_sample, in->pkt->nb_samples, in->pkt->pause_burst_ms, in->pkt->planes, in->pkt->linesize, in->pkt->max_nb_samples);
-        CLog::Log(LOGDEBUG, "------in->pkt->config.bits_per_sample:%i, in->pkt->config.channels:%i, in->pkt->config.channel_layout:%lld, in->pkt->config.dither_bits:%i, in->pkt->config.sample_rate:%i", in->pkt->config.bits_per_sample, in->pkt->config.channels, (unsigned long long)in->pkt->config.channel_layout, in->pkt->config.dither_bits, in->pkt->config.sample_rate);
-#endif
         if (!timestamp)
         {
           if (in->timestamp)
@@ -782,18 +774,18 @@ void CActiveAEBufferPoolAtempo::SetDrain(bool drain)
 // ADSP
 // ----------------------------------------------------------------------------------
 
-CActiveAEBufferPoolADSP::CActiveAEBufferPoolADSP(AEAudioFormat inputFormat, AEAudioFormat outputFormat) : CActiveAEBufferPool(outputFormat)
+CActiveAEBufferPoolADSP::CActiveAEBufferPoolADSP(AEAudioFormat inputFormat, AEAudioFormat outputFormat, AEQuality quality) : CActiveAEBufferPool(outputFormat)
 {
+  m_Quality = quality;
+  m_inputFormat = inputFormat;
   m_drain = false;
   m_empty = true;
   m_tempo = 1.0;
   m_changeAudioDSP = false;
   m_procSample = nullptr;
-  m_dspSample = NULL;
-  m_dspBuffer = NULL;
   m_useDSP = false;
   m_bypassDSP = false;
-  m_changeDSP = false;
+  m_streamId = -1;
 }
 
 CActiveAEBufferPoolADSP::~CActiveAEBufferPoolADSP()
@@ -801,8 +793,6 @@ CActiveAEBufferPoolADSP::~CActiveAEBufferPoolADSP()
   Flush();
 
   CServiceBroker::GetADSP().DestroyDSPs(m_streamId);
-  delete m_dspBuffer;
-  m_dspBuffer = nullptr;
 }
 
 bool CActiveAEBufferPoolADSP::Create(unsigned int totaltime, bool upmix)
@@ -822,226 +812,368 @@ bool CActiveAEBufferPoolADSP::Create(unsigned int totaltime, bool upmix)
   * The value m_streamId and address pointer m_processor are passed a pointers
   * to CServiceBroker::GetADSP().CreateDSPs and set from it.
   */
-  if (m_changeDSP && !m_bypassDSP)
+  m_streamId = CServiceBroker::GetADSP().CreateDSPs(m_streamId, m_processor, m_inputFormat, CActiveAEBufferPool::m_format,
+                                                    upmix, m_Quality, m_MatrixEncoding, m_AudioServiceType, m_Profile);
+  if (m_streamId < 0)
   {
+    return false;
+  }
+//  if (m_changeDSP && !m_bypassDSP)
+//  {
     // use input format from this CActiveAEBufferPoolResample as input for AudioDSP
     // and use CActiveAEBufferPool::m_format as output format of AudioDSP
-    m_useDSP = CServiceBroker::GetADSP().CreateDSPs(m_streamId, m_processor, m_inputFormat, CActiveAEBufferPool::m_format, 
-                                                    upmix, m_resampleQuality, m_MatrixEncoding, m_AudioServiceType, m_Profile);
-    if (m_useDSP)
-    {
-      m_adspOutFormat = CActiveAEBufferPool::m_format;
-      m_adspOutFormat.m_channelLayout = m_processor->GetChannelLayout();    /* Overide input format with DSP's supported format */
-      m_adspOutFormat.m_sampleRate = m_processor->GetOutputSamplerate(); /* Overide input format with DSP's generated samplerate */
-      m_adspOutFormat.m_dataFormat = m_processor->GetDataFormat();       /* Overide input format with DSP's processed data format, normally it is float */
-      m_adspOutFormat.m_frames = m_processor->GetOutputFrames();
-      if (m_processor->GetChannelLayout().Count() > 2)                    /* Disable upmix for CActiveAEResample if DSP layout > 2.0, becomes perfomed by DSP */
-        upmix = false;
+    
 
-      if (!m_dspBuffer)
-      {
-        m_dspBuffer = new CActiveAEBufferPool(m_adspOutFormat); /* Get dsp processing buffer class, based on dsp output format */
-      }
-      else
-      {
-        m_dspBuffer->m_format = m_adspOutFormat;
-      }
-      m_dspBuffer->Create(totaltime);
-      CActiveAEBufferPool::Create(totaltime); // recreate output buffer cause format has changed
-    }
-  }
-  m_changeDSP = false;
+    //if (m_streamId >= 0)
+    //{
+    //  m_adspOutFormat = CActiveAEBufferPool::m_format;
+    //  m_adspOutFormat.m_channelLayout = m_processor->GetChannelLayout();    /* Overide input format with DSP's supported format */
+    //  m_adspOutFormat.m_sampleRate = m_processor->GetOutputSamplerate(); /* Overide input format with DSP's generated samplerate */
+    //  m_adspOutFormat.m_dataFormat = m_processor->GetDataFormat();       /* Overide input format with DSP's processed data format, normally it is float */
+    //  m_adspOutFormat.m_frames = m_processor->GetOutputFrames();
+    //  if (m_processor->GetChannelLayout().Count() > 2)                    /* Disable upmix for CActiveAEResample if DSP layout > 2.0, becomes perfomed by DSP */
+    //    upmix = false;
+    //}
+    //else
+    //{
+    //  return false;
+    //}
+  //}
 
   return true;
 }
 
-bool CActiveAEBufferPoolADSP::ProcessBuffers()
+bool CActiveAEBufferPoolADSP::ProcessBuffers(int64_t timestamp/* = 0*/)
 {
   bool busy = false;
   CSampleBuffer *in;
 
-  /*
-  * DSP need always a available input packet! To pass it step by step
-  * over all enabled addons and processing segments.
-  */
-  if (m_useDSP && in)
+  if (m_changeAudioDSP || !m_processor)
   {
-    if (!m_dspSample)
-      m_dspSample = m_dspBuffer->GetFreeBuffer();
-
-#if defined(ADSP_COUT_DEBUG_OUTPUT)
-    CLog::Log(LOGDEBUG, "------m_dspSample->timestamp: %i, m_dspSample->pkt_start_offset:%i, m_dspSample->pkt->bytes_per_sample:%i, m_dspSample->pkt->nb_samples:%i, m_dspSample->pkt->pause_burst_ms:%i, m_dspSample->pkt->planes:%i, m_dspSample->pkt->linesize:%i, m_dspSample->pkt->max_nb_samples:%i", m_dspSample->timestamp, m_dspSample->pkt_start_offset, m_dspSample->pkt->bytes_per_sample, m_dspSample->pkt->nb_samples, m_dspSample->pkt->pause_burst_ms, m_dspSample->pkt->planes, m_dspSample->pkt->linesize, m_dspSample->pkt->max_nb_samples);
-    CLog::Log(LOGDEBUG, "------m_dspSample->pkt->config.bits_per_sample:%i, m_dspSample->pkt->config.channels:%i, m_dspSample->pkt->config.channel_layout:%lld, m_dspSample->pkt->config.dither_bits:%i, m_dspSample->pkt->config.sample_rate:%i", m_dspSample->pkt->config.bits_per_sample, m_dspSample->pkt->config.channels, (unsigned long long)m_dspSample->pkt->config.channel_layout, m_dspSample->pkt->config.dither_bits, m_dspSample->pkt->config.sample_rate);
-#endif
-    // currently AudioDSP doesn't do any internal buffering that's why timestamp and pkt_start_offset
-    // is the same as the input
-    m_dspSample->timestamp = in->timestamp;
-    m_dspSample->pkt_start_offset = in->pkt_start_offset;
-    if (m_dspSample && m_processor->Process(in, m_dspSample))
-    {
-      in->Return();
-      in = m_dspSample;
-      m_dspSample = NULL;
-    }
-    else
-    {
-      in->Return();
-      in = NULL;
-    }
+    ChangeAudioDSP();
+    return true;
   }
 
-  //if (!m_pTempoFilter->IsActive())
-  //{
-  //  if (m_changeAudioDSP)
-  //  {
-  //    if (m_changeAudioDSP)
-  //    {
-  //      ChangeAudiDSP();
-  //    }
-  //    return true;
-  //  }
-  //  while(!m_inputSamples.empty())
-  //  {
-  //    in = m_inputSamples.front();
-  //    m_inputSamples.pop_front();
-  //    m_outputSamples.push_back(in);
-  //    busy = true;
-  //  }
-  //}
-  //else if (m_procSample || !m_freeSamples.empty())
-  //{
-  //  int free_samples;
-  //  if (m_procSample)
-  //  {
-  //    free_samples = m_procSample->pkt->max_nb_samples - m_procSample->pkt->nb_samples;
-  //  }
-  //  else
-  //  {
-  //    free_samples = m_format.m_frames;
-  //  }
+  if (!m_processor)
+  {
+    while (!m_inputSamples.empty())
+    {
+      in = m_inputSamples.front();
+      m_inputSamples.pop_front();
+      if (timestamp)
+      {
+        in->timestamp = timestamp;
+      }
+      m_outputSamples.push_back(in);
+      busy = true;
+    }
+  }
+  else if (m_procSample || !m_freeSamples.empty())
+  {
+    int free_samples;
+    if (m_procSample)
+      free_samples = m_procSample->pkt->max_nb_samples - m_procSample->pkt->nb_samples;
+    else
+      free_samples = m_format.m_frames;
 
-  //  bool skipInput = false;
+    bool hasInput = !m_inputSamples.empty();
 
-  //  // avoid that bufferscr grows too large
-  //  if (!m_pTempoFilter->NeedData())
-  //  {
-  //    skipInput = true;
-  //  }
+    if (hasInput || m_drain || m_changeAudioDSP)
+    {
+      if (!m_procSample)
+      {
+        m_procSample = GetFreeBuffer();
+      }
 
-  //  bool hasInput = !m_inputSamples.empty();
+      if (hasInput && !m_changeAudioDSP)
+      {
+        in = m_inputSamples.front();
+        m_inputSamples.pop_front();
+      }
+      else
+      {
+        in = NULL;
+      }
 
-  //  if (hasInput || skipInput || m_drain || m_changeAudioDSP)
-  //  {
-  //    if (!m_procSample)
-  //    {
-  //      m_procSample = GetFreeBuffer();
-  //    }
+      int start = m_procSample->pkt->nb_samples *
+        m_procSample->pkt->bytes_per_sample *
+        m_procSample->pkt->config.channels /
+        m_procSample->pkt->planes;
 
-  //    if (hasInput && !skipInput && !m_changeAudioDSP)
-  //    {
-  //      in = m_inputSamples.front();
-  //      m_inputSamples.pop_front();
-  //    }
-  //    else
-  //    {
-  //      in = nullptr;
-  //    }
+      for (int i = 0; i < m_procSample->pkt->planes; i++)
+      {
+        m_planes[i] = m_procSample->pkt->data[i] + start;
+      }
 
-  //    int start = m_procSample->pkt->nb_samples *
-  //                m_procSample->pkt->bytes_per_sample *
-  //                m_procSample->pkt->config.channels /
-  //                m_procSample->pkt->planes;
+      // in case of error, trigger re-create of processor
+      if (!m_processor->Process(in, m_procSample))
+      {
+        m_changeAudioDSP = true;
+      }
+      int out_samples = m_processor->GetOutputFrames();
 
-  //    for (int i=0; i<m_procSample->pkt->planes; i++)
-  //    {
-  //      m_planes[i] = m_procSample->pkt->data[i] + start;
-  //    }
+      //m_procSample->pkt->nb_samples += out_samples;
+      busy = true;
+      m_empty = (out_samples == 0);
 
-  //    int out_samples = m_pTempoFilter->ProcessFilter(m_planes,
-  //                                                    m_procSample->pkt->max_nb_samples - m_procSample->pkt->nb_samples,
-  //                                                    in ? in->pkt->data : nullptr,
-  //                                                    in ? in->pkt->nb_samples : 0,
-  //                                                    in ? in->pkt->linesize * in->pkt->planes : 0);
+      if (in)
+      {
+        if (!timestamp)
+        {
+          if (in->timestamp)
+            m_lastSamplePts = in->timestamp;
+          else
+            in->pkt_start_offset = 0;
+        }
+        else
+        {
+          m_lastSamplePts = timestamp;
+          in->pkt_start_offset = 0;
+        }
 
-  //    // in case of error, trigger re-create of filter
-  //    if (out_samples < 0)
-  //    {
-  //      out_samples = 0;
-  //      m_changeAudioDSP = true;
-  //    }
+        // pts of last sample we added to the buffer
+        m_lastSamplePts += (in->pkt->nb_samples - in->pkt_start_offset) * 1000 / m_format.m_sampleRate;
+      }
 
-  //    m_procSample->pkt->nb_samples += out_samples;
-  //    busy = true;
-  //    m_empty = m_pTempoFilter->IsEof();
+      // calculate pts for last sample in m_procSample
+      int bufferedSamples = 0;/** @todo implement m_processor->GetGetBufferedSamples();*/
+      m_procSample->pkt_start_offset = m_procSample->pkt->nb_samples;
+      m_procSample->timestamp = m_lastSamplePts - bufferedSamples * 1000 / m_format.m_sampleRate;
 
-  //    if (in)
-  //    {
-  //      if (in->timestamp)
-  //      {
-  //        m_lastSamplePts = in->timestamp;
-  //      }
-  //      else
-  //      {
-  //        in->pkt_start_offset = 0;
-  //      }
+      if ((m_drain || m_changeAudioDSP) && m_empty)
+      {
+        if (m_fillPackets && m_procSample->pkt->nb_samples != 0)
+        {
+          // pad with zero
+          start = m_procSample->pkt->nb_samples *
+            m_procSample->pkt->bytes_per_sample *
+            m_procSample->pkt->config.channels /
+            m_procSample->pkt->planes;
+          for (int i = 0; i < m_procSample->pkt->planes; i++)
+          {
+            memset(m_procSample->pkt->data[i] + start, 0, m_procSample->pkt->linesize - start);
+          }
+        }
 
-  //      // pts of last sample we added to the buffer
-  //      m_lastSamplePts += (in->pkt->nb_samples-in->pkt_start_offset) * 1000 / m_format.m_sampleRate;
-  //    }
+        // check if draining is finished
+        if (m_drain && m_procSample->pkt->nb_samples == 0)
+        {
+          m_procSample->Return();
+          busy = false;
+        }
+        else
+        {
+          m_outputSamples.push_back(m_procSample);
+        }
 
-  //    // calculate pts for last sample in m_procSample
-  //    int bufferedSamples = m_pTempoFilter->GetBufferedSamples();
-  //    m_procSample->pkt_start_offset = m_procSample->pkt->nb_samples;
-  //    m_procSample->timestamp = m_lastSamplePts - bufferedSamples * 1000 / m_format.m_sampleRate;
+        m_procSample = NULL;
+        if (m_changeAudioDSP)
+        {
+          ChangeAudioDSP();
+        }
+      }
+      // some methods like encode require completely filled packets
+      else if (!m_fillPackets || (m_procSample->pkt->nb_samples == m_procSample->pkt->max_nb_samples))
+      {
+        m_outputSamples.push_back(m_procSample);
+        m_procSample = NULL;
+      }
 
-  //    if ((m_drain || m_changeAudioDSP) && m_empty)
-  //    {
-  //      if (m_fillPackets && m_procSample->pkt->nb_samples != 0)
-  //      {
-  //        // pad with zero
-  //        start = m_procSample->pkt->nb_samples *
-  //        m_procSample->pkt->bytes_per_sample *
-  //        m_procSample->pkt->config.channels /
-  //        m_procSample->pkt->planes;
-  //        for (int i=0; i<m_procSample->pkt->planes; i++)
-  //        {
-  //          memset(m_procSample->pkt->data[i]+start, 0, m_procSample->pkt->linesize-start);
-  //        }
-  //      }
-
-  //      // check if draining is finished
-  //      if (m_drain && m_procSample->pkt->nb_samples == 0)
-  //      {
-  //        m_procSample->Return();
-  //        busy = false;
-  //      }
-  //      else
-  //      {
-  //        m_outputSamples.push_back(m_procSample);
-  //      }
-
-  //      m_procSample = nullptr;
-
-  //      if (m_changeAudioDSP)
-  //      {
-  //        ChangeAudiDSP();
-  //      }
-  //    }
-  //    // some methods like encode require completely filled packets
-  //    else if (!m_fillPackets || (m_procSample->pkt->nb_samples == m_procSample->pkt->max_nb_samples))
-  //    {
-  //      m_outputSamples.push_back(m_procSample);
-  //      m_procSample = nullptr;
-  //    }
-
-  //    if (in)
-  //    {
-  //      in->Return();
-  //    }
-  //  }
-  //}
+      if (in)
+      {
+        in->Return();
+      }
+    }
+  }
   return busy;
 }
+
+
+//  bool busy = false;
+//  CSampleBuffer *in;
+//
+//  /*
+//  * DSP need always a available input packet! To pass it step by step
+//  * over all enabled addons and processing segments.
+//  */
+//  if (m_useDSP && in)
+//  {
+//    if (!m_dspSample)
+//      m_dspSample = m_dspBuffer->GetFreeBuffer();
+//
+//#if defined(ADSP_COUT_DEBUG_OUTPUT)
+//    CLog::Log(LOGDEBUG, "------m_dspSample->timestamp: %i, m_dspSample->pkt_start_offset:%i, m_dspSample->pkt->bytes_per_sample:%i, m_dspSample->pkt->nb_samples:%i, m_dspSample->pkt->pause_burst_ms:%i, m_dspSample->pkt->planes:%i, m_dspSample->pkt->linesize:%i, m_dspSample->pkt->max_nb_samples:%i", m_dspSample->timestamp, m_dspSample->pkt_start_offset, m_dspSample->pkt->bytes_per_sample, m_dspSample->pkt->nb_samples, m_dspSample->pkt->pause_burst_ms, m_dspSample->pkt->planes, m_dspSample->pkt->linesize, m_dspSample->pkt->max_nb_samples);
+//    CLog::Log(LOGDEBUG, "------m_dspSample->pkt->config.bits_per_sample:%i, m_dspSample->pkt->config.channels:%i, m_dspSample->pkt->config.channel_layout:%lld, m_dspSample->pkt->config.dither_bits:%i, m_dspSample->pkt->config.sample_rate:%i", m_dspSample->pkt->config.bits_per_sample, m_dspSample->pkt->config.channels, (unsigned long long)m_dspSample->pkt->config.channel_layout, m_dspSample->pkt->config.dither_bits, m_dspSample->pkt->config.sample_rate);
+//#endif
+//    // currently AudioDSP doesn't do any internal buffering that's why timestamp and pkt_start_offset
+//    // is the same as the input
+//    m_dspSample->timestamp = in->timestamp;
+//    m_dspSample->pkt_start_offset = in->pkt_start_offset;
+//    if (m_dspSample && m_processor->Process(in, m_dspSample))
+//    {
+//      in->Return();
+//      in = m_dspSample;
+//      m_dspSample = NULL;
+//    }
+//    else
+//    {
+//      in->Return();
+//      in = NULL;
+//    }
+//  }
+//
+//  //if (!m_pTempoFilter->IsActive())
+//  //{
+//  //  if (m_changeAudioDSP)
+//  //  {
+//  //    if (m_changeAudioDSP)
+//  //    {
+//  //      ChangeAudiDSP();
+//  //    }
+//  //    return true;
+//  //  }
+//  //  while(!m_inputSamples.empty())
+//  //  {
+//  //    in = m_inputSamples.front();
+//  //    m_inputSamples.pop_front();
+//  //    m_outputSamples.push_back(in);
+//  //    busy = true;
+//  //  }
+//  //}
+//  //else if (m_procSample || !m_freeSamples.empty())
+//  //{
+//  //  int free_samples;
+//  //  if (m_procSample)
+//  //  {
+//  //    free_samples = m_procSample->pkt->max_nb_samples - m_procSample->pkt->nb_samples;
+//  //  }
+//  //  else
+//  //  {
+//  //    free_samples = m_format.m_frames;
+//  //  }
+//
+//  //  bool skipInput = false;
+//
+//  //  // avoid that bufferscr grows too large
+//  //  if (!m_pTempoFilter->NeedData())
+//  //  {
+//  //    skipInput = true;
+//  //  }
+//
+//  //  bool hasInput = !m_inputSamples.empty();
+//
+//  //  if (hasInput || skipInput || m_drain || m_changeAudioDSP)
+//  //  {
+//  //    if (!m_procSample)
+//  //    {
+//  //      m_procSample = GetFreeBuffer();
+//  //    }
+//
+//  //    if (hasInput && !skipInput && !m_changeAudioDSP)
+//  //    {
+//  //      in = m_inputSamples.front();
+//  //      m_inputSamples.pop_front();
+//  //    }
+//  //    else
+//  //    {
+//  //      in = nullptr;
+//  //    }
+//
+//  //    int start = m_procSample->pkt->nb_samples *
+//  //                m_procSample->pkt->bytes_per_sample *
+//  //                m_procSample->pkt->config.channels /
+//  //                m_procSample->pkt->planes;
+//
+//  //    for (int i=0; i<m_procSample->pkt->planes; i++)
+//  //    {
+//  //      m_planes[i] = m_procSample->pkt->data[i] + start;
+//  //    }
+//
+//  //    int out_samples = m_pTempoFilter->ProcessFilter(m_planes,
+//  //                                                    m_procSample->pkt->max_nb_samples - m_procSample->pkt->nb_samples,
+//  //                                                    in ? in->pkt->data : nullptr,
+//  //                                                    in ? in->pkt->nb_samples : 0,
+//  //                                                    in ? in->pkt->linesize * in->pkt->planes : 0);
+//
+//  //    // in case of error, trigger re-create of filter
+//  //    if (out_samples < 0)
+//  //    {
+//  //      out_samples = 0;
+//  //      m_changeAudioDSP = true;
+//  //    }
+//
+//  //    m_procSample->pkt->nb_samples += out_samples;
+//  //    busy = true;
+//  //    m_empty = m_pTempoFilter->IsEof();
+//
+//  //    if (in)
+//  //    {
+//  //      if (in->timestamp)
+//  //      {
+//  //        m_lastSamplePts = in->timestamp;
+//  //      }
+//  //      else
+//  //      {
+//  //        in->pkt_start_offset = 0;
+//  //      }
+//
+//  //      // pts of last sample we added to the buffer
+//  //      m_lastSamplePts += (in->pkt->nb_samples-in->pkt_start_offset) * 1000 / m_format.m_sampleRate;
+//  //    }
+//
+//  //    // calculate pts for last sample in m_procSample
+//  //    int bufferedSamples = m_pTempoFilter->GetBufferedSamples();
+//  //    m_procSample->pkt_start_offset = m_procSample->pkt->nb_samples;
+//  //    m_procSample->timestamp = m_lastSamplePts - bufferedSamples * 1000 / m_format.m_sampleRate;
+//
+//  //    if ((m_drain || m_changeAudioDSP) && m_empty)
+//  //    {
+//  //      if (m_fillPackets && m_procSample->pkt->nb_samples != 0)
+//  //      {
+//  //        // pad with zero
+//  //        start = m_procSample->pkt->nb_samples *
+//  //        m_procSample->pkt->bytes_per_sample *
+//  //        m_procSample->pkt->config.channels /
+//  //        m_procSample->pkt->planes;
+//  //        for (int i=0; i<m_procSample->pkt->planes; i++)
+//  //        {
+//  //          memset(m_procSample->pkt->data[i]+start, 0, m_procSample->pkt->linesize-start);
+//  //        }
+//  //      }
+//
+//  //      // check if draining is finished
+//  //      if (m_drain && m_procSample->pkt->nb_samples == 0)
+//  //      {
+//  //        m_procSample->Return();
+//  //        busy = false;
+//  //      }
+//  //      else
+//  //      {
+//  //        m_outputSamples.push_back(m_procSample);
+//  //      }
+//
+//  //      m_procSample = nullptr;
+//
+//  //      if (m_changeAudioDSP)
+//  //      {
+//  //        ChangeAudiDSP();
+//  //      }
+//  //    }
+//  //    // some methods like encode require completely filled packets
+//  //    else if (!m_fillPackets || (m_procSample->pkt->nb_samples == m_procSample->pkt->max_nb_samples))
+//  //    {
+//  //      m_outputSamples.push_back(m_procSample);
+//  //      m_procSample = nullptr;
+//  //    }
+//
+//  //    if (in)
+//  //    {
+//  //      in->Return();
+//  //    }
+//  //  }
+//  //}
+//  return busy;
+//}
 
 void CActiveAEBufferPoolADSP::Flush()
 {
@@ -1049,12 +1181,6 @@ void CActiveAEBufferPoolADSP::Flush()
   {
     m_procSample->Return();
     m_procSample = nullptr;
-  }
-  
-  if (m_dspSample)
-  {
-    m_dspSample->Return();
-    m_dspSample = NULL;
   }
 
   while (!m_inputSamples.empty())
@@ -1089,16 +1215,21 @@ float CActiveAEBufferPoolADSP::GetDelay()
     delay += (float)buf->pkt->nb_samples / buf->pkt->config.sample_rate;
   }
 
-//#if defined(ADSP_COUT_DEBUG_OUTPUT)
-  //CLog::Log(LOGDEBUG, "------delay: %f", delay);
-  //if (m_dspSample) // TODO this needs to be implemented when adsp supports asynchronous processing
-  //  delay += (float)m_dspSample->pkt->nb_samples / m_dspSample->pkt->config.sample_rate;
-  if (m_useDSP)
+  if (m_processor)
   {
-    //CLog::Log(LOGDEBUG, "------m_processor->GetDelay(): %f", m_processor->GetDelay());
-    delay += m_processor->GetDelay();  // TODO this needs to be implemented when adsp supports asynchronous processing
+    delay += m_processor->GetDelay();  /** @todo implemented asynchronous processing */
   }
-//#endif
+
+////#if defined(ADSP_COUT_DEBUG_OUTPUT)
+//  //CLog::Log(LOGDEBUG, "------delay: %f", delay);
+//  //if (m_dspSample) // TODO this needs to be implemented when adsp supports asynchronous processing
+//  //  delay += (float)m_dspSample->pkt->nb_samples / m_dspSample->pkt->config.sample_rate;
+  //if (m_useDSP)
+  //{
+  //  //CLog::Log(LOGDEBUG, "------m_processor->GetDelay(): %f", m_processor->GetDelay());
+  //  delay += m_processor->GetDelay();  // TODO this needs to be implemented when adsp supports asynchronous processing
+  //}
+////#endif
 
   //if (m_pTempoFilter->IsActive())
   //{
@@ -1131,32 +1262,24 @@ void CActiveAEBufferPoolADSP::ChangeAudioDSP()
   }
 
   bool wasActive = false; // TODO how to use this parameter
-  m_useDSP = CServiceBroker::GetADSP().CreateDSPs(m_streamId, m_processor, m_inputFormat,
+  m_streamId = CServiceBroker::GetADSP().CreateDSPs(m_streamId, m_processor, m_inputFormat,
                                                   CActiveAEBufferPool::m_format, m_stereoUpmix,
-                                                  m_resampleQuality, m_MatrixEncoding,
+                                                  m_Quality, m_MatrixEncoding,
                                                   m_AudioServiceType, m_Profile, wasActive);
-  if (m_useDSP)
+  if (m_streamId >= 0)
   {
     m_adspOutFormat = CActiveAEBufferPool::m_format;
     m_adspOutFormat.m_channelLayout = m_processor->GetChannelLayout();    /* Overide output format with DSP's supported format */
-    m_adspOutFormat.m_sampleRate = m_processor->GetOutputSamplerate(); /* Overide output format with DSP's generated samplerate */
-    m_adspOutFormat.m_dataFormat = m_processor->GetDataFormat();       /* Overide output format with DSP's processed data format, normally it is float */
-    m_adspOutFormat.m_frames = m_processor->GetOutputFrames();
+    m_adspOutFormat.m_sampleRate    = m_processor->GetOutputSamplerate(); /* Overide output format with DSP's generated samplerate */
+    m_adspOutFormat.m_dataFormat    = m_processor->GetDataFormat();       /* Overide output format with DSP's processed data format, normally it is float */
+    m_adspOutFormat.m_frames        = m_processor->GetOutputFrames();
   }
   else if (wasActive)
   {
     /*
     * Check now after the dsp processing becomes disabled, that the resampler is still
     * required, if not unload it also.
-    */
-    if (m_inputFormat.m_channelLayout == m_format.m_channelLayout &&
-      m_inputFormat.m_sampleRate == m_format.m_sampleRate &&
-      m_inputFormat.m_dataFormat == m_format.m_dataFormat)
-    {
-      delete m_dspBuffer;
-      m_dspBuffer = NULL;
-    }
-    
+    */    
     m_useDSP = false;
     CServiceBroker::GetADSP().DestroyDSPs(m_streamId);
   }
@@ -1165,7 +1288,7 @@ void CActiveAEBufferPoolADSP::ChangeAudioDSP()
     m_useDSP = false;
   }
 
-  m_changeDSP = false;
+  m_changeAudioDSP = false;
 }
 
 void CActiveAEBufferPoolADSP::SetExtraData(int profile, enum AVMatrixEncoding matrix_encoding, enum AVAudioServiceType audio_service_type)
@@ -1180,15 +1303,17 @@ void CActiveAEBufferPoolADSP::SetExtraData(int profile, enum AVMatrixEncoding ma
   }
 }
 
-void CActiveAEBufferPoolADSP::SetDSPConfig(bool usedsp, bool bypassdsp)
+bool CActiveAEBufferPoolADSP::SetDSPConfig(bool usedsp, bool bypassdsp)
 {
   m_useDSP = usedsp;
   m_bypassDSP = bypassdsp;
 
   /* Disable upmix if DSP layout > 2.0, becomes perfomed by DSP */
   bool ignoreUpmix = false;
-  if (/*dspenable && */m_useDSP && m_processor->GetChannelLayout().Count() > 2)
+  if (m_useDSP && m_processor->GetChannelLayout().Count() > 2)
   {
     ignoreUpmix = true;
   }
+
+  return true;
 }

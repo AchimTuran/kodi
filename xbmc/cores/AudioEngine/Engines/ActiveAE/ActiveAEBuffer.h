@@ -169,16 +169,16 @@ protected:
 class CActiveAEBufferPoolADSP : public CActiveAEBufferPool
 {
 public:
-	CActiveAEBufferPoolADSP(AEAudioFormat inputFormat, AEAudioFormat outputFormat);
+	CActiveAEBufferPoolADSP(AEAudioFormat inputFormat, AEAudioFormat outputFormat, AEQuality quality);
 	virtual ~CActiveAEBufferPoolADSP();
 	bool Create(unsigned int totaltime, bool upmix);
-	bool ProcessBuffers();
+	bool ProcessBuffers(int64_t timestamp = 0);
 	float GetDelay();
 	void Flush();
 	void FillBuffer();
 	void SetDrain(bool drain);
   void SetExtraData(int profile, enum AVMatrixEncoding matrix_encoding, enum AVAudioServiceType audio_service_type);
-  void SetDSPConfig(bool usedsp, bool bypassdsp);
+  bool SetDSPConfig(bool usedsp, bool bypassdsp);
 	
   std::deque<CSampleBuffer*> m_inputSamples;
 	std::deque<CSampleBuffer*> m_outputSamples;
@@ -195,16 +195,15 @@ protected:
   int64_t m_lastSamplePts;
   bool m_fillPackets;
   CActiveAEDSPProcessPtr m_processor;
-  CActiveAEBufferPool *m_dspBuffer;
-  CSampleBuffer *m_dspSample;
+  //CActiveAEBufferPool *m_dspBuffer;
+  //CSampleBuffer *m_dspSample;
   AEAudioFormat m_adspOutFormat;
-  bool m_changeDSP;
   bool m_useDSP;
   bool m_bypassDSP;
-  unsigned int m_streamId;
+  int m_streamId;
   enum AVMatrixEncoding m_MatrixEncoding;
   enum AVAudioServiceType m_AudioServiceType;
-  AEQuality m_resampleQuality;
+  AEQuality m_Quality;
   bool m_stereoUpmix;
   int m_Profile;
 };
