@@ -108,13 +108,13 @@ public:
   void FillBuffer();
   bool DoesNormalize();
   void ForceResampler(bool force);
-  void SetDSPConfig(bool usedsp, bool bypassdsp);
   bool HasWork();
   CActiveAEBufferPool *GetResampleBuffers();
   CActiveAEBufferPool *GetAtempoBuffers();
   CActiveAEBufferPool *GetADSPBuffers();
   
   AEAudioFormat m_inputFormat;
+  AEAudioFormat m_outputFormat;
   std::deque<CSampleBuffer*> m_outputSamples;
   std::deque<CSampleBuffer*> m_inputSamples;
 
@@ -122,6 +122,7 @@ protected:
   CActiveAEBufferPoolResample *m_resampleBuffers;
   CActiveAEBufferPoolAtempo *m_atempoBuffers;
   CActiveAEBufferPoolADSP *m_adspBuffers;
+  bool m_UseADSP;
 };
 
 class CActiveAEStream : public IAEStream
