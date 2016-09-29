@@ -80,7 +80,7 @@ using namespace ActiveAE;
 CGUIDialogAudioDSPSettings::CGUIDialogAudioDSPSettings()
   : CGUIDialogSettingsManualBase(WINDOW_DIALOG_AUDIO_DSP_OSD_SETTINGS, "DialogSettings.xml")
 {
-  m_ActiveStreamId                                = 0;
+  m_ActiveStreamId                                = -1;
   m_GetCPUUsage                                   = false;
   m_MenuPositions[SETTING_AUDIO_CAT_MAIN]         = CONTROL_SETTINGS_START_CONTROL;
   m_MenuPositions[SETTING_AUDIO_CAT_MASTER]       = CONTROL_SETTINGS_START_CONTROL;
@@ -242,12 +242,12 @@ void CGUIDialogAudioDSPSettings::FrameMove()
     const CVideoSettings &videoSettings = CMediaSettings::GetInstance().GetCurrentVideoSettings();
 
     bool forceReload = false;
-    unsigned int  streamId = CServiceBroker::GetADSP().GetActiveStreamId();
+    int  streamId = CServiceBroker::GetADSP().GetActiveStreamId();
     if (m_ActiveStreamId != streamId)
     {
       m_ActiveStreamId      = streamId;
       m_ActiveStreamProcess = CServiceBroker::GetADSP().GetDSPProcess(m_ActiveStreamId);
-      if (m_ActiveStreamId == (unsigned int)-1 || !m_ActiveStreamProcess)
+      if (m_ActiveStreamId < 0 || !m_ActiveStreamProcess)
       {
         Close(true);
         return;
@@ -401,7 +401,7 @@ void CGUIDialogAudioDSPSettings::InitializeSettings()
 
   m_ActiveStreamId      = CServiceBroker::GetADSP().GetActiveStreamId();
   m_ActiveStreamProcess = CServiceBroker::GetADSP().GetDSPProcess(m_ActiveStreamId);
-  if (m_ActiveStreamId == (unsigned int)-1 || !m_ActiveStreamProcess)
+  if (m_ActiveStreamId < 0 || !m_ActiveStreamProcess)
   {
     m_iCategory = FindCategoryIndex(SETTING_AUDIO_CAT_MAIN);
     Close(true);
@@ -851,7 +851,7 @@ void CGUIDialogAudioDSPSettings::GetAudioDSPMenus(CSettingGroup *group, AE_DSP_M
 
 bool CGUIDialogAudioDSPSettings::OpenAudioDSPMenu(unsigned int setupEntry)
 {
-  if (setupEntry >= m_Menus.size())
+  if (setupEntry >= m_Menus.size() || m_ActiveStreamId < 0)
     return false;
 
   AE_DSP_ADDON addon;
@@ -872,7 +872,7 @@ bool CGUIDialogAudioDSPSettings::OpenAudioDSPMenu(unsigned int setupEntry)
     case AE_DSP_MENUHOOK_MASTER_PROCESS:
     case AE_DSP_MENUHOOK_RESAMPLE:
     case AE_DSP_MENUHOOK_POST_PROCESS:
-      hookData.data.iStreamId = m_ActiveStreamId;
+      hookData.data.iStreamId = (AE_DSP_STREAM_ID)m_ActiveStreamId;
       break;
     default:
       break;

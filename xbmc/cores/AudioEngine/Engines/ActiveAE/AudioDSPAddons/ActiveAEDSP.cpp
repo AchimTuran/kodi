@@ -303,15 +303,20 @@ int CActiveAEDSP::GetAudioDSPAddonId(const AddonPtr &addon) const
 //@{
 bool CActiveAEDSP::TranslateBoolInfo(DWORD dwInfo) const
 {
-  bool bReturn(false);
+  bool bReturn = false;
 
   CSingleLock lock(m_critSection);
+
+  if (m_activeProcessId < 0)
+  {
+    return false;
+  }
 
   if (dwInfo == ADSP_HAS_MODES)
     return HasAvailableModes();
 
   if (!IsProcessing() || !m_usedProcesses[m_activeProcessId])
-    return bReturn;
+    return false;
 
   switch (dwInfo)
   {
@@ -345,9 +350,14 @@ bool CActiveAEDSP::TranslateBoolInfo(DWORD dwInfo) const
 
 bool CActiveAEDSP::TranslateCharInfo(DWORD dwInfo, std::string &strValue) const
 {
-  bool bReturn(true);
+  bool bReturn = false;
 
   CSingleLock lock(m_critSection);
+
+  if (m_activeProcessId < 0)
+  {
+    return false;
+  }
 
   if (!IsProcessing() || !m_usedProcesses[m_activeProcessId])
     return false;
@@ -359,13 +369,16 @@ bool CActiveAEDSP::TranslateCharInfo(DWORD dwInfo, std::string &strValue) const
   switch (dwInfo)
   {
   case ADSP_ACTIVE_STREAM_TYPE:
+    bReturn = true;
     strValue = g_localizeStrings.Get(GetStreamTypeName(m_usedProcesses[m_activeProcessId]->GetUsedStreamType()));
     break;
   case ADSP_DETECTED_STREAM_TYPE:
+    bReturn = true;
     strValue = g_localizeStrings.Get(GetStreamTypeName(m_usedProcesses[m_activeProcessId]->GetDetectedStreamType()));
     break;
   case ADSP_MASTER_NAME:
     {
+      bReturn = true;
       AE_DSP_ADDON addon;
       int modeId = activeMaster->ModeID();
       if (modeId == AE_DSP_MASTER_MODE_ID_PASSOVER || modeId >= AE_DSP_MASTER_MODE_ID_INTERNAL_TYPES)
@@ -378,12 +391,15 @@ bool CActiveAEDSP::TranslateCharInfo(DWORD dwInfo, std::string &strValue) const
     bReturn = m_usedProcesses[m_activeProcessId]->GetMasterModeStreamInfoString(strValue);
     break;
   case ADSP_MASTER_OWN_ICON:
+    bReturn = true;
     strValue = activeMaster->IconOwnModePath();
     break;
   case ADSP_MASTER_OVERRIDE_ICON:
+    bReturn = true;
     strValue = activeMaster->IconOverrideModePath();
     break;
   default:
+    bReturn = true;
     strValue.clear();
     bReturn = false;
     break;
@@ -435,19 +451,19 @@ CAEChannelInfo CActiveAEDSP::GetInternalChannelLayout(AEStdChLayout stdLayout)
   return CAEUtil::GetAEChannelLayout(channelLayoutOut);
 }
 
-bool CActiveAEDSP::CreateDSPs(unsigned int &streamId, CActiveAEDSPProcessPtr &process, const AEAudioFormat &inputFormat, const AEAudioFormat &outputFormat, bool upmix,
-                              AEQuality quality, enum AVMatrixEncoding matrix_encoding, enum AVAudioServiceType audio_service_type,
-                              int profile, bool wasActive)
+int CActiveAEDSP::CreateDSPs(int streamId, CActiveAEDSPProcessPtr &process, const AEAudioFormat &inputFormat, const AEAudioFormat &outputFormat, bool upmix,
+                             AEQuality quality, enum AVMatrixEncoding matrix_encoding, enum AVAudioServiceType audio_service_type,
+                             int profile, bool wasActive)
 {
   if (!IsActivated() || m_usedProcessesCnt >= AE_DSP_STREAM_MAX_STREAMS)
-    return false;
+    return -1;
 
   CSingleLock lock(m_critSection);
 
   AE_DSP_STREAMTYPE requestedStreamType = LoadCurrentAudioSettings();
 
   CActiveAEDSPProcessPtr usedProc;
-  if (wasActive && streamId != (unsigned int)-1 && streamId < AE_DSP_STREAM_MAX_STREAMS)
+  if (wasActive && 0 <= streamId && streamId < AE_DSP_STREAM_MAX_STREAMS)
   {
     if (m_usedProcesses[streamId] != NULL)
     {
@@ -471,13 +487,14 @@ bool CActiveAEDSP::CreateDSPs(unsigned int &streamId, CActiveAEDSPProcessPtr &pr
   if (usedProc == NULL)
   {
     CLog::Log(LOGERROR, "ActiveAE DSP - %s - can't find active processing class", __FUNCTION__);
-    return false;
+    return -1;
   }
 
   if (!usedProc->Create(inputFormat, outputFormat, upmix, quality, requestedStreamType, matrix_encoding, audio_service_type, profile))
   {
+    m_usedProcesses[streamId] = CActiveAEDSPProcessPtr();
     CLog::Log(LOGERROR, "ActiveAE DSP - %s - Creation of processing class failed", __FUNCTION__);
-    return false;
+    return -1;
   }
 
   if (!wasActive)
@@ -487,14 +504,15 @@ bool CActiveAEDSP::CreateDSPs(unsigned int &streamId, CActiveAEDSPProcessPtr &pr
     m_usedProcesses[streamId] = usedProc;
     m_usedProcessesCnt++;
   }
-  return true;
+
+  return streamId;
 }
 
-void CActiveAEDSP::DestroyDSPs(unsigned int streamId)
+void CActiveAEDSP::DestroyDSPs(int streamId)
 {
   CSingleLock lock(m_critSection);
 
-  if (streamId != (unsigned int)-1 && m_usedProcesses[streamId] != NULL)
+  if (0 <= streamId && streamId < AE_DSP_STREAM_MAX_STREAMS && m_usedProcesses[streamId] != NULL)
   {
     m_usedProcesses[streamId]->Destroy();
     m_usedProcesses[streamId] = CActiveAEDSPProcessPtr();
@@ -506,11 +524,11 @@ void CActiveAEDSP::DestroyDSPs(unsigned int streamId)
   }
 }
 
-CActiveAEDSPProcessPtr CActiveAEDSP::GetDSPProcess(unsigned int streamId)
+CActiveAEDSPProcessPtr CActiveAEDSP::GetDSPProcess(int streamId)
 {
   CSingleLock lock(m_critSection);
 
-  if (streamId != (unsigned int)-1 && m_usedProcesses[streamId])
+  if (0 <= streamId && streamId < AE_DSP_STREAM_MAX_STREAMS && m_usedProcesses[streamId])
     return m_usedProcesses[streamId];
   return CActiveAEDSPProcessPtr();
 }
@@ -521,7 +539,7 @@ unsigned int CActiveAEDSP::GetProcessingStreamsAmount(void)
   return m_usedProcessesCnt;
 }
 
-unsigned int CActiveAEDSP::GetActiveStreamId(void)
+int CActiveAEDSP::GetActiveStreamId(void)
 {
   CSingleLock lock(m_critSection);
 

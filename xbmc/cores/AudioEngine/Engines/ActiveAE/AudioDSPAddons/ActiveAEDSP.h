@@ -271,21 +271,21 @@ namespace ActiveAE
      * @param wasActive if it is true a recreation of present stream control becomes performed (process class becomes not deleted)
      * @return True if the dsp processing becomes available
      */
-    bool CreateDSPs(unsigned int &streamId, CActiveAEDSPProcessPtr &process, const AEAudioFormat &inputFormat, const AEAudioFormat &outputFormat,
-                    bool upmix, AEQuality quality, enum AVMatrixEncoding matrix_encoding, enum AVAudioServiceType audio_service_type,
-                    int profile, bool wasActive = false);
+    int CreateDSPs(int streamId, CActiveAEDSPProcessPtr &process, const AEAudioFormat &inputFormat, const AEAudioFormat &outputFormat,
+                   bool upmix, AEQuality quality, enum AVMatrixEncoding matrix_encoding, enum AVAudioServiceType audio_service_type,
+                   int profile, bool wasActive = false);
 
     /*!>
      * Destroy all allocated dsp add-ons streamId and stop processing.
      * @param streamId Stream id that should be destroyed.
      */
-    void DestroyDSPs(unsigned int streamId);
+    void DestroyDSPs(int streamId);
 
     /*!>
      * Get the dsp processing class of given stream id
      * @param streamId The id of this stream
      */
-    CActiveAEDSPProcessPtr GetDSPProcess(unsigned int streamId);
+    CActiveAEDSPProcessPtr GetDSPProcess(int streamId);
 
     /*!>
      * Get the amount of used dsp process stream handlers
@@ -297,7 +297,7 @@ namespace ActiveAE
      * Get the currently active processing stream id
      * @return Stream id, or max unsigned int value (-1) if not active
      */
-    unsigned int GetActiveStreamId(void);
+    int GetActiveStreamId(void);
 
     /*!
      * @brief Check for available modes present from add-ons
@@ -404,7 +404,7 @@ namespace ActiveAE
     CCriticalSection        m_critUpdateSection;                        /*!< Critical lock for update thread related functions */
     unsigned int            m_usedProcessesCnt;                         /*!< the amount of used addon processes */
     CActiveAEDSPProcessPtr  m_usedProcesses[AE_DSP_STREAM_MAX_STREAMS]; /*!< Pointer to active process performing classes */
-    unsigned int            m_activeProcessId;                          /*!< The currently active audio stream id of a playing file source */
+    int                     m_activeProcessId;                          /*!< The currently active audio stream id of a playing file source */
     bool                    m_isValidAudioDSPSettings;                  /*!< if settings load was successfull it becomes true */
     AE_DSP_MODELIST         m_modes[AE_DSP_MODE_TYPE_MAX];              /*!< list of currently used dsp processing calls */
     std::map<std::string, int> m_addonNameIds; /*!< map add-on names to IDs */
