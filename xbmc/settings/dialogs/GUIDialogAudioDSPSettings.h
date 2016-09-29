@@ -77,7 +77,7 @@ namespace ActiveAE
     bool OpenAudioDSPMenu(unsigned int setupEntry);
     int FindCategoryIndex(const std::string &catId);
 
-    AE_DSP_STREAM_ID                            m_ActiveStreamId;                         /*!< The on dialog selectable stream identifier */
+    int                                         m_ActiveStreamId;                         /*!< The on dialog selectable stream identifier */
     ActiveAE::CActiveAEDSPProcessPtr            m_ActiveStreamProcess;                    /*!< On dialog adjustable dsp processing class */
     AE_DSP_STREAMTYPE                           m_streamTypeUsed;                         /*!< The currently available stream type */
     AE_DSP_BASETYPE                             m_baseTypeUsed;                           /*!< The currently detected and used base type */
