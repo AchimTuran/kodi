@@ -72,21 +72,15 @@ namespace ActiveAE
      * @brief Stop the ActiveAEDSP and destroy all objects it created.
      */
     virtual ~CActiveAEDSP();
-
-    void Init(void);
   //@}
 
   /*! @name initialization and configuration methods */
   //@{
-    /*!
-     * @brief Activate the addon dsp processing.
-     */
-    void Activate(void);
-
+    void Init(void);
     /*!
      * @brief Stops dsp processing and the backend info update thread.
      */
-    void Deactivate(void);
+    void Shutdown(void);
 
     /*!
      * @brief Delete all objects and processing classes.
