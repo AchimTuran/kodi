@@ -60,6 +60,7 @@ CGUISliderControl::CGUISliderControl(int parentID, int controlID, float posX, fl
   m_dragging = false;
   m_action = NULL;
   m_active = false;
+  m_keepactive = false;
 }
 
 CGUISliderControl::~CGUISliderControl(void)
@@ -246,6 +247,12 @@ bool CGUISliderControl::OnAction(const CAction &action)
     break;
   }
   return CGUIControl::OnAction(action);
+}
+
+void CGUISliderControl::OnUnFocus()
+{
+  if (!m_keepactive)
+    m_active = false;
 }
 
 void CGUISliderControl::Move(int iNumSteps)
@@ -496,6 +503,17 @@ void CGUISliderControl::SetFloatRange(float fStart, float fEnd)
     m_floatValues[0] = m_fStart = fStart;
     m_floatValues[1] = m_fEnd = fEnd;
   }
+}
+
+void CGUISliderControl::SetActive()
+{
+  m_active = true;
+}
+
+
+void CGUISliderControl::KeepActive()
+{
+  m_keepactive = true;
 }
 
 void CGUISliderControl::FreeResources(bool immediately)
