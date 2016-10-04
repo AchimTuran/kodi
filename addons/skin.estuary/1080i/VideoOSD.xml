@@ -318,7 +318,7 @@
 						<onclick>ActivateWindow(osdcmssettings)</onclick>
 						<visible>System.HasCMS</visible>
 					</control>
-					<control type="button" id="11105">
+					<control type="button" id="11106">
 						<width>470</width>
 						<include>DefaultSettingButton</include>
 						<label>$LOCALIZE[15047]</label>
