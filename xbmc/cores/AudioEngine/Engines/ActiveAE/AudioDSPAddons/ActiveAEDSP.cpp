@@ -84,6 +84,10 @@ CActiveAEDSP::~CActiveAEDSP()
 //@{
 void CActiveAEDSP::Init(void)
 {
+  /* create and open database */
+  if (!m_databaseDSP.IsOpen())
+    m_databaseDSP.Open();
+
   std::set<std::string> settingSet;
   settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_DSPADDONSENABLED);
   settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_DSPSETTINGS);
@@ -602,10 +606,6 @@ void CActiveAEDSP::UpdateAddons()
       int iAddonId = static_cast<int>(hasher(addon->ID()));
       if (iAddonId < 0)
         iAddonId = -iAddonId;
-
-      /* create and open database */
-      if (!m_databaseDSP.IsOpen())
-        m_databaseDSP.Open();
 
       if (IsKnownAudioDSPAddon(addon))
       {
