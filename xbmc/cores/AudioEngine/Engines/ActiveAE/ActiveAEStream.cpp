@@ -611,10 +611,10 @@ bool CActiveAEStreamBuffers::Create(unsigned int totaltime, bool remap, bool upm
   if (!m_resampleBuffers->Create(totaltime, remap, upmix, normalize))
     return false;
 
-  if (!m_adspBuffers->Create(totaltime, upmix))
+  if (!m_atempoBuffers->Create(totaltime))
     return false;
 
-  if (!m_atempoBuffers->Create(totaltime))
+  if (!m_adspBuffers->Create(totaltime, upmix))
     return false;
 
   return true;
@@ -682,9 +682,15 @@ bool CActiveAEStreamBuffers::ProcessBuffers()
   return busy;
 }
 
-void CActiveAEStreamBuffers::ConfigureResampler(bool normalizelevels, bool dspenabled, bool stereoupmix, AEQuality quality)
+void CActiveAEStreamBuffers::ConfigureResampler(bool normalizelevels, bool stereoupmix, AEQuality quality)
 {
-  m_resampleBuffers->ConfigureResampler(normalizelevels, dspenabled, stereoupmix, quality);
+  m_resampleBuffers->ConfigureResampler(normalizelevels, stereoupmix, quality);
+}
+
+void ActiveAE::CActiveAEStreamBuffers::ConfigureADSP(bool useDSP, bool stereoupmix, AEQuality quality)
+{
+  /*! @todo pass bypass, quality, upmix to AudioDSP*/
+  m_adspBuffers->SetDSPConfig(useDSP, false);
 }
 
 float CActiveAEStreamBuffers::GetDelay()

@@ -423,7 +423,7 @@ bool CActiveAEBufferPoolResample::ResampleBuffers(int64_t timestamp)
   return busy;
 }
 
-void CActiveAEBufferPoolResample::ConfigureResampler(bool normalizelevels, bool dspenabled, bool stereoupmix, AEQuality quality)
+void CActiveAEBufferPoolResample::ConfigureResampler(bool normalizelevels, bool stereoupmix, AEQuality quality)
 {
   bool normalize = true;
   if ((m_format.m_channelLayout.Count() < m_inputFormat.m_channelLayout.Count()) && normalizelevels)
@@ -1297,16 +1297,13 @@ void CActiveAEBufferPoolADSP::SetExtraData(int profile, enum AVMatrixEncoding ma
   m_MatrixEncoding = matrix_encoding;
   m_AudioServiceType = audio_service_type;
 
-  if (m_useDSP)
-  {
-    ChangeAudioDSP();
-  }
+  ChangeAudioDSP();
 }
 
-bool CActiveAEBufferPoolADSP::SetDSPConfig(bool usedsp, bool bypassdsp)
+bool CActiveAEBufferPoolADSP::SetDSPConfig(bool useDSP, bool bypassDSP)
 {
-  m_useDSP = usedsp;
-  m_bypassDSP = bypassdsp;
+  m_useDSP = useDSP;
+  m_bypassDSP = bypassDSP;
 
   /* Disable upmix if DSP layout > 2.0, becomes perfomed by DSP */
   bool ignoreUpmix = false;
@@ -1314,6 +1311,8 @@ bool CActiveAEBufferPoolADSP::SetDSPConfig(bool usedsp, bool bypassdsp)
   {
     ignoreUpmix = true;
   }
+
+  ChangeAudioDSP();
 
   return true;
 }
