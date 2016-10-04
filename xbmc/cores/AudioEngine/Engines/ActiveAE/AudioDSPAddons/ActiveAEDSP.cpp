@@ -74,12 +74,14 @@ CActiveAEDSP::CActiveAEDSP()
 
 CActiveAEDSP::~CActiveAEDSP()
 {
-  Deactivate();
+  Shutdown();
   CAddonMgr::GetInstance().UnregisterAddonMgrCallback(ADDON_ADSPDLL);
   CSettings::GetInstance().UnregisterCallback(this);
   CLog::Log(LOGDEBUG, "ActiveAE DSP - destroyed");
 }
 
+/*! @name initialization and configuration methods */
+//@{
 void CActiveAEDSP::Init(void)
 {
   std::set<std::string> settingSet;
@@ -90,18 +92,6 @@ void CActiveAEDSP::Init(void)
 
   CAddonMgr::GetInstance().RegisterAddonMgrCallback(ADDON_ADSPDLL, this);
 
-  if (CSettings::GetInstance().GetBool(CSettings::SETTING_AUDIOOUTPUT_DSPADDONSENABLED))
-    Activate();
-}
-//@}
-
-/*! @name initialization and configuration methods */
-//@{
-void CActiveAEDSP::Activate(void)
-{
-  /* first stop and remove any audio dsp add-on's */
-  Deactivate();
-
   CSingleLock lock(m_critSection);
 
   CLog::Log(LOGNOTICE, "ActiveAE DSP - starting");
@@ -109,6 +99,7 @@ void CActiveAEDSP::Activate(void)
   UpdateAddons();
   m_isActive = true;
 }
+//@}
 
 class CActiveAEDSPModeUpdateJob : public CJob
 {
@@ -156,7 +147,7 @@ void CActiveAEDSP::TriggerModeUpdate(bool bAsync /* = true */)
   }
 }
 
-void CActiveAEDSP::Deactivate(void)
+void CActiveAEDSP::Shutdown(void)
 {
   /* check whether the audio dsp is loaded */
   if (!m_isActive)
@@ -208,7 +199,8 @@ void CActiveAEDSP::ResetDatabase(void)
   }
 
   /* stop the system */
-  Deactivate();
+  //! @todo why is a deactivation of adsp needed?
+  //Deactivate();
 
   if (m_databaseDSP.Open())
   {
@@ -224,7 +216,8 @@ void CActiveAEDSP::ResetDatabase(void)
   CLog::Log(LOGNOTICE, "ActiveAE DSP - restarting the audio DSP handler");
   m_databaseDSP.Open();
   Cleanup();
-  Activate();
+  //! @todo why is a deactivation of adsp needed?
+  //Activate();
 }
 //@}
 

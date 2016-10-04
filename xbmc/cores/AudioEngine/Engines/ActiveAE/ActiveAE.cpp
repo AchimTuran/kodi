@@ -294,7 +294,7 @@ CActiveAE::~CActiveAE()
 
 void CActiveAE::Dispose()
 {
-  CServiceBroker::GetADSP().Deactivate();
+  CServiceBroker::GetADSP().Shutdown();
   g_Windowing.Unregister(this);
 
   m_bStop = true;
@@ -467,7 +467,7 @@ void CActiveAE::StateMachine(int signal, Protocol *port, Message *msg)
           m_extError = false;
           m_sink.EnumerateSinkList(false);
           LoadSettings();
-          CServiceBroker::GetADSP().Activate();
+          CServiceBroker::GetADSP().Init();
           Configure();
           msg->Reply(CActiveAEControlProtocol::ACC);
           if (!m_extError)
@@ -797,7 +797,7 @@ void CActiveAE::StateMachine(int signal, Protocol *port, Message *msg)
             m_sink.EnumerateSinkList(true);
             LoadSettings();
           }
-          CServiceBroker::GetADSP().Activate();
+          CServiceBroker::GetADSP().Init();
           Configure();
           if (!displayReset)
             msg->Reply(CActiveAEControlProtocol::ACC);

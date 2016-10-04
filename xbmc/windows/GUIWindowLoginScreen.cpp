@@ -278,8 +278,9 @@ void CGUIWindowLoginScreen::LoadProfile(unsigned int profile)
   // stop PVR related services
   g_application.StopPVRManager();
 
-  // stop audio DSP services with a blocking message
-  CServiceBroker::GetADSP().Deactivate();
+  //! @todo why is a deactivation of adsp really needed?
+  //// stop audio DSP services with a blocking message
+  //CServiceBroker::GetADSP().Deactivate();
 
   if (profile != 0 || !CProfilesManager::GetInstance().IsMasterProfile())
   {
