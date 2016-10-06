@@ -282,7 +282,7 @@ bool CActiveAEDSPProcess::Create(const AEAudioFormat &inputFormat, const AEAudio
   m_addonSettings.bInputResamplingActive  = false;                                /*! Becomes true if input resampling is in use */
   m_addonSettings.iQualityLevel           = m_streamQuality;                      /*! Requested stream processing quality, is optional and can be from addon ignored */
 
-  /*! NOTE: If you change or add new channel enums to AEChannel in
+  /*! @warning If you change or add new channel enums to AEChannel in
    * xbmc/cores/AudioEngine/Utils/AEChannelData.h you have to adapt this loop
    */
   for (int ii = 0; ii < AE_DSP_CH_MAX; ii++)
@@ -1196,7 +1196,7 @@ bool CActiveAEDSPProcess::Process(CSampleBuffer *in, CSampleBuffer *out)
 
   if (needDSPAddonsReinit)
   {
-    /*! NOTE: If you change or add new channel enums to AEChannel in
+    /*! @warning If you change or add new channel enums to AEChannel in
      * xbmc/cores/AudioEngine/Utils/AEChannelData.h you have to adapt this loop
      */
     m_addonSettings.lInChannelPresentFlags = 0;
@@ -1208,7 +1208,7 @@ bool CActiveAEDSPProcess::Process(CSampleBuffer *in, CSampleBuffer *out)
       }
     }
 
-    /*! NOTE: If you change or add new channel enums to AEChannel in
+    /*! @warning If you change or add new channel enums to AEChannel in
      * xbmc/cores/AudioEngine/Utils/AEChannelData.h you have to adapt this loop
      */
     m_addonSettings.lOutChannelPresentFlags = 0;
@@ -1598,7 +1598,7 @@ void CActiveAEDSPProcess::SetFFMpegDSPProcessorArray(float *array_ffmpeg[AE_DSP_
    * already present channel memory storage.
    */
 
-  /*! NOTE: If you change or add new channel enums to AEChannel in 
+  /*! @warning If you change or add new channel enums to AEChannel in 
     * xbmc/cores/AudioEngine/Utils/AEChannelData.h you have to adapt this loop
     */
   memset(array_ffmpeg, 0, sizeof(float*)*AE_DSP_CH_MAX);
