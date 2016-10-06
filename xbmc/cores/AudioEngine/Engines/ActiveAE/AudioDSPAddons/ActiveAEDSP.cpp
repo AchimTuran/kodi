@@ -591,7 +591,7 @@ void CActiveAEDSP::UpdateAddons()
   VECADDONS addons;
   AE_DSP_ADDON dspAddon;
 
-  CAddonMgr::GetInstance().GetAddons(addons, ADDON_ADSPDLL);
+  CAddonMgr::GetInstance().GetInstalledAddons(addons, ADDON_ADSPDLL);
 
   if (addons.empty())
     return;
