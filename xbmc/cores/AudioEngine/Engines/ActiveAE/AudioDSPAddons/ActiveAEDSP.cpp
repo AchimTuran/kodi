@@ -139,14 +139,15 @@ void CActiveAEDSP::TriggerModeUpdate(bool bAsync /* = true */)
     m_databaseDSP.GetModes(m_modes[i], i);
   }
 
-  /*
-   * if any dsp processing is active restart playback
-   */
-  if (m_usedProcessesCnt > 0)
-  {
-    CLog::Log(LOGNOTICE, "ActiveAE DSP - restarting playback after disabled dsp system");
-    CApplicationMessenger::GetInstance().SendMsg(TMSG_MEDIA_RESTART);
-  }
+  /*!@todo send a reconfigure request to AE*/
+  ///*
+  // * if any dsp processing is active restart playback
+  // */
+  //if (m_usedProcessesCnt > 0)
+  //{
+  //  CLog::Log(LOGNOTICE, "ActiveAE DSP - restarting playback after disabled dsp system");
+  //  CApplicationMessenger::GetInstance().SendMsg(TMSG_MEDIA_RESTART);
+  //}
 }
 
 void CActiveAEDSP::Shutdown(void)
