@@ -95,10 +95,8 @@ namespace ActiveAE
 
     /*! Settings control selection and information data */
     std::string                                 m_InputChannels;
-    std::string                                 m_InputChannelNames;
     std::string                                 m_InputSamplerate;
     std::string                                 m_OutputChannels;
-    std::string                                 m_OutputChannelNames;
     std::string                                 m_OutputSamplerate;
     std::string                                 m_CPUUsage;
   };

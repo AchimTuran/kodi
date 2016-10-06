@@ -910,7 +910,7 @@ bool CActiveAEBufferPoolADSP::ProcessBuffers(int64_t timestamp/* = 0*/)
       {
         m_changeAudioDSP = true;
       }
-      int out_samples = m_processor->GetOutputFrames();
+      int out_samples = m_processor->GetOutputFormat().m_frames;
 
       //m_procSample->pkt->nb_samples += out_samples;
       busy = true;
@@ -1268,11 +1268,13 @@ void CActiveAEBufferPoolADSP::ChangeAudioDSP()
                                                   m_AudioServiceType, m_Profile, wasActive);
   if (m_streamId >= 0)
   {
+    AEAudioFormat tmpOutFormat = m_processor->GetOutputFormat();
     m_adspOutFormat = CActiveAEBufferPool::m_format;
-    m_adspOutFormat.m_channelLayout = m_processor->GetChannelLayout();    /* Overide output format with DSP's supported format */
-    m_adspOutFormat.m_sampleRate    = m_processor->GetOutputSamplerate(); /* Overide output format with DSP's generated samplerate */
-    m_adspOutFormat.m_dataFormat    = m_processor->GetDataFormat();       /* Overide output format with DSP's processed data format, normally it is float */
-    m_adspOutFormat.m_frames        = m_processor->GetOutputFrames();
+
+    m_adspOutFormat.m_channelLayout = tmpOutFormat.m_channelLayout;    /* Overide output format with DSP's supported format */
+    m_adspOutFormat.m_sampleRate    = tmpOutFormat.m_sampleRate; /* Overide output format with DSP's generated samplerate */
+    m_adspOutFormat.m_dataFormat    = tmpOutFormat.m_dataFormat;       /* Overide output format with DSP's processed data format, normally it is float */
+    m_adspOutFormat.m_frames        = tmpOutFormat.m_frames;
   }
   else if (wasActive)
   {
@@ -1307,7 +1309,7 @@ bool CActiveAEBufferPoolADSP::SetDSPConfig(bool useDSP, bool bypassDSP)
 
   /* Disable upmix if DSP layout > 2.0, becomes perfomed by DSP */
   bool ignoreUpmix = false;
-  if (m_useDSP && m_processor->GetChannelLayout().Count() > 2)
+  if (m_useDSP && m_processor->GetOutputFormat().m_channelLayout.Count() > 2)
   {
     ignoreUpmix = true;
   }
