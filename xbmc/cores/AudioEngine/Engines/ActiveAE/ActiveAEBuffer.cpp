@@ -1263,9 +1263,9 @@ void CActiveAEBufferPoolADSP::ChangeAudioDSP()
 
   bool wasActive = false; // TODO how to use this parameter
   m_streamId = CServiceBroker::GetADSP().CreateDSPs(m_streamId, m_processor, m_inputFormat,
-                                                  CActiveAEBufferPool::m_format, m_stereoUpmix,
-                                                  m_Quality, m_MatrixEncoding,
-                                                  m_AudioServiceType, m_Profile, wasActive);
+                                                    CActiveAEBufferPool::m_format, m_stereoUpmix,
+                                                    m_Quality, m_MatrixEncoding,
+                                                    m_AudioServiceType, m_Profile, wasActive);
   if (m_streamId >= 0)
   {
     AEAudioFormat tmpOutFormat = m_processor->GetOutputFormat();
