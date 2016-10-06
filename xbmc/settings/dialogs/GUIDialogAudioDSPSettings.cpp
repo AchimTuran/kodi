@@ -643,11 +643,11 @@ void CGUIDialogAudioDSPSettings::InitializeSettings()
       CLog::Log(LOGERROR, "CGUIDialogAudioDSPSettings: unable to setup settings group for '%s'", g_localizeStrings.Get(15089).c_str());
       return;
     }
-    m_InputChannels = StringUtils::Format("%i", m_ActiveStreamProcess->GetInputChannels());
+    AEAudioFormat inputFormat = m_ActiveStreamProcess->GetInputFormat();
+    m_InputChannels = StringUtils::Format("%i", inputFormat.m_channelLayout.Count());
     AddInfoLabelButton(group, SETTING_STREAM_INFO_INPUT_CHANNELS, 21444, 0, m_InputChannels);
-    m_InputChannelNames = m_ActiveStreamProcess->GetInputChannelNames();
-    AddInfoLabelButton(group, SETTING_STREAM_INFO_INPUT_CHANNEL_NAMES, 15091, 0, m_InputChannelNames);
-    m_InputSamplerate = StringUtils::Format("%i Hz", (int)m_ActiveStreamProcess->GetInputSamplerate());
+    AddInfoLabelButton(group, SETTING_STREAM_INFO_INPUT_CHANNEL_NAMES, 15091, 0, inputFormat.m_channelLayout);
+    m_InputSamplerate = StringUtils::Format("%i Hz", (int)inputFormat.m_sampleRate);
     AddInfoLabelButton(group, SETTING_STREAM_INFO_INPUT_SAMPLERATE, 613, 0, m_InputSamplerate);
 
     group = AddGroup(category, 15090);
@@ -656,11 +656,12 @@ void CGUIDialogAudioDSPSettings::InitializeSettings()
       CLog::Log(LOGERROR, "CGUIDialogAudioDSPSettings: unable to setup settings group for '%s'", g_localizeStrings.Get(15090).c_str());
       return;
     }
-    m_OutputChannels = StringUtils::Format("%i", m_ActiveStreamProcess->GetOutputChannels());
+
+    AEAudioFormat outputFormat = m_ActiveStreamProcess->GetInputFormat();
+    m_OutputChannels = StringUtils::Format("%i", outputFormat.m_channelLayout.Count());
     AddInfoLabelButton(group, SETTING_STREAM_INFO_OUTPUT_CHANNELS, 21444, 0, m_OutputChannels);
-    m_OutputChannelNames = m_ActiveStreamProcess->GetOutputChannelNames();
-    AddInfoLabelButton(group, SETTING_STREAM_INFO_OUTPUT_CHANNEL_NAMES, 15091, 0, m_OutputChannelNames);
-    m_OutputSamplerate = StringUtils::Format("%i Hz", (int)m_ActiveStreamProcess->GetOutputSamplerate());
+    AddInfoLabelButton(group, SETTING_STREAM_INFO_OUTPUT_CHANNEL_NAMES, 15091, 0, outputFormat.m_channelLayout);
+    m_OutputSamplerate = StringUtils::Format("%i Hz", (int)outputFormat.m_sampleRate);
     AddInfoLabelButton(group, SETTING_STREAM_INFO_OUTPUT_SAMPLERATE, 613, 0, m_OutputSamplerate);
 
     group = AddGroup(category, 15081);
@@ -687,7 +688,7 @@ void CGUIDialogAudioDSPSettings::InitializeSettings()
             break;
           case AE_DSP_MODE_TYPE_OUTPUT_RESAMPLE:
             group = AddGroup(category, 15088, -1, true, true);
-            label = StringUtils::Format(g_localizeStrings.Get(15083).c_str(), m_ActiveStreamProcess->GetOutputSamplerate());
+            label = StringUtils::Format(g_localizeStrings.Get(15083).c_str(), outputFormat.m_sampleRate);
             break;
           case AE_DSP_MODE_TYPE_MASTER_PROCESS:
             group = AddGroup(category, 15084, -1, true, true);
