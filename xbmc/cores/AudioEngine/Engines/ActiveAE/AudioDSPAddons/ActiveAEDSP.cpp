@@ -280,7 +280,7 @@ bool CActiveAEDSP::IsKnownAudioDSPAddon(const AddonPtr &addon) const
 
 int CActiveAEDSP::GetAudioDSPAddonId(const AddonPtr &addon) const
 {
-  CSingleLock lock(m_critUpdateSection);
+  CSingleLock lock(m_critSection);
 
   for (auto &entry : m_addonMap)
   {
@@ -621,6 +621,7 @@ void CActiveAEDSP::UpdateAddons()
         }
 
         dspAddon.get()->Create(iAddonId);
+        CSingleLock lock(m_critSection);
         // register the add-on
         if (m_addonMap.find(iAddonId) == m_addonMap.end())
         {
@@ -697,7 +698,7 @@ bool CActiveAEDSP::HasEnabledAudioDSPAddons(void) const
 int CActiveAEDSP::GetEnabledAudioDSPAddons(AE_DSP_ADDONMAP &addons) const
 {
   int iReturn(0);
-  CSingleLock lock(m_critUpdateSection);
+  CSingleLock lock(m_critSection);
 
   for (AE_DSP_ADDONMAP_CITR citr = m_addonMap.begin(); citr != m_addonMap.end(); ++citr)
   {
@@ -714,7 +715,7 @@ int CActiveAEDSP::GetEnabledAudioDSPAddons(AE_DSP_ADDONMAP &addons) const
 int CActiveAEDSP::ReadyAudioDSPAddonAmount(void) const
 {
   int iReturn(0);
-  CSingleLock lock(m_critUpdateSection);
+  CSingleLock lock(m_critSection);
 
   for (AE_DSP_ADDONMAP_CITR citr = m_addonMap.begin(); citr != m_addonMap.end(); ++citr)
   {
@@ -738,7 +739,7 @@ bool CActiveAEDSP::IsReadyAudioDSPAddon(int iAddonId) const
 
 bool CActiveAEDSP::IsReadyAudioDSPAddon(const AddonPtr &addon)
 {
-  CSingleLock lock(m_critUpdateSection);
+  CSingleLock lock(m_critSection);
 
   for (AE_DSP_ADDONMAP_CITR citr = m_addonMap.begin(); citr != m_addonMap.end(); ++citr)
   {
@@ -779,7 +780,7 @@ bool CActiveAEDSP::GetAudioDSPAddon(int iAddonId, AE_DSP_ADDON &addon) const
   if (iAddonId <= AE_DSP_INVALID_ADDON_ID)
     return bReturn;
 
-  CSingleLock lock(m_critUpdateSection);
+  CSingleLock lock(m_critSection);
 
   AE_DSP_ADDONMAP_CITR citr = m_addonMap.find(iAddonId);
   if (citr != m_addonMap.end())
@@ -793,7 +794,7 @@ bool CActiveAEDSP::GetAudioDSPAddon(int iAddonId, AE_DSP_ADDON &addon) const
 
 bool CActiveAEDSP::GetAudioDSPAddon(const std::string &strId, AddonPtr &addon) const
 {
-  CSingleLock lock(m_critUpdateSection);
+  CSingleLock lock(m_critSection);
   for (AE_DSP_ADDONMAP_CITR citr = m_addonMap.begin(); citr != m_addonMap.end(); ++citr)
   {
     if (citr->second->ID() == strId)
@@ -810,6 +811,7 @@ bool CActiveAEDSP::GetAudioDSPAddon(const std::string &strId, AddonPtr &addon) c
 //@{
 bool CActiveAEDSP::HaveMenuHooks(AE_DSP_MENUHOOK_CAT cat, int iDSPAddonID)
 {
+  CSingleLock lock(m_critSection);
   for (AE_DSP_ADDONMAP_CITR citr = m_addonMap.begin(); citr != m_addonMap.end(); ++citr)
   {
     if (citr->second->ReadyToUse())
