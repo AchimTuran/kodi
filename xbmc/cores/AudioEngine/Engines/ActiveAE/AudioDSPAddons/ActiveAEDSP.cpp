@@ -561,6 +561,7 @@ const AE_DSP_MODELIST &CActiveAEDSP::GetAvailableModes(AE_DSP_MODE_TYPE modeType
   if (modeType < 0 || modeType >= AE_DSP_MODE_TYPE_MAX)
     return emptyArray;
 
+  /*!@todo this is very hacky, AudioDSP should never return a std::vector which is protected by a CSingleLock!*/
   CSingleLock lock(m_critSection);
   return m_modes[modeType];
 }
@@ -630,6 +631,10 @@ void CActiveAEDSP::UpdateAddons()
           m_addonNameIds.insert(make_pair(addon->ID(), iAddonId));
         }
       }
+    }
+    else if (!bEnabled && IsKnownAudioDSPAddon(addon))
+    {
+      /*! @todo implement functionality to destroy disabled addons when no stream is active*/
     }
   }
 
