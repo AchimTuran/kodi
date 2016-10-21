@@ -783,7 +783,6 @@ CActiveAEBufferPoolADSP::CActiveAEBufferPoolADSP(AEAudioFormat inputFormat, AEAu
   m_tempo = 1.0;
   m_changeAudioDSP = false;
   m_procSample = nullptr;
-  m_useDSP = false;
   m_bypassDSP = false;
   m_streamId = -1;
 }
@@ -1277,10 +1276,6 @@ void CActiveAEBufferPoolADSP::ChangeAudioDSP()
     m_adspOutFormat.m_dataFormat    = tmpOutFormat.m_dataFormat;        /* Overide output format with DSP's processed data format, normally it is float */
     m_adspOutFormat.m_frames        = tmpOutFormat.m_frames;
   }
-  else
-  {
-    m_useDSP = false;
-  }
 
   m_changeAudioDSP = false;
 }
@@ -1294,14 +1289,13 @@ void CActiveAEBufferPoolADSP::SetExtraData(int profile, enum AVMatrixEncoding ma
   ChangeAudioDSP();
 }
 
-bool CActiveAEBufferPoolADSP::SetDSPConfig(bool useDSP, bool bypassDSP)
+bool CActiveAEBufferPoolADSP::SetDSPConfig(bool bypassDSP)
 {
-  m_useDSP = useDSP;
   m_bypassDSP = bypassDSP;
 
   /* Disable upmix if DSP layout > 2.0, becomes perfomed by DSP */
   bool ignoreUpmix = false;
-  if (m_useDSP && m_processor->GetOutputFormat().m_channelLayout.Count() > 2)
+  if (m_processor->GetOutputFormat().m_channelLayout.Count() > 2)
   {
     ignoreUpmix = true;
   }

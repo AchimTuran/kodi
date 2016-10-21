@@ -178,7 +178,7 @@ public:
   void FillBuffer();
   void SetDrain(bool drain);
   void SetExtraData(int profile, enum AVMatrixEncoding matrix_encoding, enum AVAudioServiceType audio_service_type);
-  bool SetDSPConfig(bool useDSP, bool bypassDSP);
+  bool SetDSPConfig(bool bypassDSP);
   
   std::deque<CSampleBuffer*> m_inputSamples;
   std::deque<CSampleBuffer*> m_outputSamples;
@@ -198,7 +198,6 @@ protected:
   //CActiveAEBufferPool *m_dspBuffer;
   //CSampleBuffer *m_dspSample;
   AEAudioFormat m_adspOutFormat;
-  bool m_useDSP;
   bool m_bypassDSP;
   int m_streamId;
   enum AVMatrixEncoding m_MatrixEncoding;
