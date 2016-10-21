@@ -127,6 +127,9 @@ void CActiveAEDSP::TriggerModeUpdate(bool bAsync /* = true */)
 
   CLog::Log(LOGINFO, "ActiveAE DSP - %s - Update mode selections", __FUNCTION__);
 
+
+  CSingleLock lock(m_critSection);
+
   if (!m_databaseDSP.IsOpen())
   {
     CLog::Log(LOGERROR, "ActiveAE DSP - failed to open the database");
@@ -137,6 +140,18 @@ void CActiveAEDSP::TriggerModeUpdate(bool bAsync /* = true */)
   {
     m_modes[i].clear();
     m_databaseDSP.GetModes(m_modes[i], i);
+  }
+
+  if (m_addonToDestroy.size() > 0)
+  {
+    for (std::list<AE_DSP_ADDON>::iterator iter = m_addonToDestroy.begin(); iter != m_addonToDestroy.end(); ++iter)
+    {
+      if ((*iter)->DllLoaded())
+      {
+        (*iter)->Destroy();
+      }
+    }
+    m_addonToDestroy.clear();
   }
 
   /*!@todo send a reconfigure request to AE*/
@@ -449,7 +464,7 @@ CAEChannelInfo CActiveAEDSP::GetInternalChannelLayout(AEStdChLayout stdLayout)
 
 int CActiveAEDSP::CreateDSPs(int streamId, CActiveAEDSPProcessPtr &process, const AEAudioFormat &inputFormat, const AEAudioFormat &outputFormat, bool upmix,
                              AEQuality quality, enum AVMatrixEncoding matrix_encoding, enum AVAudioServiceType audio_service_type,
-                             int profile, bool wasActive)
+                             int profile)
 {
   if (!IsActivated() || m_usedProcessesCnt >= AE_DSP_STREAM_MAX_STREAMS)
     return -1;
@@ -458,8 +473,10 @@ int CActiveAEDSP::CreateDSPs(int streamId, CActiveAEDSPProcessPtr &process, cons
 
   AE_DSP_STREAMTYPE requestedStreamType = LoadCurrentAudioSettings();
 
+  bool wasActive = streamId != -1;
+
   CActiveAEDSPProcessPtr usedProc;
-  if (wasActive && 0 <= streamId && streamId < AE_DSP_STREAM_MAX_STREAMS)
+  if (0 <= streamId && streamId < AE_DSP_STREAM_MAX_STREAMS)
   {
     if (m_usedProcesses[streamId] != NULL)
     {
@@ -635,6 +652,16 @@ void CActiveAEDSP::UpdateAddons()
     else if (!bEnabled && IsKnownAudioDSPAddon(addon))
     {
       /*! @todo implement functionality to destroy disabled addons when no stream is active*/
+      CLog::Log(LOGDEBUG, "Disabling AudioDSP add-on: %s", addon->ID().c_str());
+      AE_DSP_ADDON dspAddon = std::dynamic_pointer_cast<CActiveAEDSPAddon>(addon);
+    
+      CSingleLock lock(m_critSection);
+      AE_DSP_ADDONMAP::iterator iter = m_addonMap.find(dspAddon->GetID());
+      if (iter != m_addonMap.end())
+      {
+        m_addonMap.erase(iter);
+        m_addonToDestroy.push_back(dspAddon);
+      }
     }
   }
 
