@@ -690,6 +690,7 @@ void CActiveAEStreamBuffers::ConfigureResampler(bool normalizelevels, bool stere
 void ActiveAE::CActiveAEStreamBuffers::ConfigureADSP(bool useDSP, bool stereoupmix, AEQuality quality)
 {
   /*! @todo pass bypass, quality, upmix to AudioDSP*/
+  m_UseADSP = useDSP;
   m_adspBuffers->SetDSPConfig(useDSP, false);
 }
 
