@@ -691,7 +691,7 @@ void ActiveAE::CActiveAEStreamBuffers::ConfigureADSP(bool useDSP, bool stereoupm
 {
   /*! @todo pass bypass, quality, upmix to AudioDSP*/
   m_UseADSP = useDSP;
-  m_adspBuffers->SetDSPConfig(useDSP, false);
+  m_adspBuffers->SetDSPConfig(false);
 }
 
 float CActiveAEStreamBuffers::GetDelay()
