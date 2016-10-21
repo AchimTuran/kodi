@@ -1259,31 +1259,23 @@ void CActiveAEBufferPoolADSP::ChangeAudioDSP()
   if (m_processor)
   {
     m_processor->Destroy();
+    CServiceBroker::GetADSP().DestroyDSPs(m_streamId);
+    m_streamId = -1;
   }
 
-  bool wasActive = false; // TODO how to use this parameter
   m_streamId = CServiceBroker::GetADSP().CreateDSPs(m_streamId, m_processor, m_inputFormat,
                                                     CActiveAEBufferPool::m_format, m_stereoUpmix,
                                                     m_Quality, m_MatrixEncoding,
-                                                    m_AudioServiceType, m_Profile, wasActive);
+                                                    m_AudioServiceType, m_Profile);
   if (m_streamId >= 0)
   {
     AEAudioFormat tmpOutFormat = m_processor->GetOutputFormat();
     m_adspOutFormat = CActiveAEBufferPool::m_format;
 
-    m_adspOutFormat.m_channelLayout = tmpOutFormat.m_channelLayout;    /* Overide output format with DSP's supported format */
-    m_adspOutFormat.m_sampleRate    = tmpOutFormat.m_sampleRate; /* Overide output format with DSP's generated samplerate */
-    m_adspOutFormat.m_dataFormat    = tmpOutFormat.m_dataFormat;       /* Overide output format with DSP's processed data format, normally it is float */
+    m_adspOutFormat.m_channelLayout = tmpOutFormat.m_channelLayout;     /* Overide output format with DSP's supported format */
+    m_adspOutFormat.m_sampleRate    = tmpOutFormat.m_sampleRate;        /* Overide output format with DSP's generated samplerate */
+    m_adspOutFormat.m_dataFormat    = tmpOutFormat.m_dataFormat;        /* Overide output format with DSP's processed data format, normally it is float */
     m_adspOutFormat.m_frames        = tmpOutFormat.m_frames;
-  }
-  else if (wasActive)
-  {
-    /*
-    * Check now after the dsp processing becomes disabled, that the resampler is still
-    * required, if not unload it also.
-    */    
-    m_useDSP = false;
-    CServiceBroker::GetADSP().DestroyDSPs(m_streamId);
   }
   else
   {
