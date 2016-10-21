@@ -205,6 +205,11 @@ namespace ActiveAE
        * @return seconds
        */
       float GetDelay();
+
+      /*!>
+       * Update the state all AudioDSP modes.
+       */
+      void UpdateActiveModes();
     //@}
     private:
     //@{

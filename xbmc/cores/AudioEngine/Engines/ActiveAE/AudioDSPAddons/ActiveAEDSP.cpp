@@ -154,6 +154,14 @@ void CActiveAEDSP::TriggerModeUpdate(bool bAsync /* = true */)
     m_addonToDestroy.clear();
   }
 
+  if (m_usedProcessesCnt > 0)
+  {
+    for (int i = 0; i < m_usedProcessesCnt; i++)
+    {
+      m_usedProcesses[i]->ForceReinit();
+    }
+  }
+
   /*!@todo send a reconfigure request to AE*/
   ///*
   // * if any dsp processing is active restart playback
