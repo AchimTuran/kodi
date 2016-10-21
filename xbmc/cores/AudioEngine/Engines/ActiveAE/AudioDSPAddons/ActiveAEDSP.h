@@ -267,7 +267,7 @@ namespace ActiveAE
      */
     int CreateDSPs(int streamId, CActiveAEDSPProcessPtr &process, const AEAudioFormat &inputFormat, const AEAudioFormat &outputFormat,
                    bool upmix, AEQuality quality, enum AVMatrixEncoding matrix_encoding, enum AVAudioServiceType audio_service_type,
-                   int profile, bool wasActive = false);
+                   int profile);
 
     /*!>
      * Destroy all allocated dsp add-ons streamId and stop processing.
@@ -393,6 +393,7 @@ namespace ActiveAE
     static const int        m_StreamTypeNameTable[];                    /*!< Table for stream type strings related to type id */
     bool                    m_isActive;                                 /*!< set to true if all available dsp addons are loaded */
     AE_DSP_ADDONMAP         m_addonMap;                                 /*!< a map of all known audio dsp addons */
+    std::list<AE_DSP_ADDON> m_addonToDestroy;                           /*!< a map of all known audio dsp addons */
     CActiveAEDSPDatabase    m_databaseDSP;                              /*!< the database for all audio DSP related data */
     CCriticalSection        m_critSection;                              /*!< Critical lock for control functions */
     CCriticalSection        m_critUpdateSection;                        /*!< Critical lock for update thread related functions */
