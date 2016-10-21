@@ -14281,11 +14281,7 @@ msgctxt "#24087"
 msgid "All repositories"
 msgstr ""
 
-#. Description on error dialog why not possible
-#: xbmc/addons/GUIDialogAddonInfo.h
-msgctxt "#24088"
-msgid "The DSP add-on is currently in use and can't be modified."
-msgstr ""
+#empty string with id 24088
 
 msgctxt "#24089"
 msgid "Add-on restarts"
