@@ -94,7 +94,7 @@ class CActiveAEStreamBuffers
 public:
   CActiveAEStreamBuffers(AEAudioFormat inputFormat, AEAudioFormat outputFormat, AEQuality quality);
   virtual ~CActiveAEStreamBuffers();
-  bool Create(unsigned int totaltime, bool remap, bool upmix, bool normalize = true, bool useDSP = false);
+  bool Create(unsigned int totaltime, bool remap, bool upmix, bool normalize = true, bool useDSP = false, bool bypassDSP = false);
   void SetExtraData(int profile, enum AVMatrixEncoding matrix_encoding, enum AVAudioServiceType audio_service_type);
   bool ProcessBuffers();
   void ConfigureResampler(bool normalizelevels, bool stereoupmix, AEQuality quality);

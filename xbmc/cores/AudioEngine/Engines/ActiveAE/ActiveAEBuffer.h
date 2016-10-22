@@ -171,14 +171,14 @@ class CActiveAEBufferPoolADSP : public CActiveAEBufferPool
 public:
   CActiveAEBufferPoolADSP(AEAudioFormat inputFormat, AEAudioFormat outputFormat, AEQuality quality);
   virtual ~CActiveAEBufferPoolADSP();
-  bool Create(unsigned int totaltime, bool upmix);
+  bool Create(unsigned int totaltime, bool stereoUpmix, bool bypassDSP);
   bool ProcessBuffers(int64_t timestamp = 0);
   float GetDelay();
   void Flush();
   void FillBuffer();
   void SetDrain(bool drain);
   void SetExtraData(int profile, enum AVMatrixEncoding matrix_encoding, enum AVAudioServiceType audio_service_type);
-  bool SetDSPConfig(bool bypassDSP);
+  bool SetDSPConfig(bool stereoUpmix, AEQuality quality);
   
   std::deque<CSampleBuffer*> m_inputSamples;
   std::deque<CSampleBuffer*> m_outputSamples;

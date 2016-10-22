@@ -461,7 +461,7 @@ CAEChannelInfo CActiveAEDSP::GetInternalChannelLayout(AEStdChLayout stdLayout)
 }
 
 int CActiveAEDSP::CreateDSPs(int streamId, CActiveAEDSPProcessPtr &process, const AEAudioFormat &inputFormat, const AEAudioFormat &outputFormat, bool upmix,
-                             AEQuality quality, enum AVMatrixEncoding matrix_encoding, enum AVAudioServiceType audio_service_type,
+                             bool bypassDSP, AEQuality quality, enum AVMatrixEncoding matrix_encoding, enum AVAudioServiceType audio_service_type,
                              int profile)
 {
   if (!IsActivated() || m_usedProcessesCnt >= AE_DSP_STREAM_MAX_STREAMS)
@@ -501,7 +501,7 @@ int CActiveAEDSP::CreateDSPs(int streamId, CActiveAEDSPProcessPtr &process, cons
     return -1;
   }
 
-  if (!usedProc->Create(inputFormat, outputFormat, upmix, quality, requestedStreamType, matrix_encoding, audio_service_type, profile))
+  if (!usedProc->Create(inputFormat, outputFormat, upmix, bypassDSP, quality, requestedStreamType, matrix_encoding, audio_service_type, profile))
   {
     m_usedProcesses[streamId] = CActiveAEDSPProcessPtr();
     CLog::Log(LOGERROR, "ActiveAE DSP - %s - Creation of processing class failed", __FUNCTION__);
@@ -576,7 +576,7 @@ const AE_DSP_MODELIST &CActiveAEDSP::GetAvailableModes(AE_DSP_MODE_TYPE modeType
   if (modeType < 0 || modeType >= AE_DSP_MODE_TYPE_MAX)
     return emptyArray;
 
-  /*!@todo this is very hacky, AudioDSP should never return a std::vector which is protected by a CSingleLock!*/
+  /*! @todo this is very hacky, AudioDSP should never return a std::vector which is protected by a CSingleLock!*/
   CSingleLock lock(m_critSection);
   return m_modes[modeType];
 }
