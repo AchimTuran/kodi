@@ -41,6 +41,42 @@ macro (build_addon target prefix libs)
     set_target_properties(${target} PROPERTIES VERSION ${${prefix}_VERSION}
                                                SOVERSION ${APP_VERSION_MAJOR}.${APP_VERSION_MINOR}
                                                PREFIX "")
+# IDEs: Group source files in target in folders (file system hierarchy)
+# Source: http://blog.audio-tk.com/2015/09/01/sorting-source-files-and-projects-in-folders-with-cmake-and-visual-studioxcode/
+# Arguments:
+#   target The target that shall be grouped by folders.
+# Optional Arguments:
+#   RELATIVE allows to specify a different reference folder.
+    set(SOURCE_GROUP_DELIMITER "/")
+
+    set(relative_dir ${CMAKE_CURRENT_SOURCE_DIR})
+    get_property(files TARGET ${target} PROPERTY SOURCES)
+    if(files)
+      list(SORT files)
+
+      if(CMAKE_GENERATOR STREQUAL Xcode)
+        set_target_properties(${target} PROPERTIES SOURCES "${files}")
+      endif()
+    endif()
+    foreach(file ${files})
+      if(NOT IS_ABSOLUTE ${file})
+        set(file ${CMAKE_CURRENT_SOURCE_DIR}/${file})
+      endif()
+      file(RELATIVE_PATH relative_file ${relative_dir} ${file})
+      get_filename_component(dir "${relative_file}" PATH)
+      if(NOT dir STREQUAL "${last_dir}")
+        if(files)
+          source_group("${last_dir}" FILES ${files})
+        endif()
+        set(files "")
+      endif()
+      set(files ${files} ${file})
+      set(last_dir "${dir}")
+    endforeach(file)
+    if(files)
+      source_group("${last_dir}" FILES ${files})
+    endif()
+    
     if(OS STREQUAL "android")
       set_target_properties(${target} PROPERTIES PREFIX "lib")
     endif()
