@@ -785,9 +785,12 @@ CActiveAEBufferPoolADSP::~CActiveAEBufferPoolADSP()
   CServiceBroker::GetADSP().DestroyDSPs(m_streamId);
 }
 
-bool CActiveAEBufferPoolADSP::Create(unsigned int totaltime, bool upmix)
+bool CActiveAEBufferPoolADSP::Create(unsigned int totaltime, bool stereoUpmix, bool bypassDSP)
 {
   CActiveAEBufferPool::Create(totaltime);
+
+  m_stereoUpmix = stereoUpmix;
+  m_bypassDSP = bypassDSP;
 
   /*
   * On first used resample class, DSP signal processing becomes performed.
@@ -803,7 +806,7 @@ bool CActiveAEBufferPoolADSP::Create(unsigned int totaltime, bool upmix)
   * to CServiceBroker::GetADSP().CreateDSPs and set from it.
   */
   m_streamId = CServiceBroker::GetADSP().CreateDSPs(m_streamId, m_processor, m_inputFormat, CActiveAEBufferPool::m_format,
-                                                    upmix, m_Quality, m_MatrixEncoding, m_AudioServiceType, m_Profile);
+                                                    m_stereoUpmix, m_bypassDSP, m_Quality, m_MatrixEncoding, m_AudioServiceType, m_Profile);
   if (m_streamId < 0)
   {
     return false;
@@ -1247,7 +1250,7 @@ void CActiveAEBufferPoolADSP::ChangeAudioDSP()
 
   m_streamId = CServiceBroker::GetADSP().CreateDSPs(m_streamId, m_processor, m_inputFormat,
                                                     CActiveAEBufferPool::m_format, m_stereoUpmix,
-                                                    m_Quality, m_MatrixEncoding,
+                                                    m_bypassDSP, m_Quality, m_MatrixEncoding,
                                                     m_AudioServiceType, m_Profile);
   if (m_streamId >= 0)
   {
@@ -1272,17 +1275,11 @@ void CActiveAEBufferPoolADSP::SetExtraData(int profile, enum AVMatrixEncoding ma
   ChangeAudioDSP();
 }
 
-bool CActiveAEBufferPoolADSP::SetDSPConfig(bool bypassDSP)
+bool CActiveAEBufferPoolADSP::SetDSPConfig(bool stereoUpmix, AEQuality quality)
 {
-  m_bypassDSP = bypassDSP;
-
-  /* Disable upmix if DSP layout > 2.0, becomes perfomed by DSP */
-  bool ignoreUpmix = false;
-  if (m_processor->GetOutputFormat().m_channelLayout.Count() > 2)
-  {
-    ignoreUpmix = true;
-  }
-
+  m_stereoUpmix = stereoUpmix;
+  m_Quality = quality;
+  
   ChangeAudioDSP();
 
   return true;
