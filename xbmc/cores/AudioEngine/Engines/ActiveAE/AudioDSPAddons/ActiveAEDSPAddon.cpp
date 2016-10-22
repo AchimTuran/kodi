@@ -80,7 +80,6 @@ void CActiveAEDSPAddon::OnPostInstall(bool restart, bool update)
 
 void CActiveAEDSPAddon::OnPreUnInstall()
 {
-  // stop the ADSP manager, so running ADSP add-ons are stopped and closed
   //! @todo implement unloading adsp addons
   //CServiceBroker::GetADSP().Deactivate();
 }
