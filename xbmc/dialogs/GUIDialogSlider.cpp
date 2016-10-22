@@ -42,6 +42,11 @@ CGUIDialogSlider::~CGUIDialogSlider(void)
 
 bool CGUIDialogSlider::OnAction(const CAction &action)
 {
+  if (action.GetID() == ACTION_SELECT_ITEM)
+  {
+    Close();
+    return true;
+  }
   return CGUIDialog::OnAction(action);
 }
 
