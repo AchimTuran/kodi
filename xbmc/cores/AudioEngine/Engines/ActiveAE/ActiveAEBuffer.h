@@ -195,8 +195,6 @@ protected:
   int64_t m_lastSamplePts;
   bool m_fillPackets;
   CActiveAEDSPProcessPtr m_processor;
-  //CActiveAEBufferPool *m_dspBuffer;
-  //CSampleBuffer *m_dspSample;
   AEAudioFormat m_adspOutFormat;
   bool m_bypassDSP;
   int m_streamId;

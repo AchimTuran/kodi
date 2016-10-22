@@ -161,16 +161,6 @@ void CActiveAEDSP::TriggerModeUpdate(bool bAsync /* = true */)
       m_usedProcesses[i]->ForceReinit();
     }
   }
-
-  /*!@todo send a reconfigure request to AE*/
-  ///*
-  // * if any dsp processing is active restart playback
-  // */
-  //if (m_usedProcessesCnt > 0)
-  //{
-  //  CLog::Log(LOGNOTICE, "ActiveAE DSP - restarting playback after disabled dsp system");
-  //  CApplicationMessenger::GetInstance().SendMsg(TMSG_MEDIA_RESTART);
-  //}
 }
 
 void CActiveAEDSP::Shutdown(void)
@@ -659,7 +649,6 @@ void CActiveAEDSP::UpdateAddons()
     }
     else if (!bEnabled && IsKnownAudioDSPAddon(addon))
     {
-      /*! @todo implement functionality to destroy disabled addons when no stream is active*/
       CLog::Log(LOGDEBUG, "Disabling AudioDSP add-on: %s", addon->ID().c_str());
       AE_DSP_ADDON dspAddon = std::dynamic_pointer_cast<CActiveAEDSPAddon>(addon);
     
