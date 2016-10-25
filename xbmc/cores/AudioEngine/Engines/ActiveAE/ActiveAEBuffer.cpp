@@ -263,16 +263,16 @@ bool CActiveAEBufferPoolResample::ResampleBuffers(int64_t timestamp)
 {
   bool busy = false;
   CSampleBuffer *in;
-  
-  if (m_changeResampler || !m_resampler)
-  {
-    ChangeResampler();
-    return true;
-  }
 
   if (!m_resampler)
   {
-    while(!m_inputSamples.empty())
+    if (m_changeResampler)
+    {
+      if (m_changeResampler)
+        ChangeResampler();
+      return true;
+    }
+    while (!m_inputSamples.empty())
     {
       in = m_inputSamples.front();
       m_inputSamples.pop_front();
@@ -312,25 +312,23 @@ bool CActiveAEBufferPoolResample::ResampleBuffers(int64_t timestamp)
         m_inputSamples.pop_front();
       }
       else
-      {
         in = NULL;
-      }
 
       int start = m_procSample->pkt->nb_samples *
-                  m_procSample->pkt->bytes_per_sample *
-                  m_procSample->pkt->config.channels /
-                  m_procSample->pkt->planes;
+        m_procSample->pkt->bytes_per_sample *
+        m_procSample->pkt->config.channels /
+        m_procSample->pkt->planes;
 
-      for(int i=0; i<m_procSample->pkt->planes; i++)
+      for (int i = 0; i<m_procSample->pkt->planes; i++)
       {
         m_planes[i] = m_procSample->pkt->data[i] + start;
       }
 
       int out_samples = m_resampler->Resample(m_planes,
-                                              m_procSample->pkt->max_nb_samples - m_procSample->pkt->nb_samples,
-                                              in ? in->pkt->data : NULL,
-                                              in ? in->pkt->nb_samples : 0,
-                                              m_resampleRatio);
+        m_procSample->pkt->max_nb_samples - m_procSample->pkt->nb_samples,
+        in ? in->pkt->data : NULL,
+        in ? in->pkt->nb_samples : 0,
+        m_resampleRatio);
       // in case of error, trigger re-create of resampler
       if (out_samples < 0)
       {
@@ -358,7 +356,7 @@ bool CActiveAEBufferPoolResample::ResampleBuffers(int64_t timestamp)
         }
 
         // pts of last sample we added to the buffer
-        m_lastSamplePts += (in->pkt->nb_samples-in->pkt_start_offset) * 1000 / m_format.m_sampleRate;
+        m_lastSamplePts += (in->pkt->nb_samples - in->pkt_start_offset) * 1000 / m_format.m_sampleRate;
       }
 
       // calculate pts for last sample in m_procSample
@@ -372,12 +370,12 @@ bool CActiveAEBufferPoolResample::ResampleBuffers(int64_t timestamp)
         {
           // pad with zero
           start = m_procSample->pkt->nb_samples *
-                  m_procSample->pkt->bytes_per_sample *
-                  m_procSample->pkt->config.channels /
-                  m_procSample->pkt->planes;
-          for(int i=0; i<m_procSample->pkt->planes; i++)
+            m_procSample->pkt->bytes_per_sample *
+            m_procSample->pkt->config.channels /
+            m_procSample->pkt->planes;
+          for (int i = 0; i<m_procSample->pkt->planes; i++)
           {
-            memset(m_procSample->pkt->data[i]+start, 0, m_procSample->pkt->linesize-start);
+            memset(m_procSample->pkt->data[i] + start, 0, m_procSample->pkt->linesize - start);
           }
         }
 
@@ -388,15 +386,11 @@ bool CActiveAEBufferPoolResample::ResampleBuffers(int64_t timestamp)
           busy = false;
         }
         else
-        {
           m_outputSamples.push_back(m_procSample);
-        }
 
         m_procSample = NULL;
         if (m_changeResampler)
-        {
           ChangeResampler();
-        }
       }
       // some methods like encode require completely filled packets
       else if (!m_fillPackets || (m_procSample->pkt->nb_samples == m_procSample->pkt->max_nb_samples))
@@ -406,9 +400,7 @@ bool CActiveAEBufferPoolResample::ResampleBuffers(int64_t timestamp)
       }
 
       if (in)
-      {
         in->Return();
-      }
     }
   }
   return busy;
