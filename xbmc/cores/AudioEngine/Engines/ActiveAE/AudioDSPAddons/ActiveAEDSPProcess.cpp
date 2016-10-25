@@ -863,6 +863,7 @@ bool CActiveAEDSPProcess::Process(CSampleBuffer *in, CSampleBuffer *out)
       m_NewStreamType = AE_DSP_ASTREAM_INVALID;
     }
 
+    UpdateActiveModes();
     for (AE_DSP_ADDONMAP_ITR itr = m_usedMap.begin(); itr != m_usedMap.end(); ++itr)
     {
       AE_DSP_ERROR err = itr->second->StreamInitialize(&m_addon_Handles[itr->first], &m_addonSettings);
@@ -871,7 +872,6 @@ bool CActiveAEDSPProcess::Process(CSampleBuffer *in, CSampleBuffer *out)
         CLog::Log(LOGERROR, "ActiveAE DSP - %s - addon initialize failed on %s with %s", __FUNCTION__, itr->second->GetAudioDSPName().c_str(), CActiveAEDSPAddon::ToString(err));
       }
     }
-    UpdateActiveModes();
 
     RecheckProcessArray(frames);
     ClearArray(m_processArray[0], m_processArraySize);
