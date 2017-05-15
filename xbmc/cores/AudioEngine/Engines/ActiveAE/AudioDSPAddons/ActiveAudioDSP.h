@@ -147,6 +147,9 @@ public:
   virtual void RegisterAddon(const std::string &Id, bool restart = false, bool update = false) override;
   virtual void UnregisterAddon(const std::string &Id) override;
 
+  void* GetControllerHandle(void *ControllerCallback = nullptr);
+  bool ReleaseControllerHandle(void **Handle);
+
   IActiveAEProcessingBuffer* GetProcessingBuffer(const CActiveAEStream *AudioStream, AEAudioFormat &OutputFormat);
   DSPErrorCode_t ReleaseProcessingBuffer(int StreamID);
 

@@ -239,18 +239,18 @@ public:
    * AE decides whether this settings should be displayed
    * @return true if AudioEngine wants to display this setting
    */
-  virtual bool IsSettingVisible(const std::string &settingId) {return false; }
+  virtual bool IsSettingVisible(const std::string &settingId) { return false; }
 
   /**
    * Instruct AE to keep configuration for a specified time
    * @param millis time for which old configuration should be kept
    */
-  virtual void KeepConfiguration(unsigned int millis) {return; }
+  virtual void KeepConfiguration(unsigned int millis) { return; }
 
   /**
    * Instruct AE to re-initialize, e.g. after ELD change event
    */
-  virtual void DeviceChange() {return; }
+  virtual void DeviceChange() { return; }
 
   /**
    * Get the current sink data format
@@ -259,5 +259,8 @@ public:
    * @return Returns true on success, else false.
    */
   virtual bool GetCurrentSinkFormat(AEAudioFormat &SinkFormat) { return false; }
+
+  virtual void* GetAudioDSPControllerHandle(void *Callback) { return nullptr; }
+  virtual bool ReleaseAudioDSPControllerHandle(void **Callback) { Callback = nullptr; return false; }
 };
 

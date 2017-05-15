@@ -89,6 +89,7 @@
 #include "profiles/dialogs/GUIDialogProfileSettings.h"
 #include "profiles/dialogs/GUIDialogLockSettings.h"
 #include "settings/dialogs/GUIDialogContentSettings.h"
+#include "settings/dialogs/GUIDialogAudioDSPManager.h"
 #include "dialogs/GUIDialogBusy.h"
 #include "dialogs/GUIDialogKeyboardGeneric.h"
 #include "dialogs/GUIDialogKeyboardTouch.h"
@@ -296,6 +297,8 @@ void CGUIWindowManager::CreateWindows()
   Add(new CGUIWindowEventLog);
 
   Add(new GAME::CGUIControllerWindow);
+
+  Add(new ActiveAE::CGUIDialogAudioDSPManager);
 }
 
 bool CGUIWindowManager::DestroyWindows()
@@ -396,6 +399,7 @@ bool CGUIWindowManager::DestroyWindows()
     Delete(WINDOW_PROGRAMS);
     Delete(WINDOW_PICTURES);
     Delete(WINDOW_WEATHER);
+    Delete(WINDOW_DIALOG_AUDIO_DSP_MANAGER);
     Delete(WINDOW_DIALOG_GAME_CONTROLLERS);
 
     Remove(WINDOW_SETTINGS_SERVICE);

@@ -155,6 +155,16 @@ void CActiveAudioDSP::UnregisterAddon(const string &Id)
 {
 }
 
+void* CActiveAudioDSP::GetControllerHandle(void * ControllerCallback)
+{
+  return nullptr;
+}
+
+bool CActiveAudioDSP::ReleaseControllerHandle(void **Handle)
+{
+  return nullptr;
+}
+
 IActiveAEProcessingBuffer* CActiveAudioDSP::GetProcessingBuffer(const CActiveAEStream *AudioStream, AEAudioFormat &OutputFormat)
 {
   if (!AudioStream)
@@ -428,7 +438,8 @@ void CActiveAudioDSP::StateMachine(int signal, Protocol *port, Message *msg)
           CAudioDSPControlProtocol::CCreateBuffer *bufferMsg = reinterpret_cast<CAudioDSPControlProtocol::CCreateBuffer*>(msg->data);
           IActiveAEProcessingBuffer *buffer = nullptr;
 
-          if (bufferMsg->audioStream->m_inputBuffers->m_format.m_dataFormat == AE_FMT_RAW)
+          bool forceResampleBuffer = false;
+          if (bufferMsg->audioStream->m_inputBuffers->m_format.m_dataFormat == AE_FMT_RAW || forceResampleBuffer)
           {
             buffer = dynamic_cast<IActiveAEProcessingBuffer*>(new CActiveAEStreamBuffers(bufferMsg->audioStream->m_inputBuffers->m_format, bufferMsg->outputFormat));
           }
