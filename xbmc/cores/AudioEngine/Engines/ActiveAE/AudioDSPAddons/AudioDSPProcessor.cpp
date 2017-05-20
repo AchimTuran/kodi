@@ -342,6 +342,25 @@ DSPErrorCode_t CAudioDSPProcessor::Process(const CSampleBuffer *In, CSampleBuffe
 //    return dspErr;
 //  }
 
+  //if (m_planes.size() < m_procSample->pkt->planes)
+  //{
+  //  for (int i = m_planes.size(); i < m_procSample->pkt->planes; i++)
+  //  {
+  //    m_planes.push_back(nullptr);
+  //  }
+  //}
+
+
+  //int start = m_procSample->pkt->nb_samples *
+  //            m_procSample->pkt->bytes_per_sample *
+  //            m_procSample->pkt->config.channels /
+  //            m_procSample->pkt->planes;
+
+  //for (int i = 0; i < m_procSample->pkt->planes; i++)
+  //{
+  //  m_planes[i] = m_procSample->pkt->data[i] + start;
+  //}
+
   uint8_t **in = In->pkt->data;
   AudioDSPBuffers_t::iterator bufferIter = m_Buffers.begin();
   NodeBuffer_t &outBuffer =  *bufferIter;

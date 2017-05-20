@@ -129,25 +129,7 @@ bool CAudioDSPProcessingBuffer::ProcessBuffer()
       else
         in = nullptr;
 
-      if (m_planes.size() < m_procSample->pkt->planes)
       {
-        m_planes.clear();
-
-        for (int ii = 0; ii < m_procSample->pkt->planes; ii++)
-        {
-          m_planes.push_back(nullptr);
-        }
-      }
-
-
-      int start = m_procSample->pkt->nb_samples *
-                  m_procSample->pkt->bytes_per_sample *
-                  m_procSample->pkt->config.channels /
-                  m_procSample->pkt->planes;
-
-      for (int i = 0; i < m_procSample->pkt->planes; i++)
-      {
-        m_planes[i] = m_procSample->pkt->data[i] + start;
       }
 
       int out_samples = in ? in->pkt->nb_samples : 0;

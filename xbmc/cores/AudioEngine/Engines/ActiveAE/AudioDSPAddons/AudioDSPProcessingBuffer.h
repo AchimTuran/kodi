@@ -24,8 +24,6 @@
 #include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/Interfaces/IADSPProcessor.h"
 #include "cores/AudioEngine/Engines/ActiveAE/ActiveAEBuffer.h"
 
-#include <vector>
-
 
 namespace ActiveAE
 {
@@ -51,8 +49,6 @@ public:
 
 private:
   void ChangeProcessor();
-  
-  std::vector<uint8_t*> m_planes;
 
   int64_t m_lastSamplePts;
   bool m_fillPackets;
