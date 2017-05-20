@@ -72,28 +72,23 @@ bool CAudioDSPProcessingBuffer::ProcessBuffer()
 {
   bool busy = false;
   CSampleBuffer *in;
-  int timestamp = 0;
 
   if (!m_processor)
   {
     if (m_changeProcessor)
     {
-      if (m_changeProcessor)
-      {
-        ChangeProcessor();
-      }
-
+      ChangeProcessor();
+        
       return true;
     }
-
     while (!m_inputSamples.empty())
     {
       in = m_inputSamples.front();
       m_inputSamples.pop_front();
-      if (timestamp)
-      {
-        in->timestamp = timestamp;
-      }
+      //if (timestamp)
+      //{
+      //  in->timestamp = timestamp;
+      //}
       m_outputSamples.push_back(in);
       busy = true;
     }
@@ -104,24 +99,23 @@ bool CAudioDSPProcessingBuffer::ProcessBuffer()
     if (m_procSample)
       free_samples = m_procSample->pkt->max_nb_samples - m_procSample->pkt->nb_samples;
     else
-      free_samples = m_outputFormat.m_frames;
+      free_samples = m_format.m_frames;
 
-    //! @todo AudioDSP is this needed?
-    //bool skipInput = false;
+    bool skipInput = false;
     // avoid that ffmpeg resample buffer grows too large
     //if (!m_resampler->WantsNewSamples(free_samples) && !m_empty)
     //  skipInput = true;
 
     bool hasInput = !m_inputSamples.empty();
 
-    if (hasInput || /*skipInput ||*/ m_drain || m_changeProcessor)
+    if (hasInput || skipInput || m_drain || m_changeProcessor)
     {
       if (!m_procSample)
       {
         m_procSample = GetFreeBuffer();
       }
 
-      if (hasInput && /*!skipInput &&*/ !m_changeProcessor)
+      if (hasInput && !skipInput && !m_changeProcessor)
       {
         in = m_inputSamples.front();
         m_inputSamples.pop_front();
@@ -129,41 +123,29 @@ bool CAudioDSPProcessingBuffer::ProcessBuffer()
       else
         in = nullptr;
 
+      DSPErrorCode_t dspErr = m_processor->Process(in, m_procSample);
+      if (m_procSample->pkt->nb_samples < 0)
       {
+        m_changeProcessor = true;
       }
 
-      int out_samples = in ? in->pkt->nb_samples : 0;
-      DSPErrorCode_t dspErr = m_processor->Process(in, m_procSample);
-
-      //! @todo AudioDSP V2 implement the processor here.
-      //m_resampler->Resample(m_planes,
-      //                      m_procSample->pkt->max_nb_samples - m_procSample->pkt->nb_samples,
-      //                      in ? in->pkt->data : NULL,
-      //                      in ? in->pkt->nb_samples : 0,
-      //                      m_resampleRatio);
-      // in case of error, trigger re-create of resampler
-
-      busy = true;
-      m_changeProcessor = dspErr != DSP_ERR_NO_ERR;
-      m_empty = (dspErr != DSP_ERR_NO_ERR);
+      busy = in ? true : false;
+      //m_changeProcessor = dspErr != DSP_ERR_NO_ERR; //! @todo AudioDSP V2 think about error cases
+      m_empty = in ? (m_procSample->pkt->nb_samples == 0) : false;
 
       if (in)
       {
-        if (!timestamp)
+        if (in->timestamp)
         {
-          if (in->timestamp)
-            m_lastSamplePts = in->timestamp;
-          else
-            in->pkt_start_offset = 0;
+          m_lastSamplePts = in->timestamp;
         }
         else
         {
-          m_lastSamplePts = timestamp;
           in->pkt_start_offset = 0;
         }
 
         // pts of last sample we added to the buffer
-        m_lastSamplePts += (in->pkt->nb_samples - in->pkt_start_offset) * 1000 / m_outputFormat.m_sampleRate;
+        m_lastSamplePts += (in->pkt->nb_samples - in->pkt_start_offset) * 1000 / m_format.m_sampleRate;
 
         in->Return();
       }
@@ -171,17 +153,17 @@ bool CAudioDSPProcessingBuffer::ProcessBuffer()
       // calculate pts for last sample in m_procSample
       int bufferedSamples = 0;//! @todo AudioDSP V2 implement this m_resampler->GetBufferedSamples();
       m_procSample->pkt_start_offset = m_procSample->pkt->nb_samples;
-      m_procSample->timestamp = m_lastSamplePts - bufferedSamples * 1000 / m_outputFormat.m_sampleRate;
+      m_procSample->timestamp = m_lastSamplePts - bufferedSamples * 1000 / m_format.m_sampleRate;
 
       if ((m_drain || m_changeProcessor) && m_empty)
       {
         if (m_fillPackets && m_procSample->pkt->nb_samples != 0)
         {
           // pad with zero
-          start = m_procSample->pkt->nb_samples *
-            m_procSample->pkt->bytes_per_sample *
-            m_procSample->pkt->config.channels /
-            m_procSample->pkt->planes;
+          int start = m_procSample->pkt->nb_samples *
+                      m_procSample->pkt->bytes_per_sample *
+                      m_procSample->pkt->config.channels /
+                      m_procSample->pkt->planes;
           for (int i = 0; i<m_procSample->pkt->planes; i++)
           {
             memset(m_procSample->pkt->data[i] + start, 0, m_procSample->pkt->linesize - start);
@@ -209,6 +191,7 @@ bool CAudioDSPProcessingBuffer::ProcessBuffer()
       }
     }
   }
+
   return busy;
 }
 
@@ -326,5 +309,6 @@ void CAudioDSPProcessingBuffer::ChangeProcessor()
   if (m_changeProcessor || !m_processor)
   {
     m_processor->Destroy();
+    m_processor->Create(&m_inputFormat, &m_outputFormat);
   }
 }
