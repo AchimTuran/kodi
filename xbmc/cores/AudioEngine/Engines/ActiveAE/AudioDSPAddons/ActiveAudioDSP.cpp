@@ -442,6 +442,7 @@ void CActiveAudioDSP::StateMachine(int signal, Protocol *port, Message *msg)
           if (bufferMsg->audioStream->m_inputBuffers->m_format.m_dataFormat == AE_FMT_RAW || forceResampleBuffer)
           {
             buffer = dynamic_cast<IActiveAEProcessingBuffer*>(new CActiveAEStreamBuffers(bufferMsg->audioStream->m_inputBuffers->m_format, bufferMsg->outputFormat));
+            CLog::Log(LOGDEBUG, "%s - Created CActiveAEStreamBuffers", __FUNCTION__);
           }
           else
           {
@@ -450,8 +451,9 @@ void CActiveAudioDSP::StateMachine(int signal, Protocol *port, Message *msg)
             m_AudioDSPProcessors.push_back(adspBuffer->m_processor);
 
             buffer = dynamic_cast<IActiveAEProcessingBuffer*>(adspBuffer);
-          }
 
+            CLog::Log(LOGDEBUG, "%s - Created CAudioDSPProcessingBuffer", __FUNCTION__);
+          }
 
           if (!buffer)
           {
@@ -494,6 +496,8 @@ void CActiveAudioDSP::StateMachine(int signal, Protocol *port, Message *msg)
                   adspBuffer->m_processor = nullptr;
 
                   m_AudioDSPProcessors.erase(adspIter);
+
+                  CLog::Log(LOGDEBUG, "%s - Destroyed CAudioDSPProcessingBuffer", __FUNCTION__);
                   break;
                 }
               }
@@ -501,6 +505,8 @@ void CActiveAudioDSP::StateMachine(int signal, Protocol *port, Message *msg)
             iter->second->Flush();
             iter->second->Destroy();
             delete iter->second;
+
+            CLog::Log(LOGDEBUG, "%s - Destroyed m_ProcessingBuffers", __FUNCTION__);
 
             m_ProcessingBuffers.erase(iter);
           }
