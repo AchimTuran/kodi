@@ -43,6 +43,8 @@ void CAudioDSPKodiModes::PrepareModes(DSP::CDSPNodeModel &Model)
   {
     CLog::Log(LOGERROR, "%s failed to register Kodi::AudioDSPCopyMode!", __FUNCTION__);
   }
+  IDSPNodeModel::CDSPNodeInfo copyModeNodeInfo = Model.GetNodeInfo(IDSPNodeModel::CDSPNodeInfoQuery({ "Kodi", "AudioDSPCopyMode" }));
+  Model.EnableNode(copyModeNodeInfo.ID);
 
   CAudioDSPAudioConverterCreator audioConverterCreator(m_audioConverterModel);
   err = Model.RegisterNode(IDSPNodeModel::CDSPNodeInfoQuery({ "Kodi", "AudioConverter" }), audioConverterCreator);
