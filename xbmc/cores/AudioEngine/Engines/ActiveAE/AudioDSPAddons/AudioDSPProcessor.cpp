@@ -122,37 +122,37 @@ DSPErrorCode_t CAudioDSPProcessor::ReCreateNodeChain()
   return DSP_ERR_NO_ERR;
 }
 
-void CAudioDSPProcessor::CreateBuffer(const AEAudioFormat &Format, NodeBuffer_t *Buffer)
+void CAudioDSPProcessor::CreateBuffer(const AEAudioFormat &Format, NodeBuffer_t &Buffer)
 {
-  Buffer->planes = AE_IS_PLANAR(Format.m_dataFormat) ? Format.m_channelLayout.Count() : 1;
-  Buffer->buffer = new uint8_t*[Buffer->planes];
-  Buffer->bytesPerSample = CAEUtil::DataFormatToBits(Format.m_dataFormat) / 8;
-  Buffer->maxSamplesCount = Format.m_frames / Format.m_channelLayout.Count();
+  Buffer.planes = AE_IS_PLANAR(Format.m_dataFormat) ? Format.m_channelLayout.Count() : 1;
+  Buffer.buffer = new uint8_t*[Buffer.planes];
+  Buffer.bytesPerSample = CAEUtil::DataFormatToBits(Format.m_dataFormat) / 8;
+  Buffer.maxSamplesCount = Format.m_frames;
 
-  for(int ii = 0; ii < Buffer->planes; ii++)
+  for(int ii = 0; ii < Buffer.planes; ii++)
   {
-    Buffer->buffer[ii] = new uint8_t[Buffer->bytesPerSample * Buffer->maxSamplesCount];
+    Buffer.buffer[ii] = new uint8_t[Buffer.bytesPerSample * Buffer.maxSamplesCount];
   }
 }
 
-void CAudioDSPProcessor::FreeBuffer(NodeBuffer_t *Buffer)
+void CAudioDSPProcessor::FreeBuffer(NodeBuffer_t &Buffer)
 {
-  for (int ii = 0; ii < Buffer->planes; ii++)
+  for (int ii = 0; ii < Buffer.planes; ii++)
   {
-    if (Buffer->buffer[ii])
+    if (Buffer.buffer[ii])
     {
-      delete [] Buffer->buffer[ii];
+      delete [] Buffer.buffer[ii];
     }
-    Buffer->buffer[ii] = nullptr;
+    Buffer.buffer[ii] = nullptr;
   }
-  delete [] Buffer->buffer;
+  delete [] Buffer.buffer;
 
-  Buffer->buffer = nullptr;
-  Buffer->bytesPerSample = 0;
-  Buffer->planes = 0;
-  Buffer->samplesCount = 0;
-  Buffer->maxSamplesCount = 0;
-  Buffer->channels = 0;
+  Buffer.buffer = nullptr;
+  Buffer.bytesPerSample = 0;
+  Buffer.planes = 0;
+  Buffer.samplesCount = 0;
+  Buffer.maxSamplesCount = 0;
+  Buffer.channels = 0;
 }
 
 DSPErrorCode_t CAudioDSPProcessor::Create(const AEAudioFormat *InFormat, AEAudioFormat *OutFormat)
@@ -313,14 +313,13 @@ DSPErrorCode_t CAudioDSPProcessor::Create(const AEAudioFormat *InFormat, AEAudio
   for(unsigned int ii = 0; ii < m_DSPNodeChain.size(); ii++)
   {
     const AEAudioFormat &nodeOutFormat = m_DSPNodeChain.at(ii)->GetOutputFormat();
-    unsigned int channelFrameSize = nodeOutFormat.m_frames / nodeOutFormat.m_channelLayout.Count();
     unsigned int channelSampleSize = nodeOutFormat.m_frameSize / nodeOutFormat.m_channelLayout.Count();
     NodeBuffer_t nodeBuffer;
     AEAudioFormat bufferFormat = nodeOutFormat;
     bufferFormat.m_channelLayout = audioDSPChLayout;
-    bufferFormat.m_frames = bufferFormat.m_channelLayout.Count() * channelFrameSize;
+    bufferFormat.m_frames = nodeOutFormat.m_frames;
     bufferFormat.m_frameSize = bufferFormat.m_channelLayout.Count() * channelSampleSize;
-    CreateBuffer(bufferFormat, &nodeBuffer);
+    CreateBuffer(bufferFormat, nodeBuffer);
 
     m_Buffers.push_back(nodeBuffer);
   }
@@ -386,8 +385,8 @@ DSPErrorCode_t CAudioDSPProcessor::Process(const CSampleBuffer *In, CSampleBuffe
   for (int ch = 0; ch < Out->pkt->planes; ch++)
   {
     memcpy(Out->pkt->data[ch], outBuffer.buffer[ch], outBuffer.bytesPerSample * outBuffer.maxSamplesCount);
-    Out->pkt->nb_samples += outBuffer.maxSamplesCount;
   }
+  Out->pkt->nb_samples = outBuffer.maxSamplesCount;
 
   if (In->pkt->nb_samples != Out->pkt->nb_samples)
   {
@@ -416,7 +415,7 @@ DSPErrorCode_t CAudioDSPProcessor::Destroy()
 
   for(AudioDSPBuffers_t::iterator iter = m_Buffers.begin(); iter != m_Buffers.end(); ++iter)
   {
-    FreeBuffer(&*iter);
+    FreeBuffer(*iter);
   }
 
   m_Buffers.clear();

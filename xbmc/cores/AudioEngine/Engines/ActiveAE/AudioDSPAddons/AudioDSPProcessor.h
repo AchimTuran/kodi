@@ -60,9 +60,9 @@ private: // private methods
   DSPErrorCode_t ReCreateNodeChain();
 
   //! @todo implement memory alignment (16 for SSE)
-  void CreateBuffer(const AEAudioFormat& Format, NodeBuffer_t *Buffer);
+  void CreateBuffer(const AEAudioFormat& Format, NodeBuffer_t &Buffer);
   //! @todo implement memory alignment
-  void FreeBuffer(NodeBuffer_t *Buffer);
+  void FreeBuffer(NodeBuffer_t &Buffer);
 
 private:
   // processor interface
