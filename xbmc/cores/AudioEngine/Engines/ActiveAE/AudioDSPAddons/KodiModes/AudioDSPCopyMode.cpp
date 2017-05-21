@@ -44,7 +44,7 @@ CAudioDSPCopyMode::CAudioDSPCopyMode(uint64_t ID) :
 {
 }
 
-DSPErrorCode_t CAudioDSPCopyMode::CreateInstance(AEAudioFormat &InputProperties, AEAudioFormat &OutputProperties, void *Options/* = nullptr*/)
+DSPErrorCode_t CAudioDSPCopyMode::CreateInstance(AEAudioFormat &InputFormat, AEAudioFormat &OutputFormat, void *Options/* = nullptr*/)
 {
   return DSP_ERR_NO_ERR;
 }
@@ -57,13 +57,19 @@ DSPErrorCode_t CAudioDSPCopyMode::DestroyInstance()
 
 DSPErrorCode_t CAudioDSPCopyMode::ProcessInstance(void *In, void *Out)
 {
-  //for (uint8_t ch = 0; ch < AE_DSP_CH_MAX; ch++)
-  //{
-  //  for (uint32_t ii = 0; ii < m_InputProperties.m_frameSize; ii++)
-  //  {
-  //    Out[ch][ii] = In[ch][ii];
-  //  }
-  //}
+  uint8_t **in = reinterpret_cast<uint8_t**>(In);
+  uint8_t **out = reinterpret_cast<uint8_t**>(Out);
+
+  if (m_InputFormat.m_dataFormat == m_OutputFormat.m_dataFormat)
+  {
+    for (uint8_t ch = 0; ch < m_InputFormat.m_channelLayout.Count(); ch++)
+    {
+      for (uint32_t ii = 0; ii < m_InputFormat.m_frames * m_InputFormat.m_frameSize / m_InputFormat.m_channelLayout.Count(); ii++)
+      {
+        out[ch][ii] = in[ch][ii];
+      }
+    }
+  }
 
   return DSP_ERR_NO_ERR;
 }

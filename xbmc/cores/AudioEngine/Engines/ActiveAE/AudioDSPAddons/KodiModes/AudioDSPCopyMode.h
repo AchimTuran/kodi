@@ -25,7 +25,7 @@ class CAudioDSPCopyMode : public DSP::AUDIO::IADSPNode
 public:
   CAudioDSPCopyMode(uint64_t ID);
 
-  virtual DSPErrorCode_t CreateInstance(AEAudioFormat &InputProperties, AEAudioFormat &OutputProperties, void *Options = nullptr) override;
+  virtual DSPErrorCode_t CreateInstance(AEAudioFormat &InputFormat, AEAudioFormat &OutputFormat, void *Options = nullptr) override;
   virtual DSPErrorCode_t ProcessInstance(void *In, void *Out) override;
   virtual DSPErrorCode_t DestroyInstance() override;
 };
