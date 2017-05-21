@@ -385,7 +385,7 @@ DSPErrorCode_t CAudioDSPProcessor::Process(const CSampleBuffer *In, CSampleBuffe
 
   for (int ch = 0; ch < Out->pkt->planes; ch++)
   {
-    memcpy(Out->pkt->data[ch], outBuffer.buffer[ch], sizeof(outBuffer.bytesPerSample * outBuffer.maxSamplesCount));
+    memcpy(Out->pkt->data[ch], outBuffer.buffer[ch], outBuffer.bytesPerSample * outBuffer.maxSamplesCount);
     Out->pkt->nb_samples += outBuffer.maxSamplesCount;
   }
 
