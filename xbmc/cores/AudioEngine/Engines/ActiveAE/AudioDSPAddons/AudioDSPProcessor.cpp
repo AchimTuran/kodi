@@ -257,8 +257,7 @@ DSPErrorCode_t CAudioDSPProcessor::Create(const AEAudioFormat *InFormat, AEAudio
     }
 
     // add audio converter if the first mode needed a different input format
-    AudioDSPNodeChain_t::iterator nodeIter = m_DSPNodeChain.begin();
-    AEAudioFormat firstModeInputFormat = (*nodeIter)->GetInputFormat();
+    AEAudioFormat firstModeInputFormat = m_DSPNodeChain.front()->GetInputFormat();
     if (!(firstModeInputFormat == m_InFormat))
     {
       IDSPNodeModel::CDSPNodeInfoQuery query({ "Kodi", "AudioConverter" });
@@ -276,11 +275,11 @@ DSPErrorCode_t CAudioDSPProcessor::Create(const AEAudioFormat *InFormat, AEAudio
         return dspErr;
       }
 
+      AudioDSPNodeChain_t::iterator nodeIter = m_DSPNodeChain.begin();
       m_DSPNodeChain.insert(nodeIter, audioConverter);
     }
 
-    nodeIter = m_DSPNodeChain.end();
-    AEAudioFormat lastModeOutputFormat = (*nodeIter)->GetOutputFormat();
+    AEAudioFormat lastModeOutputFormat = m_DSPNodeChain.back()->GetOutputFormat();
     if (!(lastModeOutputFormat == m_OutFormat))
     {
       IDSPNodeModel::CDSPNodeInfoQuery query({ "Kodi", "AudioConverter" });
