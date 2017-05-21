@@ -169,8 +169,7 @@ DSPErrorCode_t CDSPNodeModel::GetActiveNodes(DSPNodeInfoVector_t &ActiveNodeInfo
       nodeStr += nodeIter->InstanceModeName;
     }
 
-    NodeInfo_t &node = m_Nodes.at(nodeIter->ID);
-    ActiveNodeInfos.push_back(CDSPNodeInfo(nodeStr, node.ID, node.Active));
+    ActiveNodeInfos.push_back(CDSPNodeInfo(nodeStr, nodeIter->ID, nodeIter->Active));
   }
 
   return DSP_ERR_NO_ERR;
@@ -186,12 +185,11 @@ DSPErrorCode_t CDSPNodeModel::EnableNode(uint64_t ID, uint32_t Position)
     return DSP_ERR_NODE_NOT_FOUND;
   }
 
-  if (!nodeIter->Active)
+  if (nodeIter->Active)
   {
-    nodeIter->Active = true;
-    m_ActiveNodes.push_back(ID);
+    RemoveActiveNode(ID);
   }
-  RemoveActiveNode(ID);
+  nodeIter->Active = true;
   m_ActiveNodes.insert(m_ActiveNodes.begin() + Position, ID);
   NotifyEnableNodeUpdate(ID, Position);
 
