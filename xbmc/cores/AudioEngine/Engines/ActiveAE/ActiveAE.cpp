@@ -1192,7 +1192,7 @@ void CActiveAE::Configure(AEAudioFormat *desiredFmt, CActiveAEStream *stream)
         }
         if ((*it)->m_processingBuffers)
         {
-          DSPErrorCode_t dspErr = m_audioDSP.ReleaseProcessingBuffer(stream->m_id);
+          DSPErrorCode_t dspErr = m_audioDSP.ReleaseProcessingBuffer((*it)->m_id);
           if (dspErr != DSP_ERR_NO_ERR)
           {//! @todo AudioDSP log AudioDSP error
           }
