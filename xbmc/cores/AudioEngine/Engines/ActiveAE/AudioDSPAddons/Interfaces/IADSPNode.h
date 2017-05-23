@@ -53,7 +53,7 @@ public:
 
     // the default behavoiur is that the node uses the same output parameters as the input parameters
     m_InputFormat = InputFormat;
-    m_OutputFormat = InputFormat;
+    m_OutputFormat = OutputFormat;
 
     DSPErrorCode_t err = CreateInstance(m_InputFormat, m_OutputFormat, Options);
 
