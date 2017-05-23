@@ -132,6 +132,7 @@ void CAudioDSPProcessor::CreateBuffer(const AEAudioFormat &Format, NodeBuffer_t 
   for(int ii = 0; ii < Buffer.planes; ii++)
   {
     Buffer.buffer[ii] = new uint8_t[Buffer.bytesPerSample * Buffer.maxSamplesCount];
+    memset(Buffer.buffer[ii], 0, sizeof(uint8_t) * Buffer.bytesPerSample * Buffer.maxSamplesCount);
   }
 }
 
