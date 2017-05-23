@@ -57,7 +57,34 @@ DSPErrorCode_t CAudioDSPConverterFFMPEG::CreateInstance(AEAudioFormat &InputForm
 {
   bool forceResampler = false;
   const CAEChannelInfo *remapLayout = m_remapLayoutUsed ? &InputFormat.m_channelLayout : NULL;
-  
+
+  switch (OutputFormat.m_dataFormat)
+  {
+    case AE_FMT_U8:
+    
+    case AE_FMT_S16BE:
+    case AE_FMT_S16LE:
+    case AE_FMT_S16NE:
+
+    case AE_FMT_S32BE:
+    case AE_FMT_S32LE:
+    case AE_FMT_S32NE:
+
+    case AE_FMT_S24BE4:
+    case AE_FMT_S24LE4:
+    case AE_FMT_S24NE4:    // 24 bits in lower 3 bytes
+    case AE_FMT_S24NE4MSB: // S32 with bits_per_sample < 32
+
+    case AE_FMT_S24BE3:
+    case AE_FMT_S24LE3:
+    case AE_FMT_S24NE3: /* S24 in 3 bytes */
+    
+    case AE_FMT_DOUBLE:
+    case AE_FMT_FLOAT:
+      OutputFormat.m_dataFormat = AE_FMT_FLOATP;
+    break;
+  }
+
   if (!Init(CAEUtil::GetAVChannelLayout(OutputFormat.m_channelLayout),
             OutputFormat.m_channelLayout.Count(),
             OutputFormat.m_sampleRate,
@@ -80,6 +107,10 @@ DSPErrorCode_t CAudioDSPConverterFFMPEG::CreateInstance(AEAudioFormat &InputForm
   }
 
   m_resampleRatio = OutputFormat.m_sampleRate / InputFormat.m_sampleRate;
+  if (!AE_IS_PLANAR(m_InputFormat.m_dataFormat))
+  {
+    m_planes.resize(InputFormat.m_channelLayout.Count());
+  }
 
   return DSP_ERR_NO_ERR;
 }
@@ -100,9 +131,24 @@ DSPErrorCode_t CAudioDSPConverterFFMPEG::DestroyInstance()
 
 DSPErrorCode_t CAudioDSPConverterFFMPEG::ProcessInstance(void *In, void *Out)
 {
-  if (Resample(reinterpret_cast<uint8_t**>(In), m_InputFormat.m_frames / m_InputFormat.m_channelLayout.Count(), reinterpret_cast<uint8_t**>(Out), m_OutputFormat.m_frames / m_OutputFormat.m_channelLayout.Count(), m_resampleRatio) == 0)
+  if (!AE_IS_PLANAR(m_InputFormat.m_dataFormat))
   {
-    return DSP_ERR_FATAL_ERROR;
+    for (int ch = 0; ch < m_planes.size(); ch++)
+    {
+      m_planes.at(ch) = reinterpret_cast<uint8_t*>(In) + ch * m_InputFormat.m_frames * CAEUtil::DataFormatToBits(m_InputFormat.m_dataFormat) / 8;
+    }
+
+    if (Resample(reinterpret_cast<uint8_t**>(Out), m_OutputFormat.m_frames, m_planes.data(), m_InputFormat.m_frames, m_resampleRatio) == 0)
+    {
+      return DSP_ERR_FATAL_ERROR;
+    }
+  }
+  else
+  {
+    if (Resample(reinterpret_cast<uint8_t**>(Out), m_OutputFormat.m_frames, reinterpret_cast<uint8_t**>(In), m_InputFormat.m_frames, m_resampleRatio) == 0)
+    {
+      return DSP_ERR_FATAL_ERROR;
+    }
   }
   
   return DSP_ERR_NO_ERR;

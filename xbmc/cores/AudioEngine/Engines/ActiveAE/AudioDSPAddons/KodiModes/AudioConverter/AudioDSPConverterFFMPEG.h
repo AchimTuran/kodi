@@ -82,6 +82,7 @@ private:
   bool UpdateSettings();
   virtual void AudioConverterCallback() override;
   CAudioConverterModel &m_model;
+  std::vector<uint8_t*> m_planes;
 };
 
 }
