@@ -46,6 +46,8 @@ CAudioDSPCopyMode::CAudioDSPCopyMode(uint64_t ID) :
 
 DSPErrorCode_t CAudioDSPCopyMode::CreateInstance(AEAudioFormat &InputFormat, AEAudioFormat &OutputFormat, void *Options/* = nullptr*/)
 {
+  InputFormat.m_dataFormat = AE_FMT_FLOATP;
+  OutputFormat.m_dataFormat = AE_FMT_FLOATP;
   return DSP_ERR_NO_ERR;
 }
 
