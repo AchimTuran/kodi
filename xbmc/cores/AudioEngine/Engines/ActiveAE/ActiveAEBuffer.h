@@ -58,11 +58,14 @@ public:
   int linesize;                          // see ffmpeg, required for planar formats
   int planes;                            // 1 for non planar formats, #channels for planar
   int nb_samples;                        // number of frames used
+  int processedSamples;                  // number of offset samples
   int max_nb_samples;                    // max number of frames this packet can hold
   int pause_burst_ms;
 };
 
 class CActiveAEBufferPool;
+
+class IAEBufferPoolCallback;
 
 class CSampleBuffer
 {
@@ -72,20 +75,30 @@ public:
   CSampleBuffer *Acquire();
   void Return();
   CSoundPacket *pkt;
-  CActiveAEBufferPool *pool;
+  IAEBufferPoolCallback *pool;
   int64_t timestamp;
   int pkt_start_offset;
   int refCount;
 };
 
-class CActiveAEBufferPool
+class IAEBufferPoolCallback
+{
+public:
+  virtual void ReturnBuffer(CSampleBuffer *buffer) = 0;
+};
+
+class CActiveAEBufferPool : public IAEBufferPoolCallback
 {
 public:
   CActiveAEBufferPool(AEAudioFormat format);
   virtual ~CActiveAEBufferPool();
+
   virtual bool Create(unsigned int totaltime);
   CSampleBuffer *GetFreeBuffer();
-  void ReturnBuffer(CSampleBuffer *buffer);
+
+  // IAEBufferPoolCallback
+  virtual void ReturnBuffer(CSampleBuffer *buffer) override;
+  
   AEAudioFormat m_format;
   std::deque<CSampleBuffer*> m_allSamples;
   std::deque<CSampleBuffer*> m_freeSamples;
