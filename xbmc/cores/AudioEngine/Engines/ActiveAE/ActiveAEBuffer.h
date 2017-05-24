@@ -106,6 +106,8 @@ public:
 
 class IAEResample;
 
+#define MAX_BUFFER_PLANES 16
+
 class CActiveAEBufferPoolResample : public CActiveAEBufferPool
 {
 public:
@@ -140,7 +142,7 @@ public:
 protected:
   void ChangeResampler();
 
-  uint8_t *m_planes[16];  //! @todo use std::vector<uint8_t*>!
+  uint8_t *m_planes[MAX_BUFFER_PLANES];  //! @todo use std::vector<uint8_t*>!
   bool m_empty;
   bool m_drain;
   int64_t m_lastSamplePts;

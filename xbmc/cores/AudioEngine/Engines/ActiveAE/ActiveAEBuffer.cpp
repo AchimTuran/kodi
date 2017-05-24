@@ -205,6 +205,13 @@ bool CActiveAEBufferPoolResample::Create(unsigned int totaltime)
   {
     ChangeResampler();
   }
+
+  if (m_format.m_channelLayout.Count() >= MAX_BUFFER_PLANES)
+  {
+    CLog::Log(LOGERROR, "%s - Unsupported amount of speaker channels!", __FUNCTION__);
+    return false;
+  }
+
   return true;
 }
 
@@ -298,7 +305,7 @@ bool CActiveAEBufferPoolResample::ResampleBuffers(int64_t timestamp)
                   m_procSample->pkt->config.channels /
                   m_procSample->pkt->planes;
 
-      for(int i=0; i<m_procSample->pkt->planes; i++)
+      for(int i=0; i < m_procSample->pkt->planes && i < MAX_BUFFER_PLANES; i++)
       {
         m_planes[i] = m_procSample->pkt->data[i] + start;
       }
