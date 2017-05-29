@@ -34,10 +34,16 @@ public:
   virtual ~IADSPProcessor() {}
 
   virtual DSPErrorCode_t Create(const AEAudioFormat *InFormat, AEAudioFormat *OutFormat) = 0;
-  virtual DSPErrorCode_t Process(const ActiveAE::CSampleBuffer *In, ActiveAE::CSampleBuffer *Out) = 0;
+  virtual bool ProcessBuffer() = 0;
   virtual DSPErrorCode_t Destroy() = 0;
+  virtual float GetDelay() = 0;
+  virtual bool HasInputLevel(int level) = 0;
+  virtual bool HasWork() = 0;
   
   const std::string Name;
+
+  std::deque<ActiveAE::CSampleBuffer*> m_outputSamples;
+  std::deque<ActiveAE::CSampleBuffer*> m_inputSamples;
 
 private:
   ADSPDataFormat_t m_DataFormat;

@@ -23,6 +23,7 @@
 #include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/Interfaces/IADSPNode.h"
 #include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/Interfaces/IADSPProcessor.h"
 #include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/AudioDSPController.h"
+#include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/AudioDSPBuffer.h"
 
 #include "cores/DSP/Factory/Interfaces/IDSPNodeFactory.h"
 #include "cores/DSP/Models/Interfaces/IDSPNodeModelCallback.h"
@@ -50,7 +51,22 @@ class CAudioDSPProcessor : public DSP::AUDIO::IADSPProcessor, public DSP::IDSPNo
       channels = 0;
     }
   }NodeBuffer_t;
-  typedef std::vector<DSP::AUDIO::IADSPNode*> AudioDSPNodeChain_t;
+
+  class CAudioDSPModeHandle
+  {
+    CAudioDSPModeHandle() { m_mode = nullptr; m_buffer = nullptr; }
+  public:
+    CAudioDSPModeHandle(DSP::AUDIO::IADSPNode *Mode, CActiveAEBufferPoolResample *Buffer)
+    {
+      m_mode = Mode;
+      m_buffer = Buffer;
+    }
+
+    DSP::AUDIO::IADSPNode *m_mode;
+    CActiveAEBufferPoolResample *m_buffer;
+  };
+
+  typedef std::vector<CAudioDSPModeHandle> AudioDSPNodeChain_t;
   typedef std::vector<NodeBuffer_t> AudioDSPBuffers_t;
 public:
   CAudioDSPProcessor(CAudioDSPController &Controller, DSP::IDSPNodeFactory &NodeFactory);
@@ -67,19 +83,23 @@ private: // private methods
 private:
   // processor interface
   virtual DSPErrorCode_t Create(const AEAudioFormat *InFormat, AEAudioFormat *OutFormat) override;
-  virtual DSPErrorCode_t Process(const ActiveAE::CSampleBuffer *In, ActiveAE::CSampleBuffer *Out) override;
+  virtual bool ProcessBuffer() override;
   virtual DSPErrorCode_t Destroy() override;
+  virtual float GetDelay() override;
+  virtual bool HasInputLevel(int level) override;
+  virtual bool HasWork() override;
 
   // node model callbacks
   virtual DSPErrorCode_t EnableNodeCallback(uint64_t ID, uint32_t Position = 0) override;
   virtual DSPErrorCode_t DisableNodeCallback(uint64_t ID) override;
 
-  AudioDSPBuffers_t m_Buffers;
   AudioDSPNodeChain_t m_DSPNodeChain;
   AEAudioFormat m_InFormat;
   AEAudioFormat m_OutFormat;
 
   CAudioDSPController &m_AudioDSPController;
   DSP::IDSPNodeFactory &m_NodeFactory;
+
+  DSP::IDSPNodeModel::CDSPNodeInfoQuery m_conversionModeID;
 };
 }

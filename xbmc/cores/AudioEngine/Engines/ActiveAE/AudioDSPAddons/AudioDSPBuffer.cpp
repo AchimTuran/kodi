@@ -70,7 +70,7 @@ bool CAudioDSPBufferPool::Create(unsigned int totaltime)
     unsigned int time = 0;
     unsigned int buffertime = (m_outputFormat.m_frames*1000) / m_outputFormat.m_sampleRate;
 
-    for(unsigned int ii = 0; ii < 5 || time < totaltime; ii++)
+    for(unsigned int ii = 0; ii < 5 && time < totaltime; ii++)
     {
       buffer = new CSampleBuffer();
       buffer->pool = this;
@@ -131,7 +131,7 @@ CSampleBuffer* CAudioDSPBufferPool::GetBuffer()
       m_processingBuffer = GetFreeBuffer();
     }
 
-    if (!m_inputBuffer && !m_inputSamples.empty())
+    if (m_processingBuffer && !m_inputBuffer && !m_inputSamples.empty())
     {
       m_inputBuffer = m_inputSamples.front();
       m_inputSamples.pop_front();
@@ -144,7 +144,8 @@ CSampleBuffer* CAudioDSPBufferPool::GetBuffer()
       m_processingBuffer->timestamp;
       m_processingBuffer->pkt->nb_samples;
       
-      m_audioConverter->ProcessInstance(m_inputBuffer, m_processingBuffer);
+      //! @todo AudioDSP V2 How should a conversion mode interface/implementation look like?
+      //m_audioConverter->Process(m_inputBuffer, m_processingBuffer);
 
       if (m_inputBuffer->pkt->processedSamples == m_inputBuffer->pkt->max_nb_samples)
       {
