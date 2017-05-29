@@ -115,6 +115,11 @@ void CActiveAEBufferPool::ReturnBuffer(CSampleBuffer *buffer)
 
 bool CActiveAEBufferPool::Create(unsigned int totaltime)
 {
+  if (m_allSamples.size() > 0)
+  {
+    return false;
+  }
+
   CSampleBuffer *buffer;
   SampleConfig config;
   config.fmt = CAEUtil::GetAVSampleFormat(m_format.m_dataFormat);
@@ -224,23 +229,31 @@ void CActiveAEBufferPoolResample::ChangeResampler()
   }
 
   m_resampler = CAEResampleFactory::Create();
-  m_resampler->Init(CAEUtil::GetAVChannelLayout(m_format.m_channelLayout),
-                                m_format.m_channelLayout.Count(),
-                                m_format.m_sampleRate,
-                                CAEUtil::GetAVSampleFormat(m_format.m_dataFormat),
-                                CAEUtil::DataFormatToUsedBits(m_format.m_dataFormat),
-                                CAEUtil::DataFormatToDitherBits(m_format.m_dataFormat),
-                                CAEUtil::GetAVChannelLayout(m_inputFormat.m_channelLayout),
-                                m_inputFormat.m_channelLayout.Count(),
-                                m_inputFormat.m_sampleRate,
-                                CAEUtil::GetAVSampleFormat(m_inputFormat.m_dataFormat),
-                                CAEUtil::DataFormatToUsedBits(m_inputFormat.m_dataFormat),
-                                CAEUtil::DataFormatToDitherBits(m_inputFormat.m_dataFormat),
-                                m_stereoUpmix,
-                                m_normalize,
-                                m_remap ? &m_format.m_channelLayout : NULL,
-                                m_resampleQuality,
-                                m_forceResampler);
+  if (!m_resampler)
+  {
+    CLog::Log(LOGERROR, "%s - Failed to create resampler!", __FUNCTION__);
+    return;
+  }
+  else
+  {
+    m_resampler->Init(CAEUtil::GetAVChannelLayout(m_format.m_channelLayout),
+                      m_format.m_channelLayout.Count(),
+                      m_format.m_sampleRate,
+                      CAEUtil::GetAVSampleFormat(m_format.m_dataFormat),
+                      CAEUtil::DataFormatToUsedBits(m_format.m_dataFormat),
+                      CAEUtil::DataFormatToDitherBits(m_format.m_dataFormat),
+                      CAEUtil::GetAVChannelLayout(m_inputFormat.m_channelLayout),
+                      m_inputFormat.m_channelLayout.Count(),
+                      m_inputFormat.m_sampleRate,
+                      CAEUtil::GetAVSampleFormat(m_inputFormat.m_dataFormat),
+                      CAEUtil::DataFormatToUsedBits(m_inputFormat.m_dataFormat),
+                      CAEUtil::DataFormatToDitherBits(m_inputFormat.m_dataFormat),
+                      m_stereoUpmix,
+                      m_normalize,
+                      m_remap ? &m_format.m_channelLayout : NULL,
+                      m_resampleQuality,
+                      m_forceResampler);
+  }
 
   m_changeResampler = false;
 }
