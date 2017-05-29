@@ -583,8 +583,7 @@ CActiveAEStreamBuffers::~CActiveAEStreamBuffers()
 
 bool CActiveAEStreamBuffers::HasInputLevel(int level)
 {
-  if ((m_inputSamples.size() + m_resampleBuffers->m_inputSamples.size()) >
-      (m_resampleBuffers->m_allSamples.size() * level / 100))
+  if ((m_inputSamples.size() + m_resampleBuffers->m_inputSamples.size()) > (m_resampleBuffers->m_allSamples.size() * level / 100))
     return true;
   else
     return false;
