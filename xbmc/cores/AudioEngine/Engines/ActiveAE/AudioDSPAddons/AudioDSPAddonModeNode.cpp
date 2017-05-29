@@ -13,32 +13,32 @@ CAudioDSPAddonModeNode::CAudioDSPAddonModeNode(AE_DSP_ADDON Addon, uint64_t ID, 
   memset(&m_DllFunctions, 0, sizeof(m_DllFunctions));
 }
 
-DSPErrorCode_t CAudioDSPAddonModeNode::CreateInstance(AEAudioFormat &InputProperties, AEAudioFormat &OutputProperties, void *Options)
+DSPErrorCode_t CAudioDSPAddonModeNode::Create(const AEAudioFormat &InputProperties, const AEAudioFormat &OutputProperties)
 {
   if (!m_Addon->GetAddonProcessingCallbacks(m_DllFunctions))
   {
     return DSP_ERR_FATAL_ERROR;
   }
 
-  //! @todo simplify add-on mode creation API
+  //! @todo AudioDSP V2 simplify add-on mode creation API
 
   return DSP_ERR_NO_ERR;
 }
 
-DSPErrorCode_t CAudioDSPAddonModeNode::DestroyInstance()
-{
-  return DSP_ERR_NO_ERR;
-}
-
-DSPErrorCode_t CAudioDSPAddonModeNode::ProcessInstance(void *In, void *Out)
+bool CAudioDSPAddonModeNode::Process()
 {
   if (!m_DllFunctions.PostProcess)
   {
-    return DSP_ERR_FATAL_ERROR;
+    return false;
   }
 
-  //m_DllFunctions.PostProcess(nullptr, 0, In, Out, 0); //! @todo change API to PostProcess(HANDLE, In, Out), size and ID is set during creation
+  //m_DllFunctions.PostProcess(nullptr, 0, In, Out, 0); //! @todo AudioDSP V2 change API to PostProcess(HANDLE, In, Out), size and ID is set during creation
 
+  return true;
+}
+
+DSPErrorCode_t CAudioDSPAddonModeNode::Destroy()
+{
   return DSP_ERR_NO_ERR;
 }
 }

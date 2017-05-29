@@ -1,3 +1,25 @@
+/*
+ *      Copyright (C) 2005-2017 Team Kodi
+ *      http://kodi.tv
+ *
+ *  This Program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2, or (at your option)
+ *  any later version.
+ *
+ *  This Program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Kodi; see the file COPYING.  If not, see
+ *  <http://www.gnu.org/licenses/>.
+ *
+ */
+
+
+
 #include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/KodiModes/AudioDSPCopyMode.h"
 #include <string.h>
 
@@ -29,7 +51,7 @@ DSPErrorCode_t CAudioDSPCopyModeCreator::DestroyNode(IADSPNode *&Node)
   DSPErrorCode_t err = DSP_ERR_INVALID_INPUT;
   if (Node)
   {
-    err = Node->DestroyInstance();
+    err = Node->Destroy();
 
     delete Node;
     Node = nullptr;
@@ -40,11 +62,11 @@ DSPErrorCode_t CAudioDSPCopyModeCreator::DestroyNode(IADSPNode *&Node)
 
 
 CAudioDSPCopyMode::CAudioDSPCopyMode(uint64_t ID) :
-  IADSPNode("CAudioDSPCopyMode", ID, ADSP_DataFormatFlagFloat) //! @todo set format flags with |
+  IADSPBufferNode("CAudioDSPCopyMode", ID, ADSP_DataFormatFlagFloat) //! @todo set format flags with |
 {
 }
 
-DSPErrorCode_t CAudioDSPCopyMode::CreateInstance(AEAudioFormat &InputFormat, AEAudioFormat &OutputFormat, void *Options/* = nullptr*/)
+DSPErrorCode_t CAudioDSPCopyMode::CreateInstance(AEAudioFormat &InputFormat, AEAudioFormat &OutputFormat)
 {
   InputFormat.m_dataFormat = AE_FMT_FLOATP;
   OutputFormat.m_dataFormat = AE_FMT_FLOATP;
@@ -57,22 +79,19 @@ DSPErrorCode_t CAudioDSPCopyMode::DestroyInstance()
   return DSP_ERR_NO_ERR;
 }
 
-DSPErrorCode_t CAudioDSPCopyMode::ProcessInstance(void *In, void *Out)
+int CAudioDSPCopyMode::ProcessInstance(uint8_t **In, uint8_t **Out)
 {
-  uint8_t **in = reinterpret_cast<uint8_t**>(In);
-  uint8_t **out = reinterpret_cast<uint8_t**>(Out);
-
   if (m_InputFormat.m_dataFormat == m_OutputFormat.m_dataFormat)
   {
     for (uint8_t ch = 0; ch < m_InputFormat.m_channelLayout.Count(); ch++)
     {
       for (uint32_t ii = 0; ii < m_InputFormat.m_frames * m_InputFormat.m_frameSize / m_InputFormat.m_channelLayout.Count(); ii++)
       {
-        out[ch][ii] = in[ch][ii];
+        Out[ch][ii] = In[ch][ii];
       }
     }
   }
 
-  return DSP_ERR_NO_ERR;
+  return m_InputFormat.m_frames;
 }
 }

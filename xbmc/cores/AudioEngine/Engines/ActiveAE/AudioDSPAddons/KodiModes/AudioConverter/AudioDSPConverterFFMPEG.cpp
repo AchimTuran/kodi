@@ -37,7 +37,7 @@ using namespace DSP::AUDIO;
 
 
 CAudioDSPConverterFFMPEG::CAudioDSPConverterFFMPEG(uint64_t ID, CAudioConverterModel &Model) :
-  IADSPNode("CAudioDSPConverterFFMPEG", ID, ADSP_DataFormatFlagFloat),
+  IADSPBufferNode("CAudioDSPConverterFFMPEG", ID, ADSP_DataFormatFlagFloat),
   m_model(Model)
 {
   m_pContext = nullptr;
@@ -53,7 +53,7 @@ CAudioDSPConverterFFMPEG::~CAudioDSPConverterFFMPEG()
   swr_free(&m_pContext);
 }
 
-DSPErrorCode_t CAudioDSPConverterFFMPEG::CreateInstance(AEAudioFormat &InputFormat, AEAudioFormat &OutputFormat, void *Options)
+DSPErrorCode_t CAudioDSPConverterFFMPEG::CreateInstance(AEAudioFormat &InputFormat, AEAudioFormat &OutputFormat)
 {
   bool forceResampler = false;
   const CAEChannelInfo *remapLayout = m_remapLayoutUsed ? &InputFormat.m_channelLayout : NULL;
@@ -129,29 +129,21 @@ DSPErrorCode_t CAudioDSPConverterFFMPEG::DestroyInstance()
   return DSP_ERR_NO_ERR;
 }
 
-DSPErrorCode_t CAudioDSPConverterFFMPEG::ProcessInstance(void *In, void *Out)
+int CAudioDSPConverterFFMPEG::ProcessInstance(uint8_t **In, uint8_t **Out)
 {
   if (!AE_IS_PLANAR(m_InputFormat.m_dataFormat))
   {
     for (int ch = 0; ch < m_planes.size(); ch++)
     {
-      m_planes.at(ch) = reinterpret_cast<uint8_t*>(In) + ch * m_InputFormat.m_frames * CAEUtil::DataFormatToBits(m_InputFormat.m_dataFormat) / 8;
+      m_planes.at(ch) = In[0] + ch * m_InputFormat.m_frames * CAEUtil::DataFormatToBits(m_InputFormat.m_dataFormat) / 8;
     }
 
-    if (Resample(reinterpret_cast<uint8_t**>(Out), m_OutputFormat.m_frames, m_planes.data(), m_InputFormat.m_frames, m_resampleRatio) == 0)
-    {
-      return DSP_ERR_FATAL_ERROR;
-    }
+    return Resample(Out, m_OutputFormat.m_frames, m_planes.data(), m_InputFormat.m_frames, m_resampleRatio);
   }
   else
   {
-    if (Resample(reinterpret_cast<uint8_t**>(Out), m_OutputFormat.m_frames, reinterpret_cast<uint8_t**>(In), m_InputFormat.m_frames, m_resampleRatio) == 0)
-    {
-      return DSP_ERR_FATAL_ERROR;
-    }
+    return Resample(Out, m_OutputFormat.m_frames, In, m_InputFormat.m_frames, m_resampleRatio);
   }
-  
-  return DSP_ERR_NO_ERR;
 }
 
 bool CAudioDSPConverterFFMPEG::Init(uint64_t dst_chan_layout, 
@@ -348,6 +340,7 @@ int CAudioDSPConverterFFMPEG::Resample(uint8_t **dst_buffer, int dst_samples, ui
     }
   }
 
+  int samples = swr_get_out_samples(m_pContext, src_samples);
   int ret = swr_convert(m_pContext, dst_buffer, dst_samples, (const uint8_t**)src_buffer, src_samples);
   if (ret < 0)
   {

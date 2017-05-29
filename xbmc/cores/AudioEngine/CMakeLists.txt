@@ -46,6 +46,7 @@ set(HEADERS AEResampleFactory.h
             Engines/ActiveAE/AudioDSPAddons/AudioDSPController.h
             Engines/ActiveAE/AudioDSPAddons/AudioDSPProcessor.h
             Engines/ActiveAE/AudioDSPAddons/Interfaces/IADSPNode.h
+            Engines/ActiveAE/AudioDSPAddons/Interfaces/IADSPBufferNode.h
             Engines/ActiveAE/AudioDSPAddons/Interfaces/IADSPProcessor.h
             Engines/ActiveAE/AudioDSPAddons/ADSPBuffer.h
             Engines/ActiveAE/AudioDSPAddons/ADSPProcessor.h

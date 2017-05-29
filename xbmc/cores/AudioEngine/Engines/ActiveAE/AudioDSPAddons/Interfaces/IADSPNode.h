@@ -20,9 +20,10 @@
  */
 
 #include "cores/DSP/DSPObject.h"
-#include "cores/AudioEngine/Utils/AEAudioFormat.h"
 #include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/ADSPTypedefs.h"
+
 #include "cores/AudioEngine/Utils/AEAudioFormat.h"
+#include "cores/AudioEngine/Engines/ActiveAE/ActiveAEBuffer.h"
 
 namespace DSP
 {
@@ -40,35 +41,24 @@ public:
 
     m_OutputFormat.m_dataFormat = AE_FMT_INVALID;
     m_OutputFormat.m_channelLayout.Reset();
+
+    m_processingBuffers = nullptr;
   }
 
   const ADSPDataFormatFlags_t FormatFlags;
 
-  virtual DSPErrorCode_t Create(const AEAudioFormat &InputFormat, AEAudioFormat &OutputFormat, void *Options = nullptr)
-  {
-    if (InputFormat.m_dataFormat == AE_FMT_INVALID || InputFormat.m_dataFormat == AE_FMT_MAX || InputFormat.m_dataFormat == AE_FMT_RAW)
-    {
-      return DSP_ERR_INVALID_DATA_FORMAT;
-    }
-
-    // the default behavoiur is that the node uses the same output parameters as the input parameters
-    m_InputFormat = InputFormat;
-    m_OutputFormat = OutputFormat;
-
-    DSPErrorCode_t err = CreateInstance(m_InputFormat, m_OutputFormat, Options);
-
-    return err;
-  }
-
-  virtual DSPErrorCode_t ProcessInstance(void *In, void *Out) = 0;
-  virtual DSPErrorCode_t DestroyInstance() = 0;
+  virtual DSPErrorCode_t Create(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat) = 0;
+  virtual bool Process() = 0;
+  virtual DSPErrorCode_t Destroy() = 0;
 
   virtual const AEAudioFormat& GetInputFormat()  { return m_InputFormat;  }
   virtual const AEAudioFormat& GetOutputFormat() { return m_OutputFormat; }
 
-protected:
-  virtual DSPErrorCode_t CreateInstance(AEAudioFormat &InputFormat, AEAudioFormat &OutputFormat, void *Options = nullptr) = 0;
+  std::deque<ActiveAE::CSampleBuffer*> m_outputSamples;
+  std::deque<ActiveAE::CSampleBuffer*> m_inputSamples;
+  ActiveAE::CActiveAEBufferPool *m_processingBuffers;
 
+protected:
   AEAudioFormat m_InputFormat;
   AEAudioFormat m_OutputFormat;
 };

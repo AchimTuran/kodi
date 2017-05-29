@@ -19,7 +19,7 @@
  *
  */
 
-#include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/Interfaces/IADSPNode.h"
+#include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/Interfaces/IADSPBufferNode.h"
 #include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/ADSPTypedefs.h"
 #include "cores/DSP/Typedefs/DSPTypedefs.h"
 #include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/KodiModes/AudioConverter/AudioConverterModel.h"
@@ -32,17 +32,17 @@ struct SwrContext;
 
 namespace ActiveAE
 {
-class CAudioDSPConverterFFMPEG : public DSP::AUDIO::IADSPNode, public IAudioConverterNodeCallback
+class CAudioDSPConverterFFMPEG : public DSP::AUDIO::IADSPBufferNode, public IAudioConverterNodeCallback
 {
 public:
   CAudioDSPConverterFFMPEG(uint64_t ID, CAudioConverterModel &Model);
   virtual ~CAudioDSPConverterFFMPEG();
 
 protected:
-  virtual DSPErrorCode_t CreateInstance(AEAudioFormat &InputProperties, AEAudioFormat &OutputProperties, void *Options = nullptr) override;
+  virtual DSPErrorCode_t CreateInstance(AEAudioFormat &InputProperties, AEAudioFormat &OutputProperties) override;
   virtual DSPErrorCode_t DestroyInstance() override;
 
-  virtual DSPErrorCode_t ProcessInstance(void *In, void *Out) override;
+  virtual int ProcessInstance(uint8_t **In, uint8_t **Out) override;
 
 private:
   bool Init(uint64_t dst_chan_layout, int dst_channels, int dst_rate, AVSampleFormat dst_fmt, int dst_bits, int dst_dither, uint64_t src_chan_layout, int src_channels, int src_rate, AVSampleFormat src_fmt, int src_bits, int src_dither, bool upmix, bool normalize, const CAEChannelInfo *remapLayout, AEQuality quality, bool force_resample);

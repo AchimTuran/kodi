@@ -53,7 +53,7 @@ DSPErrorCode_t CAudioDSPAudioConverterCreator::DestroyNode(IADSPNode *&Node)
   if (Node)
   {
     m_model.Deregister(dynamic_cast<IAudioConverterNodeCallback*>(Node));
-    err = Node->DestroyInstance();
+    err = Node->Destroy();
 
     delete Node;
     Node = nullptr;
