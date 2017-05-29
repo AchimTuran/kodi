@@ -438,7 +438,7 @@ void CActiveAudioDSP::StateMachine(int signal, Protocol *port, Message *msg)
           CAudioDSPControlProtocol::CCreateBuffer *bufferMsg = reinterpret_cast<CAudioDSPControlProtocol::CCreateBuffer*>(msg->data);
           IActiveAEProcessingBuffer *buffer = nullptr;
 
-          bool forceResampleBuffer = false;
+          static bool forceResampleBuffer = false;
           if (bufferMsg->audioStream->m_inputBuffers->m_format.m_dataFormat == AE_FMT_RAW || forceResampleBuffer)
           {
             buffer = dynamic_cast<IActiveAEProcessingBuffer*>(new CActiveAEStreamBuffers(bufferMsg->audioStream->m_inputBuffers->m_format, bufferMsg->outputFormat));
