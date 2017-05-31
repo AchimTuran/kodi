@@ -166,7 +166,6 @@ DSPErrorCode_t CAudioDSPProcessor::Create(const AEAudioFormat *InFormat, AEAudio
     return dspErr;
   }
 
-  OutFormat->m_dataFormat = AE_FMT_FLOATP;
   m_InFormat = *InFormat;
   m_OutFormat = *OutFormat;
   AEAudioFormat tmpParameters[2];
@@ -174,7 +173,7 @@ DSPErrorCode_t CAudioDSPProcessor::Create(const AEAudioFormat *InFormat, AEAudio
   AEAudioFormat *configOutParameters = &tmpParameters[1];
 
   *configInParameters = m_InFormat;
-  *configOutParameters = m_InFormat;
+  *configOutParameters = m_OutFormat;
 
   // create node chain
   for(uint32_t ii = 0; ii < nodeInfos.size(); ii++)

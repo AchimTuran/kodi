@@ -1,3 +1,4 @@
+#pragma once
 /*
  *      Copyright (C) 2005-2017 Team Kodi
  *      http://kodi.tv
@@ -18,22 +19,66 @@
  *
  */
 
-#pragma once
 
 #include "cores/AudioEngine/Interfaces/IActiveAEProcessingBuffer.h"
 #include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/Interfaces/IADSPProcessor.h"
 #include "cores/AudioEngine/Engines/ActiveAE/ActiveAEBuffer.h"
+
+#include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/Interfaces/IADSPNode.h"
+#include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/AudioDSPController.h"
+
+#include "cores/DSP/Factory/Interfaces/IDSPNodeFactory.h"
+#include "cores/DSP/Models/Interfaces/IDSPNodeModelCallback.h"
 
 
 namespace ActiveAE
 {
 class CActiveAudioDSP;
 
-class CAudioDSPProcessingBuffer : public IActiveAEProcessingBuffer, private CActiveAEBufferPool
+class CAudioDSPProcessingBuffer : public IActiveAEProcessingBuffer, private CActiveAEBufferPool, public DSP::IDSPNodeModelCallback
 {
   friend class CActiveAudioDSP;
+
+  typedef struct NodeBuffer_t
+  {
+    uint8_t **buffer;
+    int bytesPerSample;     // bytes per sample and per channel
+    int planes;             // 1 for non planar formats, #channels for planar
+    int samplesCount;       // number of frames used
+    int maxSamplesCount;    // max number of frames this packet can hold
+    int channels;
+
+    NodeBuffer_t()
+    {
+      buffer = nullptr;
+      bytesPerSample = 0;
+      planes = 0;
+      samplesCount = 0;
+      maxSamplesCount = 0;
+      channels = 0;
+    }
+  }NodeBuffer_t;
+
+  class CAudioDSPModeHandle
+  {
+    CAudioDSPModeHandle() { m_mode = nullptr; m_buffer = nullptr; }
+  public:
+    CAudioDSPModeHandle(DSP::AUDIO::IADSPNode *Mode, CActiveAEBufferPoolResample *Buffer)
+    {
+      m_mode = Mode;
+      m_buffer = Buffer;
+    }
+
+    DSP::AUDIO::IADSPNode *m_mode;
+    CActiveAEBufferPoolResample *m_buffer;
+  };
+
+  typedef std::vector<CAudioDSPModeHandle> AudioDSPNodeChain_t;
+  typedef std::vector<NodeBuffer_t> AudioDSPBuffers_t;
+
+
 public:
-  CAudioDSPProcessingBuffer(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat);
+  CAudioDSPProcessingBuffer(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat, CAudioDSPController &Controller, DSP::IDSPNodeFactory &NodeFactory);
 
   virtual bool Create(unsigned int totaltime) override;
   virtual void Destroy() override;
@@ -48,7 +93,9 @@ public:
   virtual void SetOutputSampleRate(unsigned int OutputSampleRate) override;
 
 private:
-  void ChangeProcessor();
+  // node model callbacks
+  virtual DSPErrorCode_t EnableNodeCallback(uint64_t ID, uint32_t Position = 0) override;
+  virtual DSPErrorCode_t DisableNodeCallback(uint64_t ID) override;
 
   int64_t m_lastSamplePts;
   bool m_fillPackets;
@@ -56,7 +103,12 @@ private:
   bool m_drain;
   CSampleBuffer *m_procSample;
   
-  bool m_changeProcessor;
-  DSP::AUDIO::IADSPProcessor *m_processor;
+
+  AudioDSPNodeChain_t m_DSPNodeChain;
+
+  CAudioDSPController &m_AudioDSPController;
+  DSP::IDSPNodeFactory &m_NodeFactory;
+
+  DSP::IDSPNodeModel::CDSPNodeInfoQuery m_conversionModeID;
 };
 }
