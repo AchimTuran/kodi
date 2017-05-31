@@ -19,63 +19,36 @@
  *
  */
 
-#include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/Interfaces/IADSPBufferNode.h"
 #include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/ADSPTypedefs.h"
 #include "cores/DSP/Typedefs/DSPTypedefs.h"
 #include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/KodiModes/AudioConverter/AudioConverterModel.h"
+#include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/Interfaces/IADSPBufferNode.h"
+#include "cores/AudioEngine/Interfaces/AEResample.h"
 
-extern "C" {
-#include "libavutil/samplefmt.h"
-}
-
-struct SwrContext;
 
 namespace ActiveAE
 {
-class CAudioDSPConverterFFMPEG : public DSP::AUDIO::IADSPBufferNode, public IAudioConverterNodeCallback
+class CAudioDSPConverter : public DSP::AUDIO::IADSPNode, public IAudioConverterNodeCallback
 {
 public:
-  CAudioDSPConverterFFMPEG(uint64_t ID, CAudioConverterModel &Model);
-  virtual ~CAudioDSPConverterFFMPEG();
+  CAudioDSPConverter(uint64_t ID, CAudioConverterModel &Model);
+  virtual ~CAudioDSPConverter();
 
 protected:
-  virtual DSPErrorCode_t CreateInstance(AEAudioFormat &InputProperties, AEAudioFormat &OutputProperties) override;
-  virtual DSPErrorCode_t DestroyInstance() override;
+  virtual DSPErrorCode_t Create(const AEAudioFormat &InputProperties, const AEAudioFormat &OutputProperties) override;
+  virtual DSPErrorCode_t Destroy() override;
 
-  virtual int ProcessInstance(uint8_t **In, uint8_t **Out) override;
+  virtual bool Process() override;
 
 private:
-  bool Init(uint64_t dst_chan_layout, int dst_channels, int dst_rate, AVSampleFormat dst_fmt, int dst_bits, int dst_dither, uint64_t src_chan_layout, int src_channels, int src_rate, AVSampleFormat src_fmt, int src_bits, int src_dither, bool upmix, bool normalize, const CAEChannelInfo *remapLayout, AEQuality quality, bool force_resample);
-  int Resample(uint8_t **dst_buffer, int dst_samples, uint8_t **src_buffer, int src_samples, double ratio);
-  int64_t GetDelay(int64_t base);
-  int GetBufferedSamples();
-  bool WantsNewSamples(int samples) { return GetBufferedSamples() <= samples * 2; }
-  int CalcDstSampleCount(int src_samples, int dst_rate, int src_rate);
-  int GetSrcBufferSize(int samples);
-  int GetDstBufferSize(int samples);
-
-  bool m_loaded;
-  bool m_doesResample;
-  
-  uint64_t m_src_chan_layout;
-  uint64_t m_dst_chan_layout;
-  int m_src_rate;
-  int m_dst_rate;
-  int m_src_channels;
-  int m_dst_channels;
-  AVSampleFormat m_src_fmt;
-  AVSampleFormat m_dst_fmt;
-  int m_src_bits;
-  int m_dst_bits;
-  int m_src_dither_bits;
-  int m_dst_dither_bits;
-  SwrContext *m_pContext;
-  double m_rematrix[AE_CH_MAX][AE_CH_MAX];
+  IAEResample *m_resampler;
   double m_resampleRatio;
 
   bool m_remapLayoutUsed;
   CAEChannelInfo m_remapLayout;
   bool m_forceResampling;
+
+  int64_t m_lastSamplePts;
   
   // model and callback implementations
   bool m_needsSettingsUpdate;
