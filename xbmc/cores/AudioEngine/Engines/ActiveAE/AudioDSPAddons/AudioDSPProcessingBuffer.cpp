@@ -189,7 +189,10 @@ bool CAudioDSPProcessingBuffer::Create(unsigned int totaltime)
   //! @todo AudioDSP V3 add support for all AE channels, this requires to improve the implemented FFMPEG based AudioConversion Mode
   for (int ch = AE_CH_FL; ch < AE_CH_TBL; ch++)
   {
-    audioDSPChLayout += static_cast<AEChannel>(ch);
+    if (m_inputFormat.m_channelLayout.HasChannel(static_cast<AEChannel>(ch)))
+    {
+      audioDSPChLayout += static_cast<AEChannel>(ch);
+    }
   }
 
   // create buffers
