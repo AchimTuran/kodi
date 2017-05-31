@@ -1169,7 +1169,8 @@ void CActiveAE::Configure(AEAudioFormat *desiredFmt, CActiveAEStream *stream)
       }
 
       //! @todo adjust to decoder
-      sinkInputFormat = audioDSPOutputFormat;
+      audioDSPOutputFormat = stream->m_processingBuffers->m_outputFormat;
+      m_sinkRequestFormat = audioDSPOutputFormat;
     }
 
     std::list<CActiveAEStream*>::iterator it;
