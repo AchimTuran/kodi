@@ -245,7 +245,7 @@ bool CAudioDSPProcessingBuffer::ProcessBuffer()
   CSampleBuffer *buffer;
 
   static bool copyInput = false;
-  if (!m_DSPNodeChain.empty() || copyInput)
+  if (m_DSPNodeChain.empty() || copyInput)
   {   
     while (!m_inputSamples.empty())
     {
