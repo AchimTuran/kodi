@@ -5,17 +5,19 @@ set(SOURCES AEResampleFactory.cpp
             Engines/ActiveAE/AudioDSPAddons/ActiveAEDSPDatabase.cpp
             Engines/ActiveAE/AudioDSPAddons/ActiveAEDSPMode.cpp
             Engines/ActiveAE/AudioDSPAddons/ActiveAEDSPProcess.cpp
-            Engines/ActiveAE/AudioDSPAddons/AudioDSPBuffer.cpp
-            Engines/ActiveAE/AudioDSPAddons/ActiveAudioDSP.cpp
-            Engines/ActiveAE/AudioDSPAddons/AudioDSPProcessingBuffer.cpp
-            Engines/ActiveAE/AudioDSPAddons/AudioDSPController.cpp
-            Engines/ActiveAE/AudioDSPAddons/AudioDSPProcessor.cpp
-            Engines/ActiveAE/AudioDSPAddons/AudioDSPAddonNodeCreator.cpp
-            Engines/ActiveAE/AudioDSPAddons/AudioDSPAddonModeNode.cpp
-            Engines/ActiveAE/AudioDSPAddons/KodiModes/AudioDSPKodiModes.cpp
-            Engines/ActiveAE/AudioDSPAddons/KodiModes/AudioDSPCopyMode.cpp
-            Engines/ActiveAE/AudioDSPAddons/KodiModes/AudioConverter/AudioConverterModel.cpp
-            Engines/ActiveAE/AudioDSPAddons/KodiModes/FFMPEGUtils/FFMPEGUtils.cpp
+            
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioDSPKodiModes.cpp
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/CopyMode/AudioDSPCopyMode.cpp
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioConverter/AudioConverterCreator.cpp
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioConverter/AudioConverterModel.cpp
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioConverter/AudioDSPConverterFFMPEG.cpp
+            Engines/ActiveAE/ActiveAudioDSP/ActiveAudioDSP.cpp
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPAddonModeNode.cpp
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPAddonNodeCreator.cpp
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPController.cpp
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPNodeModel.cpp
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPProcessingBuffer.cpp
+
             Encoders/AEEncoderFFmpeg.cpp
             Engines/ActiveAE/ActiveAE.cpp
             Engines/ActiveAE/ActiveAEBuffer.cpp
@@ -35,30 +37,30 @@ set(SOURCES AEResampleFactory.cpp
 
 set(HEADERS AEResampleFactory.h
             AESinkFactory.h
+            
             Engines/ActiveAE/AudioDSPAddons/ActiveAEDSP.h
             Engines/ActiveAE/AudioDSPAddons/ActiveAEDSPAddon.h
             Engines/ActiveAE/AudioDSPAddons/ActiveAEDSPDatabase.h
             Engines/ActiveAE/AudioDSPAddons/ActiveAEDSPMode.h
             Engines/ActiveAE/AudioDSPAddons/ActiveAEDSPProcess.h
-            Engines/ActiveAE/AudioDSPAddons/AudioDSPBuffer.cpp
-            Engines/ActiveAE/AudioDSPAddons/ActiveAudioDSP.h
-            Engines/ActiveAE/AudioDSPAddons/AudioDSPProcessingBuffer.h
-            Engines/ActiveAE/AudioDSPAddons/AudioDSPController.h
-            Engines/ActiveAE/AudioDSPAddons/AudioDSPProcessor.h
-            Engines/ActiveAE/AudioDSPAddons/Interfaces/IADSPNode.h
-            Engines/ActiveAE/AudioDSPAddons/Interfaces/IADSPBufferNode.h
-            Engines/ActiveAE/AudioDSPAddons/Interfaces/IADSPProcessor.h
-            Engines/ActiveAE/AudioDSPAddons/ADSPBuffer.h
-            Engines/ActiveAE/AudioDSPAddons/ADSPProcessor.h
-            Engines/ActiveAE/AudioDSPAddons/ADSPTypedefs.h
-            Engines/ActiveAE/AudioDSPAddons/AudioDSPAddonNodeCreator.h
-            Engines/ActiveAE/AudioDSPAddons/AudioDSPKodiNodeCreator.h
-            Engines/ActiveAE/AudioDSPAddons/AudioDSPAddonModeNode.h
-            Engines/ActiveAE/AudioDSPAddons/KodiModes/AudioDSPKodiModes.h
-            Engines/ActiveAE/AudioDSPAddons/KodiModes/AudioDSPCopyMode.h
-            Engines/ActiveAE/AudioDSPAddons/KodiModes/AudioConverter/AudioConverterModel.h
-            Engines/ActiveAE/AudioDSPAddons/KodiModes/AudioConverter/AudioConverterNodeCallback.h
-            Engines/ActiveAE/AudioDSPAddons/KodiModes/FFMPEGUtils/FFMPEGUtils.h
+
+            Engines/ActiveAE/Interfaces/AudioDSPTypes.h
+            Engines/ActiveAE/Interfaces/AudioDSPObject.h
+            Engines/ActiveAE/ActiveAudioDSP/ActiveAudioDSP.h
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPAddonModeNode.h
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPAddonNodeCreator.h
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPController.h
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPKodiNodeCreator.h
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPNodeModel.h
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPProcessingBuffer.h
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPTypes.h
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioDSPKodiModes.h
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/CopyMode/AudioDSPCopyMode.h
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioConverter/AudioConverterCreator.h
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioConverter/AudioConverterModel.h
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioConverter/AudioConverterNodeCallback.h
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioConverter/AudioDSPConverterFFMPEG.h
+
             Encoders/AEEncoderFFmpeg.h
             Engines/ActiveAE/ActiveAE.h
             Engines/ActiveAE/ActiveAEBuffer.h
@@ -75,9 +77,7 @@ set(HEADERS AEResampleFactory.h
             Interfaces/AEStream.h
             Interfaces/IAudioCallback.h
             Interfaces/ThreadedAE.h
-            Interfaces/IAudioDSP.h
-            Interfaces/IAudioDSPMode.h
-            Interfaces/IActiveAEProcessingBuffer.h
+            Interfaces/AEAudioDSP.h
             Sinks/AESinkNULL.h
             Utils/AEAudioFormat.h
             Utils/AEBitstreamPacker.h
@@ -108,12 +108,8 @@ if(PULSEAUDIO_FOUND)
 endif()
 
 if(FFMPEG_FOUND)
-  list(APPEND SOURCES Engines/ActiveAE/ActiveAEResampleFFMPEG.cpp
-                      Engines/ActiveAE/AudioDSPAddons/KodiModes/AudioConverter/AudioConverterCreator.cpp
-                      Engines/ActiveAE/AudioDSPAddons/KodiModes/AudioConverter/AudioDSPConverterFFMPEG.cpp)
-  list(APPEND HEADERS Engines/ActiveAE/ActiveAEResampleFFMPEG.h
-                      Engines/ActiveAE/AudioDSPAddons/KodiModes/AudioConverter/AudioConverterCreator.h
-                      Engines/ActiveAE/AudioDSPAddons/KodiModes/AudioConverter/AudioDSPConverterFFMPEG.h)
+  list(APPEND SOURCES Engines/ActiveAE/ActiveAEResampleFFMPEG.cpp)
+  list(APPEND HEADERS Engines/ActiveAE/ActiveAEResampleFFMPEG.h)
 endif()
 
 if(CORE_SYSTEM_NAME STREQUAL windows)
@@ -125,10 +121,8 @@ endif()
 
 if(CORE_SYSTEM_NAME STREQUAL rbpi)
   list(APPEND SOURCES Engines/ActiveAE/ActiveAEResamplePi.cpp
-                      Engines/ActiveAE/AudioDSPAddons/KodiModes/AudioConverter/AudioDSPConverterPi.cpp
                       Sinks/AESinkPi.cpp)
   list(APPEND HEADERS Engines/ActiveAE/ActiveAEResamplePi.h
-                      Engines/ActiveAE/AudioDSPAddons/KodiModes/AudioConverter/AudioDSPConverterPi.h
                       Sinks/AESinkPi.h)
 endif()
 

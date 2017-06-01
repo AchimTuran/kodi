@@ -183,7 +183,7 @@ void CGUIDialogAudioDSPManager::OnInitWindow()
 
   {
     CSingleLock lock(m_nodeCallbackLock);
-    m_AudioDSPController = CServiceBroker::GetActiveAE().GetAudioDSPControllerHandle(this);
+    //m_AudioDSPController = CServiceBroker::GetActiveAE().GetAudioDSPControllerHandle(this);
     if (!m_AudioDSPController)
     {
       CLog::Log(LOGERROR, "%s - Failed to get AudioDSP controller handle!", __FUNCTION__);
@@ -233,10 +233,10 @@ void CGUIDialogAudioDSPManager::OnDeinitWindow(int nextWindowID)
 
   {
     CSingleLock lock(m_nodeCallbackLock);
-    if (!CServiceBroker::GetActiveAE().ReleaseAudioDSPControllerHandle(&m_AudioDSPController))
-    {
-      CLog::Log(LOGERROR, "%s - Failed to release AudioDSP controller handle!", __FUNCTION__);
-    }
+    //if (!CServiceBroker::GetActiveAE().ReleaseAudioDSPControllerHandle(&m_AudioDSPController))
+    //{
+    //  CLog::Log(LOGERROR, "%s - Failed to release AudioDSP controller handle!", __FUNCTION__);
+    //}
   }
 
   Clear();

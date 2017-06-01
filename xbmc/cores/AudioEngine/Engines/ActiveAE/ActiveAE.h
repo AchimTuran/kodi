@@ -27,7 +27,7 @@
 #include "threads/Thread.h"
 
 #include "ActiveAESink.h"
-#include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/ActiveAudioDSP.h"
+#include "cores/AudioEngine/Engines/ActiveAE/ActiveAudioDSP/ActiveAudioDSP.h"
 #include "cores/AudioEngine/Interfaces/AEStream.h"
 #include "cores/AudioEngine/Interfaces/AESound.h"
 #include "cores/AudioEngine/Engines/ActiveAE/ActiveAEBuffer.h"
@@ -273,6 +273,8 @@ public:
   virtual void OnLostDisplay();
   virtual void OnResetDisplay();
   virtual void OnAppFocusChange(bool focus);
+
+  virtual IAEAudioDSP& GetAudioDSP() { return m_audioDSP; }
 
 protected:
   void PlaySound(CActiveAESound *sound);

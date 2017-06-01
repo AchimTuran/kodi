@@ -21,7 +21,6 @@
 #include "TestBasicEnvironment.h"
 #include "TestUtils.h"
 #include "cores/DataCacheCore.h"
-#include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/ActiveAEDSP.h"
 #include "cores/AudioEngine/Interfaces/AE.h"
 #include "ServiceBroker.h"
 #include "filesystem/Directory.h"

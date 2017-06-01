@@ -39,6 +39,7 @@ class IAudioCallback;
 class IAEClockCallback;
 class CAEStreamInfo;
 class CServiceManager;
+class IAEAudioDSP;
 
 /* sound options */
 #define AE_SOUND_OFF    0 /* disable sounds */
@@ -260,7 +261,6 @@ public:
    */
   virtual bool GetCurrentSinkFormat(AEAudioFormat &SinkFormat) { return false; }
 
-  virtual void* GetAudioDSPControllerHandle(void *Callback) { return nullptr; }
-  virtual bool ReleaseAudioDSPControllerHandle(void **Callback) { Callback = nullptr; return false; }
+  virtual IAEAudioDSP& GetAudioDSP() = 0;
 };
 

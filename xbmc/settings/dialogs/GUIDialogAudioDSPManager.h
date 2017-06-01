@@ -24,7 +24,7 @@
 #include "dialogs/GUIDialogContextMenu.h"
 #include "guilib/GUIDialog.h"
 #include "view/GUIViewControl.h"
-#include "cores/DSP/Models/Interfaces/IDSPNodeModelCallback.h"
+#include "cores/AudioEngine/Engines/ActiveAE/Interfaces/AudioDSPNodeModelCallback.h"
 
 class CGUIDialogBusy;
 
