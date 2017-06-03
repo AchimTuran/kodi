@@ -360,6 +360,7 @@ static const ActionMapping windows[] =
     { "osdcmssettings"           , WINDOW_DIALOG_CMS_OSD_SETTINGS },
     { "osdvideosettings"         , WINDOW_DIALOG_VIDEO_OSD_SETTINGS },
     { "osdaudiosettings"         , WINDOW_DIALOG_AUDIO_OSD_SETTINGS },
+    { "osdsubtitlesettings"      , WINDOW_DIALOG_SUBTITLE_OSD_SETTINGS },
     { "audiodspmanager"          , WINDOW_DIALOG_AUDIO_DSP_MANAGER },
     { "osdaudiodspsettings"      , WINDOW_DIALOG_AUDIO_DSP_OSD_SETTINGS },
     { "videobookmarks"           , WINDOW_DIALOG_VIDEO_BOOKMARKS },

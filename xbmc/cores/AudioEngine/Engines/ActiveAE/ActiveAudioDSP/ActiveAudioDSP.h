@@ -22,6 +22,7 @@
 #include "threads/Event.h"
 #include "threads/Thread.h"
 #include "utils/ActorProtocol.h"
+#include "settings/Settings.h"
 
 #include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/ActiveAEDSPDatabase.h"
 #include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/ActiveAEDSPAddon.h"
@@ -111,6 +112,7 @@ public:
 
 class CActiveAudioDSP : public IAEAudioDSP,
                         public ADDON::IAddonMgrCallback,
+                        public ISettingCallback,
                         private CThread
 {
   typedef std::shared_ptr<ActiveAE::CActiveAEDSPAddon>  pAudioDSPAddon_t;
@@ -159,6 +161,7 @@ protected:
   CAudioDSPAddonControlProtocol m_AddonControlPort;
   CAudioDSPProcessorControlProtocol m_ProcessorDataPort;
 
+  // state machine variables
   void Process();
   void StateMachine(int signal, Protocol *port, Message *msg);
 
@@ -176,6 +179,14 @@ private:
   void PrepareAddons();
   void PrepareAddonModes();
   void CreateDSPNodeModel();
+  
+  CCriticalSection m_lock;
+  bool m_isInitialized;
+  bool IsInitialized();
+
+
+  // ISettingCallback interface implementation
+  virtual void OnSettingAction(const CSetting *Setting);
 
   AudioDSPProcessingBufferMap_t m_ProcessingBuffers;
 

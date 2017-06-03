@@ -316,7 +316,6 @@ public:
   static const std::string SETTING_AUDIOOUTPUT_STREAMSILENCE;
   static const std::string SETTING_AUDIOOUTPUT_STREAMNOISE;
   static const std::string SETTING_AUDIOOUTPUT_DSPSETTINGS;
-  static const std::string SETTING_AUDIOOUTPUT_DSPRESETDB;
   static const std::string SETTING_AUDIOOUTPUT_GUISOUNDMODE;
   static const std::string SETTING_AUDIOOUTPUT_PASSTHROUGH;
   static const std::string SETTING_AUDIOOUTPUT_PASSTHROUGHDEVICE;

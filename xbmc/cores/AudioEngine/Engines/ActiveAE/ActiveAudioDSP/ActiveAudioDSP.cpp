@@ -22,6 +22,9 @@
 
 #include "utils/log.h"
 #include "ServiceBroker.h"
+#include "settings/Settings.h"
+#include "guilib/GUIWindowManager.h"
+#include "settings/dialogs/GUIDialogAudioDSPManager.h"
 
 #include "cores/AudioEngine/Engines/ActiveAE/ActiveAudioDSP/ActiveAudioDSP.h"
 #include "cores/AudioEngine/Engines/ActiveAE/ActiveAEStream.h"
@@ -270,6 +273,7 @@ void CActiveAudioDSP::StateMachine(int signal, Protocol *port, Message *msg)
           switch (signal)
           {
             case CAudioDSPControlProtocol::INIT:
+            {
               //if (!m_databaseDSP.Open())
               //{
               //  msg->Reply(CAudioDSPControlProtocol::ERR);
@@ -277,16 +281,16 @@ void CActiveAudioDSP::StateMachine(int signal, Protocol *port, Message *msg)
               //  return;
               //}
 
-              //set<string> settingSet;
-              //settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_DSPADDONSENABLED);
-              //settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_DSPSETTINGS);
-              //settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_DSPRESETDB);
-              //CServiceBroker::GetSettings().RegisterCallback(this, settingSet);
-
+              std::set<std::string> settingSet;
+              settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_DSPSETTINGS);
+              //! @todo AudioDSP V2.0 call this via CServiceBroker with
+              CSettings::GetInstance().RegisterCallback(this, settingSet);
+              
               if (!CServiceBroker::GetAddonMgr().RegisterAddonMgrCallback(ADDON_ADSPDLL, this))
               {
                 msg->Reply(CAudioDSPControlProtocol::ERR);
                 CLog::Log(LOGERROR, "%s during add-on manager callback registration an error occured!", __FUNCTION__);
+                m_hasError = true;
                 return;
               }
 
@@ -298,6 +302,12 @@ void CActiveAudioDSP::StateMachine(int signal, Protocol *port, Message *msg)
 
               m_state = ADSP_TOP_CONFIGURED;
               m_hasError = false;
+
+              {
+                CSingleLock lock(m_lock);
+                m_isInitialized = true;
+              }
+            }
             break;
 
             default:
@@ -317,6 +327,11 @@ void CActiveAudioDSP::StateMachine(int signal, Protocol *port, Message *msg)
           {
             case CAudioDSPControlProtocol::DEINIT:
               m_databaseDSP.Close();
+              CSettings::GetInstance().UnregisterCallback(this);
+              {
+                CSingleLock lock(m_lock);
+                m_isInitialized = false;
+              }
             break;
 
             case CAudioDSPControlProtocol::GET_PROCESSING_BUFFER:
@@ -570,6 +585,31 @@ void CActiveAudioDSP::PrepareAddonModes()
 
 void CActiveAudioDSP::CreateDSPNodeModel()
 {
+}
+
+bool CActiveAudioDSP::IsInitialized()
+{
+  CSingleLock lock(m_lock);
+
+  return m_isInitialized;
+}
+
+void CActiveAudioDSP::OnSettingAction(const CSetting *Setting)
+{
+  if (Setting == NULL || !IsInitialized())
+  {
+    return;
+  }
+
+  const std::string &settingId = Setting->GetId();
+  if (settingId == CSettings::SETTING_AUDIOOUTPUT_DSPSETTINGS)
+  {
+    CGUIDialogAudioDSPManager *dialog = dynamic_cast<CGUIDialogAudioDSPManager*>(g_windowManager.GetWindow(WINDOW_DIALOG_AUDIO_DSP_MANAGER));
+    if (dialog)
+    {
+      dialog->Open();
+    }
+  }
 }
 
 void CActiveAudioDSP::Process()

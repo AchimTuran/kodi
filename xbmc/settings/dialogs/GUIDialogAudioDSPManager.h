@@ -28,8 +28,6 @@
 
 class CGUIDialogBusy;
 
-namespace ActiveAE
-{
 class CGUIDialogAudioDSPManager : public CGUIDialog, public DSP::IDSPNodeModelCallback
 {
 public:
@@ -75,8 +73,8 @@ private:
   //! helper function prototypes
   static void                 helper_LogError(const char *function);
   static int                  helper_TranslateModeType(std::string ModeString);
-  static CFileItem           *helper_CreateModeListItem(CActiveAEDSPModePtr &ModePointer, AE_DSP_MENUHOOK_CAT &MenuHook, int *ContinuesNo);
-  static int                  helper_GetDialogId(CActiveAEDSPModePtr &ModePointer, AE_DSP_MENUHOOK_CAT &MenuHook, AE_DSP_ADDON &Addon, std::string AddonName);
+  static CFileItem           *helper_CreateModeListItem(ActiveAE::CActiveAEDSPModePtr &ModePointer, AE_DSP_MENUHOOK_CAT &MenuHook, int *ContinuesNo);
+  static int                  helper_GetDialogId(ActiveAE::CActiveAEDSPModePtr &ModePointer, AE_DSP_MENUHOOK_CAT &MenuHook, ActiveAE::AE_DSP_ADDON &Addon, std::string AddonName);
   static AE_DSP_MENUHOOK_CAT  helper_GetMenuHookCategory(int CurrentType);
 
   bool m_bMovingMode;
@@ -95,4 +93,3 @@ private:
   void* m_AudioDSPController;
   CCriticalSection m_nodeCallbackLock;
 };
-}

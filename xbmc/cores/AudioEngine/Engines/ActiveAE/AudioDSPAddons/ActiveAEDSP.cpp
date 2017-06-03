@@ -84,7 +84,7 @@ void CActiveAEDSP::Init(void)
 {
   std::set<std::string> settingSet;
   settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_DSPSETTINGS);
-  settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_DSPRESETDB);
+  //settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_DSPRESETDB);
   //! @todo reimplement this with AudioDSP V2.0
   //CSettings::GetInstance().RegisterCallback(this, settingSet);
 
@@ -197,15 +197,15 @@ void CActiveAEDSP::OnSettingAction(const CSetting *setting)
     if (dialog)
       dialog->Open();
   }
-  else if (settingId == CSettings::SETTING_AUDIOOUTPUT_DSPRESETDB)
-  {
-    if (HELPERS::ShowYesNoDialogLines(CVariant{19098}, CVariant{36440}, CVariant{750}) ==
-      DialogResponse::YES)
-    {
-      CDateTime::ResetTimezoneBias();
-      ResetDatabase();
-    }
-  }
+  //else if (settingId == CSettings::SETTING_AUDIOOUTPUT_DSPRESETDB)
+  //{
+  //  if (HELPERS::ShowYesNoDialogLines(CVariant{19098}, CVariant{36440}, CVariant{750}) ==
+  //    DialogResponse::YES)
+  //  {
+  //    CDateTime::ResetTimezoneBias();
+  //    ResetDatabase();
+  //  }
+  //}
 }
 //@}
 
