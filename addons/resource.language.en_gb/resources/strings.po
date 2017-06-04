@@ -1771,6 +1771,7 @@ msgctxt "#385"
 msgid "Fair"
 msgstr ""
 
+#: addons/skin.estuary/xml/DialogAudioDSPManager.xml
 #. Weather token
 msgctxt "#386"
 msgid "Clear"
@@ -7886,6 +7887,7 @@ msgstr ""
 
 #: xbmc/dialogs/GUIDialogFavourites.cpp
 #: xbmc/video/VideoDatabase.cpp
+#: addons/skin.estuary/xml/DialogAudioDSPManager.xml
 msgctxt "#15015"
 msgid "Remove"
 msgstr ""
@@ -7897,6 +7899,7 @@ msgstr ""
 
 #empty strings from id 15017 to 15018
 
+#: addons/skin.estuary/xml/DialogAudioDSPManager.xml
 msgctxt "#15019"
 msgid "Add"
 msgstr ""
@@ -8083,12 +8086,7 @@ msgctxt "#15064"
 msgid "Apply changes directly"
 msgstr ""
 
-#empty string id 15065
-
-#. Button to disable all enabled modes on current selected type
-msgctxt "#15066"
-msgid "Clear active mode list"
-msgstr ""
+#empty strings from id 15065 to 15066
 
 #. Close the AudioDSP manager window
 msgctxt "#15067"
