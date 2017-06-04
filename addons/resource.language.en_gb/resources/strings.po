@@ -7922,30 +7922,24 @@ msgctxt "#15023"
 msgid "Master mode"
 msgstr ""
 
-#: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
-msgctxt "#15024"
-msgid "Pre-process setup..."
-msgstr ""
+#empty string with id 15024
 
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
 msgctxt "#15025"
-msgid "Listening mode setup..."
+msgid "Show listening processing options"
 msgstr ""
 
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
 msgctxt "#15026"
-msgid "Speaker / Output setup..."
+msgid "Show speaker processing options"
 msgstr ""
 
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
 msgctxt "#15027"
-msgid "Audio information..."
+msgid "Show audio processing informations"
 msgstr ""
 
-#: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
-msgctxt "#15028"
-msgid "Audio DSP settings - Main"
-msgstr ""
+#empty string with id 15028
 
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
 msgctxt "#15029"
@@ -7957,16 +7951,16 @@ msgctxt "#15030"
 msgid "Audio DSP settings - Speaker / Output"
 msgstr ""
 
-#: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
+#: xbmc/settings/dialogs/GUIDialogAudioSettings.cpp
 msgctxt "#15031"
-msgid "Audio DSP settings - Audio information"
+msgid "Audio processing informations"
 msgstr ""
 
 #empty string with id 15032
 
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
 msgctxt "#15033"
-msgid "Resampler setup..."
+msgid "Show audio conversion options"
 msgstr ""
 
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
@@ -7993,7 +7987,7 @@ msgstr ""
 
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
 msgctxt "#15039"
-msgid "Pre-processing setup..."
+msgid "Show media processing options"
 msgstr ""
 
 #: xbmc/settings/dialogs/GUIDialogAudioDSPManager.cpp

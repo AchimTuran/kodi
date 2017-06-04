@@ -38,6 +38,7 @@ public:
   virtual void OnWindowLoaded(void) override;
   virtual void OnWindowUnload(void) override;
   virtual bool HasListItems() const { return true; };
+  virtual void FrameMove();
 
 protected:
   virtual void OnInitWindow() override;

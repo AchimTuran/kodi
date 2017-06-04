@@ -472,6 +472,11 @@ void CGUIDialogAudioDSPManager::OnWindowUnload(void)
   m_activeViewControl.Reset();
 }
 
+void CGUIDialogAudioDSPManager::FrameMove()
+{
+  CGUIDialog::FrameMove();
+}
+
 bool CGUIDialogAudioDSPManager::OnPopupMenu(int iItem, int listType)
 {
   // popup the context menu

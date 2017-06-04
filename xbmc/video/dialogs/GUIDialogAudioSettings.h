@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "settings/dialogs/GUIDialogSettingsManualBase.h"
+#include "addons/kodi-addon-dev-kit/include/kodi/kodi_adsp_types.h"
 
 class CVariant;
 
@@ -35,7 +36,9 @@ public:
   virtual ~CGUIDialogAudioSettings();
 
   // specialization of CGUIWindow
-  virtual void FrameMove();
+  virtual void FrameMove() override;
+  virtual bool OnMessage(CGUIMessage &message) override;
+  virtual bool OnBack(int actionID) override;
 
   static std::string FormatDelay(float value, float interval);
   static std::string FormatDecibel(float value);
@@ -43,16 +46,16 @@ public:
 
 protected:
   // implementations of ISettingCallback
-  virtual void OnSettingChanged(const CSetting *setting);
-  virtual void OnSettingAction(const CSetting *setting);
+  virtual void OnSettingChanged(const CSetting *setting) override;
+  virtual void OnSettingAction(const CSetting *setting) override;
 
   // specialization of CGUIDialogSettingsBase
-  virtual bool AllowResettingSettings() const { return false; }
-  virtual void Save();
-  virtual void SetupView();
+  virtual bool AllowResettingSettings() const override { return false; }
+  virtual void Save() override;
+  virtual void SetupView() override;
 
   // specialization of CGUIDialogSettingsManualBase
-  virtual void InitializeSettings();
+  virtual void InitializeSettings() override;
 
   bool SupportsAudioFeature(int feature);
 
@@ -70,5 +73,50 @@ protected:
   bool m_passthrough;
 
   typedef std::vector<int> Features;
-  Features m_audioCaps;
+  Features m_audioCaps; /*!<the on current playback supported audio features */
+
+  // AudioDSP related options
+  static void AudioModeOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data);
+  std::string GetSettingsLabel(CSetting *pSetting);
+
+  void OpenMenu(const std::string &id);
+  bool HasActiveMenuHooks(AE_DSP_MENUHOOK_CAT category);
+  void GetAudioDSPMenus(CSettingGroup *group, AE_DSP_MENUHOOK_CAT category);
+  bool OpenAudioDSPMenu(unsigned int setupEntry);
+  int FindCategoryIndex(const std::string &catId);
+
+  typedef struct
+  {
+    int              addonId;
+    AE_DSP_MENUHOOK  hook;
+  } MenuHookMember;
+  typedef struct
+  {
+    std::string      MenuName;
+    int              MenuListPtr;
+    std::string      CPUUsage;
+  } ActiveModeData;
+
+  AE_DSP_STREAM_ID                            m_ActiveStreamId;                         /*!< The on dialog selectable stream identifier */
+  AE_DSP_STREAMTYPE                           m_streamTypeUsed;                         /*!< The currently available stream type */
+  AE_DSP_BASETYPE                             m_baseTypeUsed;                           /*!< The currently detected and used base type */
+  int                                         m_modeTypeUsed;                           /*!< The currently selected mode type */
+  std::vector<std::string>                    m_ActiveModes;                            /*!< The process modes currently active on dsp processing stream */
+  std::vector<ActiveModeData>                 m_ActiveModesData;                        /*!< The process modes currently active on dsp processing stream info*/
+  std::vector<std::string>                    m_MasterModes[AE_DSP_ASTREAM_MAX];        /*!< table about selectable and usable master processing modes */
+  std::map<std::string, int>                  m_MenuPositions;                          /*!< The differnet menu selection positions */
+  std::vector<int>                            m_MenuHierarchy;                          /*!< Menu selection flow hierachy */
+  std::vector<MenuHookMember>                 m_Menus;                                  /*!< storage about present addon menus on currently selected submenu */
+  std::vector<std::pair<std::string, int>>    m_ModeList;                               /*!< currently present modes */
+  bool                                        m_GetCPUUsage;                            /*!< if true cpu usage detection is active */
+  int                                         m_MenuName;                               /*!< current menu name, needed to get after the dialog was closed for addon */
+
+                                                                                        /*! Settings control selection and information data */
+  std::string                                 m_InputChannels;
+  std::string                                 m_InputChannelNames;
+  std::string                                 m_InputSamplerate;
+  std::string                                 m_OutputChannels;
+  std::string                                 m_OutputChannelNames;
+  std::string                                 m_OutputSamplerate;
+  std::string                                 m_CPUUsage;
 };

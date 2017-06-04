@@ -90,7 +90,6 @@
 #include "profiles/dialogs/GUIDialogProfileSettings.h"
 #include "profiles/dialogs/GUIDialogLockSettings.h"
 #include "settings/dialogs/GUIDialogContentSettings.h"
-#include "settings/dialogs/GUIDialogAudioDSPManager.h"
 #include "dialogs/GUIDialogBusy.h"
 #include "dialogs/GUIDialogKeyboardGeneric.h"
 #include "dialogs/GUIDialogKeyboardTouch.h"
@@ -140,7 +139,6 @@
 
 /* AudioDSP related include files */
 #include "settings/dialogs/GUIDialogAudioDSPManager.h"
-#include "settings/dialogs/GUIDialogAudioDSPSettings.h"
 
 #include "video/dialogs/GUIDialogTeletext.h"
 #include "dialogs/GUIDialogSlider.h"
@@ -287,7 +285,6 @@ void CGUIWindowManager::CreateWindows()
   
   /* Load AudioDSP related Windows and Dialogs */
   Add(new CGUIDialogAudioDSPManager);
-  Add(new CGUIDialogAudioDSPSettings);
 
   Add(new CGUIDialogSelect);
   Add(new CGUIDialogMusicInfo);
