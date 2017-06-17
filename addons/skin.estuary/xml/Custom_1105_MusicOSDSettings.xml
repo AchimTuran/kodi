@@ -17,14 +17,10 @@
 			<control type="panel" id="5000">
 				<include>ButtonMenuList</include>
 				<content>
-					<item>
-						<label>$LOCALIZE[15047]</label>
-						<onclick>ActivateWindow(osdaudiodspsettings)</onclick>
-					</item>
-					<item>
-						<label>$LOCALIZE[15020]</label>
-						<onclick>ActivateWindow(audiodspmanager)</onclick>
-					</item>
+						<item>
+							<label>$LOCALIZE[13396]</label>
+							<onclick>ActivateWindow(osdaudiosettings)</onclick>
+						</item>
 					<item>
 						<label>$LOCALIZE[250]$INFO[Visualisation.Name,: [COLOR button_focus],[/COLOR]]</label>
 						<onclick>Dialog.Close(all)</onclick>
