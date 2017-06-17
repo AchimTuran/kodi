@@ -136,7 +136,7 @@ void* CActiveAudioDSP::GetControllerHandle(void * ControllerCallback)
 
 bool CActiveAudioDSP::ReleaseControllerHandle(void **Handle)
 {
-  return nullptr;
+  return false;
 }
 
 IActiveAEProcessingBuffer* CActiveAudioDSP::GetProcessingBuffer(const CActiveAEStream *AudioStream, AEAudioFormat &OutputFormat)
