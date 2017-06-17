@@ -28,18 +28,14 @@
 
 class CVariant;
 
-class CGUIDialogAudioSubtitleSettings : public CGUIDialogSettingsManualBase
+class CGUIDialogSubtitleSettings : public CGUIDialogSettingsManualBase
 {
 public:
-  CGUIDialogAudioSubtitleSettings();
-  virtual ~CGUIDialogAudioSubtitleSettings();
+  CGUIDialogSubtitleSettings();
+  virtual ~CGUIDialogSubtitleSettings();
 
   // specialization of CGUIWindow
   virtual void FrameMove();
-
-  static std::string FormatDelay(float value, float interval);
-  static std::string FormatDecibel(float value);
-  static std::string FormatPercentAsDecibel(float value);
 
 protected:
   // implementations of ISettingCallback
@@ -54,28 +50,20 @@ protected:
   // specialization of CGUIDialogSettingsManualBase
   virtual void InitializeSettings();
 
-  bool SupportsAudioFeature(int feature);
   bool SupportsSubtitleFeature(int feature);
 
-  void AddAudioStreams(CSettingGroup *group, const std::string &settingId);
   void AddSubtitleStreams(CSettingGroup *group, const std::string &settingId);
 
   static bool IsPlayingPassthrough(const std::string &condition, const std::string &value, const CSetting *setting, void *data);
 
-  static void AudioStreamsOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data);
   static void SubtitleStreamsOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data);
   
   static std::string SettingFormatterDelay(const CSettingControlSlider *control, const CVariant &value, const CVariant &minimum, const CVariant &step, const CVariant &maximum);
   static std::string SettingFormatterPercentAsDecibel(const CSettingControlSlider *control, const CVariant &value, const CVariant &minimum, const CVariant &step, const CVariant &maximum);
 
-  float m_volume;
-  int m_audioStream;
-  bool m_passthrough;
   int m_subtitleStream;
   bool m_subtitleVisible;
-  bool m_dspEnabled;
 
   typedef std::vector<int> Features;
-  Features m_audioCaps;
   Features m_subCaps;
 };

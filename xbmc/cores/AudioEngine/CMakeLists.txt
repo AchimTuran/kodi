@@ -1,11 +1,23 @@
-set(SOURCES AEFactory.cpp
-            AEResampleFactory.cpp
+set(SOURCES AEResampleFactory.cpp
             AESinkFactory.cpp
             Engines/ActiveAE/AudioDSPAddons/ActiveAEDSP.cpp
             Engines/ActiveAE/AudioDSPAddons/ActiveAEDSPAddon.cpp
             Engines/ActiveAE/AudioDSPAddons/ActiveAEDSPDatabase.cpp
             Engines/ActiveAE/AudioDSPAddons/ActiveAEDSPMode.cpp
             Engines/ActiveAE/AudioDSPAddons/ActiveAEDSPProcess.cpp
+            
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioDSPKodiModes.cpp
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/CopyMode/AudioDSPCopyMode.cpp
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioConverter/AudioConverterCreator.cpp
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioConverter/AudioConverterModel.cpp
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioConverter/AudioDSPConverterFFMPEG.cpp
+            Engines/ActiveAE/ActiveAudioDSP/ActiveAudioDSP.cpp
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPAddonModeNode.cpp
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPAddonNodeCreator.cpp
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPController.cpp
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPNodeModel.cpp
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPProcessingBuffer.cpp
+
             Encoders/AEEncoderFFmpeg.cpp
             Engines/ActiveAE/ActiveAE.cpp
             Engines/ActiveAE/ActiveAEBuffer.cpp
@@ -13,6 +25,7 @@ set(SOURCES AEFactory.cpp
             Engines/ActiveAE/ActiveAESink.cpp
             Engines/ActiveAE/ActiveAEStream.cpp
             Engines/ActiveAE/ActiveAESound.cpp
+            Engines/ActiveAE/ActiveAESettings.cpp
             Utils/AEBitstreamPacker.cpp
             Utils/AEChannelInfo.cpp
             Utils/AEDeviceInfo.cpp
@@ -22,14 +35,32 @@ set(SOURCES AEFactory.cpp
             Utils/AEUtil.cpp
             Sinks/AESinkNULL.cpp)
 
-set(HEADERS AEFactory.h
-            AEResampleFactory.h
+set(HEADERS AEResampleFactory.h
             AESinkFactory.h
+            
             Engines/ActiveAE/AudioDSPAddons/ActiveAEDSP.h
             Engines/ActiveAE/AudioDSPAddons/ActiveAEDSPAddon.h
             Engines/ActiveAE/AudioDSPAddons/ActiveAEDSPDatabase.h
             Engines/ActiveAE/AudioDSPAddons/ActiveAEDSPMode.h
             Engines/ActiveAE/AudioDSPAddons/ActiveAEDSPProcess.h
+
+            Engines/ActiveAE/Interfaces/AudioDSPTypes.h
+            Engines/ActiveAE/Interfaces/AudioDSPObject.h
+            Engines/ActiveAE/ActiveAudioDSP/ActiveAudioDSP.h
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPAddonModeNode.h
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPAddonNodeCreator.h
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPController.h
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPKodiNodeCreator.h
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPNodeModel.h
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPProcessingBuffer.h
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPTypes.h
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioDSPKodiModes.h
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/CopyMode/AudioDSPCopyMode.h
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioConverter/AudioConverterCreator.h
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioConverter/AudioConverterModel.h
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioConverter/AudioConverterNodeCallback.h
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioConverter/AudioDSPConverterFFMPEG.h
+
             Encoders/AEEncoderFFmpeg.h
             Engines/ActiveAE/ActiveAE.h
             Engines/ActiveAE/ActiveAEBuffer.h
@@ -37,6 +68,7 @@ set(HEADERS AEFactory.h
             Engines/ActiveAE/ActiveAESink.h
             Engines/ActiveAE/ActiveAESound.h
             Engines/ActiveAE/ActiveAEStream.h
+            Engines/ActiveAE/ActiveAESettings.h
             Interfaces/AE.h
             Interfaces/AEEncoder.h
             Interfaces/AEResample.h
@@ -45,6 +77,7 @@ set(HEADERS AEFactory.h
             Interfaces/AEStream.h
             Interfaces/IAudioCallback.h
             Interfaces/ThreadedAE.h
+            Interfaces/AEAudioDSP.h
             Sinks/AESinkNULL.h
             Utils/AEAudioFormat.h
             Utils/AEBitstreamPacker.h

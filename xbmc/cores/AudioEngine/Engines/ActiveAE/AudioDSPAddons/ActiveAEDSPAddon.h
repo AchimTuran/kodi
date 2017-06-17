@@ -373,6 +373,8 @@ namespace ActiveAE
 
     static const char *ToString(const AE_DSP_ERROR error);
 
+    bool GetAddonProcessingCallbacks(AudioDSP &Callbacks);
+
   private:
     /*!
      * @brief Checks whether the provided API version is compatible with KODI

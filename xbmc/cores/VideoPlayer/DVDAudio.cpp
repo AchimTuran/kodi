@@ -23,7 +23,8 @@
 #include "utils/log.h"
 #include "DVDClock.h"
 #include "DVDCodecs/Audio/DVDAudioCodec.h"
-#include "cores/AudioEngine/AEFactory.h"
+#include "ServiceBroker.h"
+#include "cores/AudioEngine/Interfaces/AE.h"
 #include "cores/AudioEngine/Utils/AEAudioFormat.h"
 #include "settings/MediaSettings.h"
 #ifdef TARGET_POSIX
@@ -47,7 +48,7 @@ CDVDAudio::~CDVDAudio()
 {
   CSingleLock lock (m_critSection);
   if (m_pAudioStream)
-    CAEFactory::FreeStream(m_pAudioStream);
+    CServiceBroker::GetActiveAE().FreeStream(m_pAudioStream);
 }
 
 bool CDVDAudio::Create(const DVDAudioFrame &audioframe, AVCodecID codec, bool needresampler)
@@ -66,7 +67,7 @@ bool CDVDAudio::Create(const DVDAudioFrame &audioframe, AVCodecID codec, bool ne
   options |= AESTREAM_PAUSED;
 
   AEAudioFormat format = audioframe.format;
-  m_pAudioStream = CAEFactory::MakeStream(
+  m_pAudioStream = CServiceBroker::GetActiveAE().MakeStream(
     format,
     options,
     this
@@ -79,8 +80,9 @@ bool CDVDAudio::Create(const DVDAudioFrame &audioframe, AVCodecID codec, bool ne
   m_bPassthrough = audioframe.passthrough;
   m_channelLayout = audioframe.format.m_channelLayout;
 
-  if (m_pAudioStream->HasDSP())
-    m_pAudioStream->SetFFmpegInfo(audioframe.profile, audioframe.matrix_encoding, audioframe.audio_service_type);
+  //! @todo AudioDSP move these settings to MakeStream
+  //if (m_pAudioStream->HasDSP())
+  //  m_pAudioStream->SetFFmpegInfo(audioframe.profile, audioframe.matrix_encoding, audioframe.audio_service_type);
 
   SetDynamicRangeCompression((long)(CMediaSettings::GetInstance().GetCurrentVideoSettings().m_VolumeAmplification * 100));
 
@@ -92,7 +94,7 @@ void CDVDAudio::Destroy()
   CSingleLock lock (m_critSection);
 
   if (m_pAudioStream)
-    CAEFactory::FreeStream(m_pAudioStream);
+    CServiceBroker::GetActiveAE().FreeStream(m_pAudioStream);
 
   m_pAudioStream = NULL;
   m_sampeRate = 0;

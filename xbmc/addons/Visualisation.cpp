@@ -30,11 +30,12 @@
 #include "windowing/WindowingFactory.h"
 #include "utils/URIUtils.h"
 #include "utils/StringUtils.h"
-#include "cores/AudioEngine/AEFactory.h"
 #ifdef TARGET_POSIX
 #include <dlfcn.h>
 #include "filesystem/SpecialProtocol.h"
 #endif
+#include "ServiceBroker.h"
+#include "cores/AudioEngine/Interfaces/AE.h"
 
 using namespace MUSIC_INFO;
 using namespace ADDON;
@@ -106,7 +107,7 @@ bool CVisualisation::Create(int x, int y, int w, int h, void *device)
 
     CreateBuffers();
 
-    CAEFactory::RegisterAudioCallback(this);
+    CServiceBroker::GetActiveAE().RegisterAudioCallback(this);
 
     return true;
   }
@@ -168,7 +169,7 @@ void CVisualisation::Render()
 
 void CVisualisation::Stop()
 {
-  CAEFactory::UnregisterAudioCallback(this);
+  CServiceBroker::GetActiveAE().UnregisterAudioCallback(this);
   if (Initialized())
   {
     CAddonDll<DllVisualisation, Visualisation, VIS_PROPS>::Stop();

@@ -50,6 +50,7 @@ extern "C" {
 #include "settings/MediaSourceSettings.h"
 #include "settings/Settings.h"
 #include "utils/JobManager.h"
+#include "utils/log.h"
 #include "utils/StringUtils.h"
 
 
@@ -74,41 +75,22 @@ CActiveAEDSP::CActiveAEDSP()
 
 CActiveAEDSP::~CActiveAEDSP()
 {
-  Deactivate();
   CAddonMgr::GetInstance().UnregisterAddonMgrCallback(ADDON_ADSPDLL);
-  CSettings::GetInstance().UnregisterCallback(this);
-  CLog::Log(LOGDEBUG, "ActiveAE DSP - destroyed");
+  //CSettings::GetInstance().UnregisterCallback(this);
+  //CLog::Log(LOGDEBUG, "ActiveAE DSP - destroyed");
 }
 
 void CActiveAEDSP::Init(void)
 {
   std::set<std::string> settingSet;
-  settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_DSPADDONSENABLED);
   settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_DSPSETTINGS);
-  settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_DSPRESETDB);
-  CSettings::GetInstance().RegisterCallback(this, settingSet);
+  //settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_DSPRESETDB);
+  //! @todo reimplement this with AudioDSP V2.0
+  //CSettings::GetInstance().RegisterCallback(this, settingSet);
 
   CAddonMgr::GetInstance().RegisterAddonMgrCallback(ADDON_ADSPDLL, this);
-
-  if (CSettings::GetInstance().GetBool(CSettings::SETTING_AUDIOOUTPUT_DSPADDONSENABLED))
-    Activate();
 }
 //@}
-
-/*! @name initialization and configuration methods */
-//@{
-void CActiveAEDSP::Activate(void)
-{
-  /* first stop and remove any audio dsp add-on's */
-  Deactivate();
-
-  CSingleLock lock(m_critSection);
-
-  CLog::Log(LOGNOTICE, "ActiveAE DSP - starting");
-
-  UpdateAddons();
-  m_isActive = true;
-}
 
 class CActiveAEDSPModeUpdateJob : public CJob
 {
@@ -118,7 +100,6 @@ public:
 
   bool DoWork(void)
   {
-    CServiceBroker::GetADSP().TriggerModeUpdate(false);
     return true;
   }
 };
@@ -145,35 +126,6 @@ void CActiveAEDSP::TriggerModeUpdate(bool bAsync /* = true */)
     m_modes[i].clear();
     m_databaseDSP.GetModes(m_modes[i], i);
   }
-
-  /*
-   * if any dsp processing is active restart playback
-   */
-  if (m_usedProcessesCnt > 0)
-  {
-    CLog::Log(LOGNOTICE, "ActiveAE DSP - restarting playback after disabled dsp system");
-    CApplicationMessenger::GetInstance().SendMsg(TMSG_MEDIA_RESTART);
-  }
-}
-
-void CActiveAEDSP::Deactivate(void)
-{
-  /* check whether the audio dsp is loaded */
-  if (!m_isActive)
-    return;
-
-  CSingleLock lock(m_critSection);
-
-  CLog::Log(LOGNOTICE, "ActiveAE DSP - stopping");
-
-  m_addonMap.clear();
-
-  /* unload all data */
-  Cleanup();
-
-  /* close database */
-  if (m_databaseDSP.IsOpen())
-    m_databaseDSP.Close();
 }
 
 void CActiveAEDSP::Cleanup(void)
@@ -207,9 +159,6 @@ void CActiveAEDSP::ResetDatabase(void)
     CApplicationMessenger::GetInstance().PostMsg(TMSG_MEDIA_STOP);
   }
 
-  /* stop the system */
-  Deactivate();
-
   if (m_databaseDSP.Open())
   {
     m_databaseDSP.DeleteModes();
@@ -224,7 +173,6 @@ void CActiveAEDSP::ResetDatabase(void)
   CLog::Log(LOGNOTICE, "ActiveAE DSP - restarting the audio DSP handler");
   m_databaseDSP.Open();
   Cleanup();
-  Activate();
 }
 //@}
 
@@ -249,15 +197,15 @@ void CActiveAEDSP::OnSettingAction(const CSetting *setting)
     if (dialog)
       dialog->Open();
   }
-  else if (settingId == CSettings::SETTING_AUDIOOUTPUT_DSPRESETDB)
-  {
-    if (HELPERS::ShowYesNoDialogLines(CVariant{19098}, CVariant{36440}, CVariant{750}) ==
-      DialogResponse::YES)
-    {
-      CDateTime::ResetTimezoneBias();
-      ResetDatabase();
-    }
-  }
+  //else if (settingId == CSettings::SETTING_AUDIOOUTPUT_DSPRESETDB)
+  //{
+  //  if (HELPERS::ShowYesNoDialogLines(CVariant{19098}, CVariant{36440}, CVariant{750}) ==
+  //    DialogResponse::YES)
+  //  {
+  //    CDateTime::ResetTimezoneBias();
+  //    ResetDatabase();
+  //  }
+  //}
 }
 //@}
 
@@ -376,8 +324,6 @@ bool CActiveAEDSP::TranslateCharInfo(DWORD dwInfo, std::string &strValue) const
       int modeId = activeMaster->ModeID();
       if (modeId == AE_DSP_MASTER_MODE_ID_PASSOVER || modeId >= AE_DSP_MASTER_MODE_ID_INTERNAL_TYPES)
         strValue = g_localizeStrings.Get(activeMaster->ModeName());
-      else if (CServiceBroker::GetADSP().GetAudioDSPAddon(activeMaster->AddonID(), addon))
-        strValue = g_localizeStrings.GetAddonString(addon->ID(), activeMaster->ModeName());
     }
     break;
   case ADSP_MASTER_INFO:
@@ -480,7 +426,7 @@ bool CActiveAEDSP::CreateDSPs(unsigned int &streamId, CActiveAEDSPProcessPtr &pr
     return false;
   }
 
-  if (!usedProc->Create(inputFormat, outputFormat, upmix, quality, requestedStreamType, matrix_encoding, audio_service_type, profile))
+  if (!usedProc->Create(inputFormat, outputFormat, upmix, false, quality, requestedStreamType, matrix_encoding, audio_service_type, profile))
   {
     CLog::Log(LOGERROR, "ActiveAE DSP - %s - Creation of processing class failed", __FUNCTION__);
     return false;
@@ -496,7 +442,7 @@ bool CActiveAEDSP::CreateDSPs(unsigned int &streamId, CActiveAEDSPProcessPtr &pr
   return true;
 }
 
-void CActiveAEDSP::DestroyDSPs(unsigned int streamId)
+void CActiveAEDSP::DestroyDSPs(int streamId)
 {
   CSingleLock lock(m_critSection);
 
@@ -512,7 +458,7 @@ void CActiveAEDSP::DestroyDSPs(unsigned int streamId)
   }
 }
 
-CActiveAEDSPProcessPtr CActiveAEDSP::GetDSPProcess(unsigned int streamId)
+CActiveAEDSPProcessPtr CActiveAEDSP::GetDSPProcess(int streamId)
 {
   CSingleLock lock(m_critSection);
 
@@ -527,7 +473,7 @@ unsigned int CActiveAEDSP::GetProcessingStreamsAmount(void)
   return m_usedProcessesCnt;
 }
 
-unsigned int CActiveAEDSP::GetActiveStreamId(void)
+int CActiveAEDSP::GetActiveStreamId(void)
 {
   CSingleLock lock(m_critSection);
 

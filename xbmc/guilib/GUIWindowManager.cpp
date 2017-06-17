@@ -84,7 +84,8 @@
 #include "video/dialogs/GUIDialogCMSSettings.h"
 #endif
 #include "video/dialogs/GUIDialogVideoSettings.h"
-#include "video/dialogs/GUIDialogAudioSubtitleSettings.h"
+#include "video/dialogs/GUIDialogAudioSettings.h"
+#include "video/dialogs/GUIDialogSubtitleSettings.h"
 #include "video/dialogs/GUIDialogVideoBookmarks.h"
 #include "profiles/dialogs/GUIDialogProfileSettings.h"
 #include "profiles/dialogs/GUIDialogLockSettings.h"
@@ -136,13 +137,14 @@
 #include "pvr/dialogs/GUIDialogPVRRecordingInfo.h"
 #include "pvr/dialogs/GUIDialogPVRTimerSettings.h"
 
+/* AudioDSP related include files */
+#include "settings/dialogs/GUIDialogAudioDSPManager.h"
+
 #include "video/dialogs/GUIDialogTeletext.h"
 #include "dialogs/GUIDialogSlider.h"
 #include "dialogs/GUIDialogPlayEject.h"
 #include "dialogs/GUIDialogMediaFilter.h"
 #include "video/dialogs/GUIDialogSubtitles.h"
-#include "settings/dialogs/GUIDialogAudioDSPManager.h"
-#include "settings/dialogs/GUIDialogAudioDSPSettings.h"
 
 #include "peripherals/dialogs/GUIDialogPeripheralSettings.h"
 #include "addons/binary/interfaces/AddonInterfaces.h"
@@ -223,7 +225,8 @@ void CGUIWindowManager::CreateWindows()
   Add(new CGUIDialogCMSSettings);
 #endif
   Add(new CGUIDialogVideoSettings);
-  Add(new CGUIDialogAudioSubtitleSettings);
+  Add(new CGUIDialogAudioSettings);
+  Add(new CGUIDialogSubtitleSettings);
   Add(new CGUIDialogVideoBookmarks);
   // Don't add the filebrowser dialog - it's created and added when it's needed
   Add(new CGUIDialogNetworkSetup);
@@ -279,9 +282,9 @@ void CGUIWindowManager::CreateWindows()
   Add(new CGUIDialogPVRGuideSearch);
   Add(new CGUIDialogPVRChannelsOSD);
   Add(new CGUIDialogPVRGuideOSD);
-
-  Add(new ActiveAE::CGUIDialogAudioDSPManager);
-  Add(new ActiveAE::CGUIDialogAudioDSPSettings);
+  
+  /* Load AudioDSP related Windows and Dialogs */
+  Add(new CGUIDialogAudioDSPManager);
 
   Add(new CGUIDialogSelect);
   Add(new CGUIDialogMusicInfo);
@@ -339,6 +342,7 @@ bool CGUIWindowManager::DestroyWindows()
     Delete(WINDOW_DIALOG_CMS_OSD_SETTINGS);
     Delete(WINDOW_DIALOG_VIDEO_OSD_SETTINGS);
     Delete(WINDOW_DIALOG_AUDIO_OSD_SETTINGS);
+    Delete(WINDOW_DIALOG_SUBTITLE_OSD_SETTINGS);
     Delete(WINDOW_DIALOG_VIDEO_BOOKMARKS);
     Delete(WINDOW_DIALOG_CONTENT_SETTINGS);
     Delete(WINDOW_DIALOG_FAVOURITES);
@@ -380,6 +384,7 @@ bool CGUIWindowManager::DestroyWindows()
     Delete(WINDOW_DIALOG_PVR_OSD_GUIDE);
     Delete(WINDOW_DIALOG_OSD_TELETEXT);
 
+    /* Delete AudioDSP windows and dialogs */
     Delete(WINDOW_DIALOG_AUDIO_DSP_MANAGER);
     Delete(WINDOW_DIALOG_AUDIO_DSP_OSD_SETTINGS);
 
@@ -404,6 +409,7 @@ bool CGUIWindowManager::DestroyWindows()
     Delete(WINDOW_PROGRAMS);
     Delete(WINDOW_PICTURES);
     Delete(WINDOW_WEATHER);
+    Delete(WINDOW_DIALOG_AUDIO_DSP_MANAGER);
     Delete(WINDOW_DIALOG_GAME_CONTROLLERS);
 
     Remove(WINDOW_SETTINGS_SERVICE);

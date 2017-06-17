@@ -34,7 +34,6 @@
 #include "guilib/GUIWindowManager.h"
 #include "GUIUserMessages.h"
 #include "music/MusicDatabase.h"
-#include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/ActiveAEDSP.h"
 #include "xbmc/music/tags/MusicInfoTag.h"
 
 bool CSaveFileStateJob::DoWork()
@@ -200,30 +199,6 @@ bool CSaveFileStateJob::DoWork()
             ANNOUNCEMENT::CAnnouncementManager::GetInstance().Announce(ANNOUNCEMENT::AudioLibrary, "xbmc", "OnUpdate", data);
           }
         }
-      }
-    }
-
-    if (CServiceBroker::GetADSP().IsProcessing())
-    {
-      std::string redactPath = CURL::GetRedacted(progressTrackingFile);
-      CLog::Log(LOGDEBUG, "%s - Saving file state for dsp audio item %s", __FUNCTION__, redactPath.c_str());
-
-      ActiveAE::CActiveAEDSPDatabase audiodatabase;
-      if (!audiodatabase.Open())
-      {
-        CLog::Log(LOGWARNING, "%s - Unable to open dsp audio database. Can not save file state!", __FUNCTION__);
-      }
-      else
-      {
-        if (m_audioSettings != CMediaSettings::GetInstance().GetDefaultAudioSettings())
-        {
-          audiodatabase.SetActiveDSPSettings(m_item, m_audioSettings);
-        }
-        else
-        {
-          audiodatabase.DeleteActiveDSPSettings(m_item);
-        }
-        audiodatabase.Close();
       }
     }
   }

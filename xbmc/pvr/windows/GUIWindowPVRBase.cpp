@@ -301,13 +301,14 @@ bool CGUIWindowPVRBase::OnContextButtonActiveAEDSPSettings(CFileItem *item, CONT
 {
   bool bReturn = false;
 
-  if (button == CONTEXT_BUTTON_ACTIVE_ADSP_SETTINGS)
-  {
-    bReturn = true;
+  //! @todo reimplement this with AudioDSP V2.0
+  //if (button == CONTEXT_BUTTON_ACTIVE_ADSP_SETTINGS)
+  //{
+  //  bReturn = true;
 
-    if (CServiceBroker::GetADSP().IsProcessing())
-      g_windowManager.ActivateWindow(WINDOW_DIALOG_AUDIO_DSP_OSD_SETTINGS);
-  }
+  //  if (CServiceBroker::GetADSP().IsProcessing())
+  //    g_windowManager.ActivateWindow(WINDOW_DIALOG_AUDIO_DSP_OSD_SETTINGS);
+  //}
 
   return bReturn;
 }

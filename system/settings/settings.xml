@@ -2441,6 +2441,12 @@
           </control>
         </setting>
       </group>
+      <group id="4" label="14251">
+        <setting id="audiooutput.dspsettings" type="action" label="36436" help="36437">
+          <level>3</level>
+          <control type="button" format="action" />
+        </setting>
+      </group>
       <group id="3" label="14252">
         <setting id="audiooutput.passthrough" type="boolean" label="348" help="36368">
           <level>1</level>
@@ -2555,43 +2561,6 @@
             <dependency type="enable" setting="audiooutput.passthrough" operator="is">true</dependency>
           </dependencies>
           <control type="toggle" />
-        </setting>
-      </group>
-      <group id="4" label="14251">
-        <setting id="audiooutput.dspaddonsenabled" type="boolean" label="36441" help="36438">
-          <level>3</level>
-          <default>false</default>
-          <dependencies>
-            <dependency type="visible">
-              <or>
-                <condition on="property" name="aesettingvisible" setting="audiooutput.passthrough">audiooutput.dspaddonsenabled</condition>
-                <condition on="property" name="aesettingvisible" setting="audiooutput.ac3passthrough">audiooutput.dspaddonsenabled</condition>
-              </or>
-            </dependency>
-          </dependencies>
-          <control type="toggle" />
-        </setting>
-        <setting id="audiooutput.dspsettings" type="action" label="36436" help="36437">
-          <level>3</level>
-          <control type="button" format="action" />
-          <dependencies>
-            <dependency type="visible">
-              <or>
-                <condition on="property" name="aesettingvisible" setting="audiooutput.dspaddonsenabled">audiooutput.dspsettings</condition>
-              </or>
-            </dependency>
-          </dependencies>
-        </setting>
-        <setting id="audiooutput.dspresetdb" type="action" label="14082" help="36439">
-          <level>3</level>
-          <control type="button" format="action" />
-          <dependencies>
-            <dependency type="visible">
-              <or>
-                <condition on="property" name="aesettingvisible" setting="audiooutput.dspaddonsenabled">audiooutput.dspresetdb</condition>
-              </or>
-            </dependency>
-          </dependencies>
         </setting>
       </group>
     </category>

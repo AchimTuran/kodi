@@ -1144,7 +1144,6 @@
 			<label>15047</label>
 			<include>MenuButtonCommonValues</include>
 			<onclick>ActivateWindow(OSDAudioDSPSettings)</onclick>
-			<visible>system.getbool(audiooutput.dspaddonsenabled)</visible>
 		</control>
 		<control type="button">
 			<label>29900</label>
@@ -2447,7 +2446,6 @@
 			<label>15047</label>
 			<include>MenuButtonCommonValues</include>
 			<onclick>ActivateWindow(OSDAudioDSPSettings)</onclick>
-			<visible>system.getbool(audiooutput.dspaddonsenabled)</visible>
 		</control>
 		<control type="button">
 			<label>Player info</label>

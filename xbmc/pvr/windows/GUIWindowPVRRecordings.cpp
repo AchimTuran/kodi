@@ -161,8 +161,9 @@ void CGUIWindowPVRRecordings::GetContextButtons(int itemNumber, CContextButtons 
     buttons.Add(CONTEXT_BUTTON_DELETE, 117);        /* Delete */
   }
 
-  if (CServiceBroker::GetADSP().IsProcessing())
-    buttons.Add(CONTEXT_BUTTON_ACTIVE_ADSP_SETTINGS, 15047);  /* Audio DSP settings */
+  //! @todo AudioDSP reimplement this with AudioDSP V2.0
+  //if (CServiceBroker::GetADSP().IsProcessing())
+  //  buttons.Add(CONTEXT_BUTTON_ACTIVE_ADSP_SETTINGS, 15047);  /* Audio DSP settings */
 
   if (recording)
   {

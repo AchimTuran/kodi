@@ -641,6 +641,9 @@ AVSampleFormat CAEUtil::GetAVSampleFormat(AEDataFormat format)
       return AV_SAMPLE_FMT_DBLP;
     case AEDataFormat::AE_FMT_RAW:
       return AV_SAMPLE_FMT_U8;
+    case AEDataFormat::AE_FMT_MAX:
+    case AEDataFormat::AE_FMT_INVALID:
+      return AV_SAMPLE_FMT_NONE;
     default:
     {
       if (AE_IS_PLANAR(format))
