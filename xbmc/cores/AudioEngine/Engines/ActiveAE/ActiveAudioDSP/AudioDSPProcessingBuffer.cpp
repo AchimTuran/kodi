@@ -44,7 +44,7 @@ bool CAudioDSPProcessingBuffer::Create(unsigned int totaltime)
   DSPErrorCode_t dspErr = m_AudioDSPController.GetActiveNodes(nodeInfos);
   if (dspErr != DSP_ERR_NO_ERR)
   {
-    return dspErr;
+    return false;
   }
 
   AEAudioFormat tmpParameters[2];

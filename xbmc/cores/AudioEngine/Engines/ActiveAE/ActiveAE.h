@@ -189,9 +189,9 @@ public:
   void UpdateStream(CActiveAEStream *stream);
   void GetDelay(AEDelayStatus& status, CActiveAEStream *stream);
   void GetSyncInfo(CAESyncInfo& info, CActiveAEStream *stream);
-  float GetCacheTime(CActiveAEStream *stream);
-  float GetCacheTotal(CActiveAEStream *stream);
-  float GetWaterLevel();
+  double GetCacheTime(CActiveAEStream *stream);
+  double GetCacheTotal(CActiveAEStream *stream);
+  double GetWaterLevel();
   void SetSuspended(bool state);
   void SetCurrentSinkFormat(AEAudioFormat SinkFormat);
   void SetSinkCacheTotal(float time) { m_sinkCacheTotal = time; }
@@ -199,7 +199,7 @@ public:
   bool IsSuspended();
   AEAudioFormat GetCurrentSinkFormat();
 protected:
-  float m_sinkCacheTotal;
+  double m_sinkCacheTotal;
   float m_sinkLatency;
   int m_bufferedSamples;
   unsigned int m_sinkSampleRate;
@@ -282,8 +282,8 @@ protected:
   static void FreeSoundSample(uint8_t **data);
   void GetDelay(AEDelayStatus& status, CActiveAEStream *stream) { m_stats.GetDelay(status, stream); }
   void GetSyncInfo(CAESyncInfo& info, CActiveAEStream *stream) { m_stats.GetSyncInfo(info, stream); }
-  float GetCacheTime(CActiveAEStream *stream) { return m_stats.GetCacheTime(stream); }
-  float GetCacheTotal(CActiveAEStream *stream) { return m_stats.GetCacheTotal(stream); }
+  double GetCacheTime(CActiveAEStream *stream) { return m_stats.GetCacheTime(stream); }
+  double GetCacheTotal(CActiveAEStream *stream) { return m_stats.GetCacheTotal(stream); }
   void FlushStream(CActiveAEStream *stream);
   void PauseStream(CActiveAEStream *stream, bool pause);
   void StopSound(CActiveAESound *sound);
