@@ -32,6 +32,7 @@
 #include "guilib/GUIRadioButtonControl.h"
 #include "input/Key.h"
 #include "utils/StringUtils.h"
+#include "utils/log.h"
 
 #define CONTROL_LIST_AVAILABLE                  20
 #define CONTROL_LIST_ACTIVE                     21
