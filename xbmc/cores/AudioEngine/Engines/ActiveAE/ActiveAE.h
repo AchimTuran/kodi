@@ -27,6 +27,7 @@
 #include "threads/Thread.h"
 
 #include "ActiveAESink.h"
+#include "cores/AudioEngine/Engines/ActiveAE/ActiveAudioDSP/ActiveAudioDSP.h"
 #include "cores/AudioEngine/Interfaces/AEStream.h"
 #include "cores/AudioEngine/Interfaces/AESound.h"
 #include "cores/AudioEngine/Engines/ActiveAE/ActiveAEBuffer.h"
@@ -66,7 +67,6 @@ struct AudioSettings
   bool stereoupmix;
   bool normalizelevels;
   bool passthrough;
-  bool dspaddonsenabled;
   int config;
   int guisoundmode;
   unsigned int samplerate;
@@ -193,12 +193,10 @@ public:
   float GetCacheTotal(CActiveAEStream *stream);
   float GetWaterLevel();
   void SetSuspended(bool state);
-  void SetDSP(bool state);
   void SetCurrentSinkFormat(AEAudioFormat SinkFormat);
   void SetSinkCacheTotal(float time) { m_sinkCacheTotal = time; }
   void SetSinkLatency(float time) { m_sinkLatency = time; }
   bool IsSuspended();
-  bool HasDSP();
   AEAudioFormat GetCurrentSinkFormat();
 protected:
   float m_sinkCacheTotal;
@@ -207,7 +205,6 @@ protected:
   unsigned int m_sinkSampleRate;
   AEDelayStatus m_sinkDelay;
   bool m_suspended;
-  bool m_hasDSP;
   AEAudioFormat m_sinkFormat;
   bool m_pcmOutput;
   CCriticalSection m_lock;
@@ -268,7 +265,6 @@ public:
   virtual bool IsSettingVisible(const std::string &settingId);
   virtual void KeepConfiguration(unsigned int millis);
   virtual void DeviceChange();
-  virtual bool HasDSP();
   virtual bool GetCurrentSinkFormat(AEAudioFormat &SinkFormat);
 
   virtual void RegisterAudioCallback(IAudioCallback* pCallback);
@@ -277,6 +273,8 @@ public:
   virtual void OnLostDisplay();
   virtual void OnResetDisplay();
   virtual void OnAppFocusChange(bool focus);
+
+  virtual IAEAudioDSP& GetAudioDSP() { return m_audioDSP; }
 
 protected:
   void PlaySound(CActiveAESound *sound);
@@ -318,7 +316,6 @@ protected:
   void ClearDiscardedBuffers();
   void SStopSound(CActiveAESound *sound);
   void DiscardSound(CActiveAESound *sound);
-  void ChangeResamplers();
 
   bool RunStages();
   bool HasWork();
@@ -398,5 +395,7 @@ protected:
   float m_aeVolume;
   bool m_aeMuted;
   bool m_aeGUISoundForce;
+
+  CActiveAudioDSP m_audioDSP;
 };
 };
