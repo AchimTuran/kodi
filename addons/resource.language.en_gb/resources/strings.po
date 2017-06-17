@@ -8021,9 +8021,10 @@ msgstr ""
 
 #empty strings from id 15048 to 15049
 
-#. Name of a list with amount of entries behind on GUI
+#. Heading for selected mode informations
+#: addons/skin.estuary/xml/DialogAudioDSPManager.xml
 msgctxt "#15050"
-msgid "Available modes"
+msgid "Selected mode informations"
 msgstr ""
 
 #. Name of a list with amount of entries behind on GUI
