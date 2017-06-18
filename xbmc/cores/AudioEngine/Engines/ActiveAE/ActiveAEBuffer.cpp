@@ -133,7 +133,7 @@ bool CActiveAEBufferPool::Create(unsigned int totaltime)
   unsigned int buffertime = (m_format.m_frames*1000) / m_format.m_sampleRate;
   if (m_format.m_dataFormat == AE_FMT_RAW)
   {
-    buffertime = m_format.m_streamInfo.GetDuration();
+    buffertime = static_cast<unsigned int>(m_format.m_streamInfo.GetDuration());
   }
   unsigned int n = 0;
   while (time < totaltime || n < 5)
