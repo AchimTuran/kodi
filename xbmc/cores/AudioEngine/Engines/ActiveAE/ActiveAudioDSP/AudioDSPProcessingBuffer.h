@@ -80,7 +80,7 @@ class CAudioDSPProcessingBuffer : public IActiveAEProcessingBuffer, private CAct
 public:
   CAudioDSPProcessingBuffer(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat, CAudioDSPController &Controller, DSP::IDSPNodeFactory &NodeFactory);
 
-  virtual bool Create(unsigned int totaltime) override;
+  virtual bool Create(unsigned int totaltime, bool ForceOutputFormat = false) override;
   virtual void Destroy() override;
   virtual bool ProcessBuffer() override;
   virtual bool HasInputLevel(int level) override;

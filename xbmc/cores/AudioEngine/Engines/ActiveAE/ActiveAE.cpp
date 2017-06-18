@@ -1118,43 +1118,6 @@ void CActiveAE::Configure(AEAudioFormat *desiredFmt)
       uint64_t avlayout = CAEUtil::GetAVChannelLayout(audioDSPOutputFormat.m_channelLayout);
       audioDSPOutputFormat.m_channelLayout = CAEUtil::GetAEChannelLayout(avlayout);
 
-      //! @todo reimplement this with AudioDSP V2
-    //  if (stream)
-    //  {
-    //    if (!stream->m_inputBuffers)
-    //    {
-    //      // align input buffers with period of sink or encoder
-    //      stream->m_format.m_frames = audioDSPOutputFormat.m_frames * ((float)stream->m_format.m_sampleRate / audioDSPOutputFormat.m_sampleRate);
-
-    //      // create buffer pool
-    //      stream->m_inputBuffers = new CActiveAEBufferPool(stream->m_format);
-    //      stream->m_inputBuffers->Create(MAX_CACHE_LEVEL * 1000);
-    //      stream->m_streamSpace = stream->m_format.m_frameSize * stream->m_format.m_frames;
-
-    //      // if input format does not follow ffmpeg channel mask, we may need to remap channels
-    //      stream->InitRemapper();
-    //    }
-    //    if (stream->m_processingBuffers)
-    //    {
-    //      DSPErrorCode_t dspErr = m_audioDSP.ReleaseProcessingBuffer(stream->m_id);
-    //      if (dspErr != DSP_ERR_NO_ERR)
-    //      {//! @todo AudioDSP log AudioDSP error
-    //      }
-    //    }
-    //    if (!stream->m_processingBuffers)
-    //    {
-    //      stream->m_processingBuffers = m_audioDSP.GetProcessingBuffer(stream, audioDSPOutputFormat);//new CActiveAEStreamBuffers(stream->m_inputBuffers->m_format, audioDSPOutputFormat);
-    //      
-    //      // set stream infos
-    //      //! @todo AudioDSP reimplement this
-    //      //stream->m_processingBuffers->SetExtraData(stream->m_profile, stream->m_matrixEncoding, stream->m_audioServiceType);
-
-    //      // set resampler options
-    //      //! @todo AudioDSP reimplement this
-    //      //stream->m_processingBuffers->ConfigureResampler(m_settings.normalizelevels, m_settings.stereoupmix, m_settings.resampleQuality);
-    //      //stream->m_processingBuffers->ForceResampler(stream->m_forceResampler);
-    //    }
-
     //    if (!stream->m_processingBuffers)
     //    {//! @todo AudioDSP error handling for failed buffer creation
     //      CLog::Log(LOGERROR, "ActiveAE::%s - failed to create AudioDSP processing buffer!", __FUNCTION__);
@@ -1169,14 +1132,13 @@ void CActiveAE::Configure(AEAudioFormat *desiredFmt)
     //    stream->m_processingBuffers->Create(MAX_CACHE_LEVEL * 1000);
     //  }
 
-    //  //! @todo adjust to decoder
-    //  audioDSPOutputFormat = stream->m_processingBuffers->m_outputFormat;
-    //  m_sinkRequestFormat = audioDSPOutputFormat;
-    }
-
-    //std::list<CActiveAEStream*>::iterator it;
-    for (auto it = m_streams.begin(); it != m_streams.end(); ++it)
+    for (auto it = m_streams.rbegin(); it != m_streams.rend(); ++it)
     {
+      bool forceOutputFormat = true;
+      if (it == m_streams.rbegin())
+      { // all streams except the last one should use try to match the output format
+        forceOutputFormat = false;
+      }
       if (!(*it)->m_inputBuffers)
       {
         // align input buffers with period of sink or encoder
@@ -1206,11 +1168,17 @@ void CActiveAE::Configure(AEAudioFormat *desiredFmt)
         //(*it)->m_processingBuffers->ForceResampler((*it)->m_forceResampler);
         //(*it)->m_processingBuffers->SetExtraData((*it)->m_profile, (*it)->m_matrixEncoding, (*it)->m_audioServiceType);
 
-        (*it)->m_processingBuffers->Create(static_cast<unsigned int>(MAX_CACHE_LEVEL * 1000));
+        (*it)->m_processingBuffers->Create(static_cast<unsigned int>(MAX_CACHE_LEVEL * 1000), forceOutputFormat);
       }
 
       if (m_mode == MODE_TRANSCODE || m_streams.size() > 1)
         (*it)->m_processingBuffers->FillBuffer();
+
+      if (it == m_streams.rbegin())
+      { // the last stream in the last defines the input format for the sink
+        audioDSPOutputFormat = (*it)->m_processingBuffers->m_outputFormat;
+        m_sinkRequestFormat = audioDSPOutputFormat;
+      }
 
       // amplification
       (*it)->m_limiter.SetSamplerate(audioDSPOutputFormat.m_sampleRate);
@@ -1598,6 +1566,7 @@ CActiveAEStream* CActiveAE::CreateStream(MsgStreamNew *streamMsg)
 
   stream->m_pClock = streamMsg->clock;
 
+  // every new stream is added to the end of the list and the assumption is that the last stream defines the internal used format.
   m_streams.push_back(stream);
   m_stats.AddStream(stream->m_id);
 
@@ -2742,6 +2711,7 @@ void CActiveAE::LoadSettings()
 
   m_audioDSP.m_KodiModes.m_audioConverterModel.SetStereoUpmix(IsSettingVisible(CSettings::SETTING_AUDIOOUTPUT_STEREOUPMIX) ? CServiceBroker::GetSettings().GetBool(CSettings::SETTING_AUDIOOUTPUT_STEREOUPMIX) : false);
   m_audioDSP.m_KodiModes.m_audioConverterModel.SetNormalizeLevels(!CServiceBroker::GetSettings().GetBool(CSettings::SETTING_AUDIOOUTPUT_MAINTAINORIGINALVOLUME));
+  m_audioDSP.m_KodiModes.m_audioConverterModel.SetResampleQuality(static_cast<AEQuality>(CServiceBroker::GetSettings().GetInt(CSettings::SETTING_AUDIOOUTPUT_PROCESSQUALITY)));
   m_settings.guisoundmode = CServiceBroker::GetSettings().GetInt(CSettings::SETTING_AUDIOOUTPUT_GUISOUNDMODE);
 
   m_settings.stereoupmix = IsSettingVisible(CSettings::SETTING_AUDIOOUTPUT_STEREOUPMIX) ? CServiceBroker::GetSettings().GetBool(CSettings::SETTING_AUDIOOUTPUT_STEREOUPMIX) : false;
@@ -2758,7 +2728,6 @@ void CActiveAE::LoadSettings()
   m_settings.dtspassthrough = CServiceBroker::GetSettings().GetBool(CSettings::SETTING_AUDIOOUTPUT_DTSPASSTHROUGH);
   m_settings.dtshdpassthrough = CServiceBroker::GetSettings().GetBool(CSettings::SETTING_AUDIOOUTPUT_DTSHDPASSTHROUGH);
 
-  m_settings.resampleQuality = static_cast<AEQuality>(CServiceBroker::GetSettings().GetInt(CSettings::SETTING_AUDIOOUTPUT_PROCESSQUALITY));
   m_settings.atempoThreshold = CServiceBroker::GetSettings().GetInt(CSettings::SETTING_AUDIOOUTPUT_ATEMPOTHRESHOLD) / 100.0;
   m_settings.streamNoise = CServiceBroker::GetSettings().GetBool(CSettings::SETTING_AUDIOOUTPUT_STREAMNOISE);
   m_settings.silenceTimeout = CServiceBroker::GetSettings().GetInt(CSettings::SETTING_AUDIOOUTPUT_STREAMSILENCE) * 60000;

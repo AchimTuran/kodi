@@ -38,7 +38,7 @@ CAudioDSPProcessingBuffer::CAudioDSPProcessingBuffer(const AEAudioFormat &InputF
   m_procSample = nullptr;
 }
 
-bool CAudioDSPProcessingBuffer::Create(unsigned int totaltime)
+bool CAudioDSPProcessingBuffer::Create(unsigned int totaltime, bool ForceOutputFormat)
 {
   IDSPNodeModel::DSPNodeInfoVector_t nodeInfos;
   DSPErrorCode_t dspErr = m_AudioDSPController.GetActiveNodes(nodeInfos);

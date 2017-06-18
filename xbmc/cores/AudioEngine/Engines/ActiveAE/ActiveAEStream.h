@@ -102,7 +102,7 @@ public:
   virtual ~CActiveAEStreamBuffers();
 
   // IActiveAEProcessingBuffer interface methods
-  virtual bool Create(unsigned int totaltime) override;
+  virtual bool Create(unsigned int totaltime, bool ForceOutputFormat = false) override;
   virtual void Destroy() override {}
   virtual bool ProcessBuffer() override;
   virtual bool HasInputLevel(int level) override;

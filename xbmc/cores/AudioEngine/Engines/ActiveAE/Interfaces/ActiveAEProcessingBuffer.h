@@ -31,7 +31,7 @@ class IActiveAEProcessingBuffer
 public:
   IActiveAEProcessingBuffer(const AEAudioFormat &inputFormat, const AEAudioFormat &outputFormat) : m_inputFormat(inputFormat), m_outputFormat(outputFormat) {}
 
-  virtual bool Create(unsigned int totaltime) = 0;
+  virtual bool Create(unsigned int totaltime, bool ForceOutputFormat = false) = 0;
   virtual void Destroy() = 0;
   virtual bool ProcessBuffer() = 0;
   virtual bool HasInputLevel(int level) = 0;

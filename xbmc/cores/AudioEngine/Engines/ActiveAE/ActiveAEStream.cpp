@@ -598,7 +598,7 @@ bool CActiveAEStreamBuffers::HasInputLevel(int level)
     return false;
 }
 
-bool CActiveAEStreamBuffers::Create(unsigned int totaltime)
+bool CActiveAEStreamBuffers::Create(unsigned int totaltime, bool ForceOutputFormat)
 {
   if (!m_resampleBuffers->Create(totaltime))
     return false;
