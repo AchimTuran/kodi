@@ -37,10 +37,12 @@ public:
   // specialization of CGUIWindow
   virtual void FrameMove();
 
+  static std::string BrowseForSubtitle();
+
 protected:
   // implementations of ISettingCallback
-  virtual void OnSettingChanged(const CSetting *setting);
-  virtual void OnSettingAction(const CSetting *setting);
+  virtual void OnSettingChanged(std::shared_ptr<const CSetting> setting) override;
+  virtual void OnSettingAction(std::shared_ptr<const CSetting> setting) override;
 
   // specialization of CGUIDialogSettingsBase
   virtual bool AllowResettingSettings() const { return false; }
@@ -52,14 +54,13 @@ protected:
 
   bool SupportsSubtitleFeature(int feature);
 
-  void AddSubtitleStreams(CSettingGroup *group, const std::string &settingId);
+  void AddSubtitleStreams(std::shared_ptr<CSettingGroup> group, const std::string &settingId);
 
   static bool IsPlayingPassthrough(const std::string &condition, const std::string &value, const CSetting *setting, void *data);
 
-  static void SubtitleStreamsOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data);
+  static void SubtitleStreamsOptionFiller(std::shared_ptr<const CSetting> setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data);
   
-  static std::string SettingFormatterDelay(const CSettingControlSlider *control, const CVariant &value, const CVariant &minimum, const CVariant &step, const CVariant &maximum);
-  static std::string SettingFormatterPercentAsDecibel(const CSettingControlSlider *control, const CVariant &value, const CVariant &minimum, const CVariant &step, const CVariant &maximum);
+  static std::string SettingFormatterDelay(std::shared_ptr<const CSettingControlSlider> control, const CVariant &value, const CVariant &minimum, const CVariant &step, const CVariant &maximum);
 
   int m_subtitleStream;
   bool m_subtitleVisible;

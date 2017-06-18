@@ -46,8 +46,8 @@ public:
 
 protected:
   // implementations of ISettingCallback
-  virtual void OnSettingChanged(const CSetting *setting) override;
-  virtual void OnSettingAction(const CSetting *setting) override;
+  virtual void OnSettingChanged(std::shared_ptr<const CSetting> setting) override;
+  virtual void OnSettingAction(std::shared_ptr<const CSetting> setting) override;
 
   // specialization of CGUIDialogSettingsBase
   virtual bool AllowResettingSettings() const override { return false; }
@@ -59,14 +59,15 @@ protected:
 
   bool SupportsAudioFeature(int feature);
 
-  void AddAudioStreams(CSettingGroup *group, const std::string &settingId);
+  void AddAudioStreams(std::shared_ptr<CSettingGroup> group, const std::string &settingId);
 
-  static bool IsPlayingPassthrough(const std::string &condition, const std::string &value, const CSetting *setting, void *data);
+  static bool IsPlayingPassthrough(const std::string &condition, const std::string &value, std::shared_ptr<const CSetting> setting, void *data);
 
-  static void AudioStreamsOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data);
-  
-  static std::string SettingFormatterDelay(const CSettingControlSlider *control, const CVariant &value, const CVariant &minimum, const CVariant &step, const CVariant &maximum);
-  static std::string SettingFormatterPercentAsDecibel(const CSettingControlSlider *control, const CVariant &value, const CVariant &minimum, const CVariant &step, const CVariant &maximum);
+  static void AudioStreamsOptionFiller(std::shared_ptr<const CSetting> setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data);
+
+  static std::string SettingFormatterDelay(std::shared_ptr<const CSettingControlSlider> control, const CVariant &value, const CVariant &minimum, const CVariant &step, const CVariant &maximum);
+  static std::string SettingFormatterPercentAsDecibel(std::shared_ptr<const CSettingControlSlider> control, const CVariant &value, const CVariant &minimum, const CVariant &step, const CVariant &maximum);
+
 
   float m_volume;
   int m_audioStream;
@@ -76,12 +77,12 @@ protected:
   Features m_audioCaps; /*!<the on current playback supported audio features */
 
   // AudioDSP related options
-  static void AudioModeOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data);
+  static void AudioModeOptionFiller(std::shared_ptr<const CSetting> setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data);
   std::string GetSettingsLabel(CSetting *pSetting);
 
   void OpenMenu(const std::string &id);
   bool HasActiveMenuHooks(AE_DSP_MENUHOOK_CAT category);
-  void GetAudioDSPMenus(CSettingGroup *group, AE_DSP_MENUHOOK_CAT category);
+  void GetAudioDSPMenus(std::shared_ptr<CSettingGroup> group, AE_DSP_MENUHOOK_CAT category);
   bool OpenAudioDSPMenu(unsigned int setupEntry);
   int FindCategoryIndex(const std::string &catId);
 
