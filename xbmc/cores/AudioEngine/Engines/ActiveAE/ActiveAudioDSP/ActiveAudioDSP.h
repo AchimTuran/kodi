@@ -186,7 +186,7 @@ private:
 
 
   // ISettingCallback interface implementation
-  virtual void OnSettingAction(const CSetting *Setting);
+  virtual void OnSettingAction(std::shared_ptr<const CSetting> Setting) override;
 
   AudioDSPProcessingBufferMap_t m_ProcessingBuffers;
 

@@ -594,7 +594,7 @@ bool CActiveAudioDSP::IsInitialized()
   return m_isInitialized;
 }
 
-void CActiveAudioDSP::OnSettingAction(const CSetting *Setting)
+void CActiveAudioDSP::OnSettingAction(std::shared_ptr<const CSetting> Setting)
 {
   if (Setting == NULL || !IsInitialized())
   {
