@@ -33,6 +33,7 @@
 #include "input/Key.h"
 #include "utils/StringUtils.h"
 #include "utils/log.h"
+#include "Util.h"
 
 #define CONTROL_LIST_AVAILABLE                  20
 #define CONTROL_LIST_ACTIVE                     21
