@@ -1101,8 +1101,8 @@ void CActiveAE::Configure(AEAudioFormat *desiredFmt)
       audioDSPOutputFormat = inputFormat;
       audioDSPOutputFormat.m_channelLayout = static_cast<AEStdChLayout>(m_settings.channels);
       audioDSPOutputFormat.m_dataFormat = AE_IS_PLANAR(audioDSPOutputFormat.m_dataFormat) ? AE_FMT_FLOATP : AE_FMT_FLOAT;
-      audioDSPOutputFormat.m_frameSize =  audioDSPOutputFormat.m_channelLayout.Count() *
-                                          (CAEUtil::DataFormatToBits(audioDSPOutputFormat.m_dataFormat) >> 3);
+      audioDSPOutputFormat.m_frameSize = audioDSPOutputFormat.m_channelLayout.Count() *
+        (CAEUtil::DataFormatToBits(audioDSPOutputFormat.m_dataFormat) >> 3);
 
       //// due to channel ordering of the driver, a sink may return more channels than
       //// requested, i.e. 2.1 request returns FL,FR,BL,BR,FC,LFE for ALSA
@@ -1118,121 +1118,120 @@ void CActiveAE::Configure(AEAudioFormat *desiredFmt)
       uint64_t avlayout = CAEUtil::GetAVChannelLayout(audioDSPOutputFormat.m_channelLayout);
       audioDSPOutputFormat.m_channelLayout = CAEUtil::GetAEChannelLayout(avlayout);
 
-    //    if (!stream->m_processingBuffers)
-    //    {//! @todo AudioDSP error handling for failed buffer creation
-    //      CLog::Log(LOGERROR, "ActiveAE::%s - failed to create AudioDSP processing buffer!", __FUNCTION__);
-    //      m_stats.SetSinkCacheTotal(0);
-    //      m_stats.SetSinkLatency(0);
-    //      AEAudioFormat invalidFormat;
-    //      invalidFormat.m_dataFormat = AE_FMT_INVALID;
-    //      m_stats.SetCurrentSinkFormat(invalidFormat);
-    //      m_extError = true;
-    //      return;
-    //    }
-    //    stream->m_processingBuffers->Create(MAX_CACHE_LEVEL * 1000);
-    //  }
+      //    if (!stream->m_processingBuffers)
+      //    {//! @todo AudioDSP error handling for failed buffer creation
+      //      CLog::Log(LOGERROR, "ActiveAE::%s - failed to create AudioDSP processing buffer!", __FUNCTION__);
+      //      m_stats.SetSinkCacheTotal(0);
+      //      m_stats.SetSinkLatency(0);
+      //      AEAudioFormat invalidFormat;
+      //      invalidFormat.m_dataFormat = AE_FMT_INVALID;
+      //      m_stats.SetCurrentSinkFormat(invalidFormat);
+      //      m_extError = true;
+      //      return;
+      //    }
+      //    stream->m_processingBuffers->Create(MAX_CACHE_LEVEL * 1000);
+      //  }
 
-    for (auto it = m_streams.rbegin(); it != m_streams.rend(); ++it)
-    {
-      bool forceOutputFormat = true;
-      if (it == m_streams.rbegin())
-      { // all streams except the last one should use try to match the output format
-        forceOutputFormat = false;
-      }
-      if (!(*it)->m_inputBuffers)
+      for (auto it = m_streams.rbegin(); it != m_streams.rend(); ++it)
       {
-        // align input buffers with period of sink or encoder
-        (*it)->m_format.m_frames = static_cast<unsigned int>(audioDSPOutputFormat.m_frames * (static_cast<float>((*it)->m_format.m_sampleRate) / audioDSPOutputFormat.m_sampleRate));
+        bool forceOutputFormat = true;
+        if (it == m_streams.rbegin())
+        { // all streams except the last one should use try to match the output format
+          forceOutputFormat = false;
+        }
+        if (!(*it)->m_inputBuffers)
+        {
+          // align input buffers with period of sink or encoder
+          (*it)->m_format.m_frames = static_cast<unsigned int>(audioDSPOutputFormat.m_frames * (static_cast<float>((*it)->m_format.m_sampleRate) / audioDSPOutputFormat.m_sampleRate));
 
-        // create buffer pool
-        (*it)->m_inputBuffers = new CActiveAEBufferPool((*it)->m_format);
-        (*it)->m_inputBuffers->Create(static_cast<unsigned int>(MAX_CACHE_LEVEL * 1000));
-        (*it)->m_streamSpace = (*it)->m_format.m_frameSize * (*it)->m_format.m_frames;
+          // create buffer pool
+          (*it)->m_inputBuffers = new CActiveAEBufferPool((*it)->m_format);
+          (*it)->m_inputBuffers->Create(static_cast<unsigned int>(MAX_CACHE_LEVEL * 1000));
+          (*it)->m_streamSpace = (*it)->m_format.m_frameSize * (*it)->m_format.m_frames;
 
-        // if input format does not follow ffmpeg channel mask, we may need to remap channels
-        (*it)->InitRemapper();
+          // if input format does not follow ffmpeg channel mask, we may need to remap channels
+          (*it)->InitRemapper();
+        }
+        if ((*it)->m_processingBuffers)
+        {
+          DSPErrorCode_t dspErr = m_audioDSP.ReleaseProcessingBuffer((*it)->m_id);
+          if (dspErr != DSP_ERR_NO_ERR)
+          {//! @todo AudioDSP log AudioDSP error
+          }
+        }
+        if (!(*it)->m_processingBuffers)
+        {
+          (*it)->m_processingBuffers = m_audioDSP.GetProcessingBuffer(*it, audioDSPOutputFormat);
+
+          //! @todo AudioDSP reimplement this
+          //stream->m_processingBuffers->ConfigureResampler(m_settings.normalizelevels, m_settings.stereoupmix, m_settings.resampleQuality);
+          //(*it)->m_processingBuffers->ForceResampler((*it)->m_forceResampler);
+          //(*it)->m_processingBuffers->SetExtraData((*it)->m_profile, (*it)->m_matrixEncoding, (*it)->m_audioServiceType);
+
+          (*it)->m_processingBuffers->Create(static_cast<unsigned int>(MAX_CACHE_LEVEL * 1000), forceOutputFormat);
+        }
+
+        if (m_mode == MODE_TRANSCODE || m_streams.size() > 1)
+          (*it)->m_processingBuffers->FillBuffer();
+
+        if (it == m_streams.rbegin())
+        { // the last stream in the last defines the input format for the sink
+          audioDSPOutputFormat = (*it)->m_processingBuffers->m_outputFormat;
+          m_sinkRequestFormat = audioDSPOutputFormat;
+        }
+
+        // amplification
+        (*it)->m_limiter.SetSamplerate(audioDSPOutputFormat.m_sampleRate);
       }
-      if ((*it)->m_processingBuffers)
+
+      m_internalFormat = audioDSPOutputFormat;
+
+      // update buffered time of streams
+      m_stats.AddSamples(0, m_streams);
+
+      // buffers for viz
+      if (inputFormat.m_dataFormat != AE_FMT_RAW)
       {
-        DSPErrorCode_t dspErr = m_audioDSP.ReleaseProcessingBuffer((*it)->m_id);
-        if (dspErr != DSP_ERR_NO_ERR)
-        {//! @todo AudioDSP log AudioDSP error
+        if (m_vizBuffers)
+        {
+          m_discardBufferPools.push_back(m_vizBuffers);
+          m_vizBuffers = NULL;
+          m_discardBufferPools.push_back(m_vizBuffersInput);
+          m_vizBuffersInput = NULL;
+        }
+        if (!m_vizBuffers && !m_audioCallback.empty())
+        {
+          AEAudioFormat vizFormat = m_internalFormat;
+          vizFormat.m_channelLayout = AE_CH_LAYOUT_2_0;
+          vizFormat.m_dataFormat = AE_FMT_FLOAT;
+          vizFormat.m_sampleRate = 44100;
+
+          // input buffers
+          m_vizBuffersInput = new CActiveAEBufferPool(m_internalFormat);
+          m_vizBuffersInput->Create(2048 * m_internalFormat.m_sampleRate);
+
+          // resample buffers
+          m_vizBuffers = new CActiveAEBufferPoolResample(m_internalFormat, vizFormat);
+          m_vizBuffers->ConfigureResampler(true, false, m_audioDSP.m_KodiModes.m_audioConverterModel.ResampleQuality());
+          //! @todo use cache of sync + water level
+          m_vizBuffers->Create(2048 * vizFormat.m_sampleRate);
+          m_vizInitialized = false;
         }
       }
-      if (!(*it)->m_processingBuffers)
-      {
-        (*it)->m_processingBuffers = m_audioDSP.GetProcessingBuffer(*it, audioDSPOutputFormat);
 
-        //! @todo AudioDSP reimplement this
-        //stream->m_processingBuffers->ConfigureResampler(m_settings.normalizelevels, m_settings.stereoupmix, m_settings.resampleQuality);
-        //(*it)->m_processingBuffers->ForceResampler((*it)->m_forceResampler);
-        //(*it)->m_processingBuffers->SetExtraData((*it)->m_profile, (*it)->m_matrixEncoding, (*it)->m_audioServiceType);
+      // buffers need to sync
+      m_silenceBuffers = new CActiveAEBufferPool(audioDSPOutputFormat);
+      m_silenceBuffers->Create(500);
 
-        (*it)->m_processingBuffers->Create(static_cast<unsigned int>(MAX_CACHE_LEVEL * 1000), forceOutputFormat);
-      }
-
-      if (m_mode == MODE_TRANSCODE || m_streams.size() > 1)
-        (*it)->m_processingBuffers->FillBuffer();
-
-      if (it == m_streams.rbegin())
-      { // the last stream in the last defines the input format for the sink
-        audioDSPOutputFormat = (*it)->m_processingBuffers->m_outputFormat;
-        m_sinkRequestFormat = audioDSPOutputFormat;
-      }
-
-      // amplification
-      (*it)->m_limiter.SetSamplerate(audioDSPOutputFormat.m_sampleRate);
+      m_sinkRequestFormat = audioDSPOutputFormat;
     }
-
-    m_internalFormat = audioDSPOutputFormat;
-
-    // update buffered time of streams
-    m_stats.AddSamples(0, m_streams);
-
-    // buffers for viz
-    if (inputFormat.m_dataFormat != AE_FMT_RAW)
-    {
-      if (m_vizBuffers)
-      {
-        m_discardBufferPools.push_back(m_vizBuffers);
-        m_vizBuffers = NULL;
-        m_discardBufferPools.push_back(m_vizBuffersInput);
-        m_vizBuffersInput = NULL;
-      }
-      if (!m_vizBuffers && !m_audioCallback.empty())
-      {
-        AEAudioFormat vizFormat = m_internalFormat;
-        vizFormat.m_channelLayout = AE_CH_LAYOUT_2_0;
-        vizFormat.m_dataFormat = AE_FMT_FLOAT;
-        vizFormat.m_sampleRate = 44100;
-
-        // input buffers
-        m_vizBuffersInput = new CActiveAEBufferPool(m_internalFormat);
-        m_vizBuffersInput->Create(2048 * m_internalFormat.m_sampleRate);
-
-        // resample buffers
-        m_vizBuffers = new CActiveAEBufferPoolResample(m_internalFormat, vizFormat);
-        m_vizBuffers->ConfigureResampler(true, false, m_audioDSP.m_KodiModes.m_audioConverterModel.ResampleQuality());
-        //! @todo use cache of sync + water level
-        m_vizBuffers->Create(2048 * vizFormat.m_sampleRate);
-        m_vizInitialized = false;
-      }
-    }
-
-    // buffers need to sync
-    m_silenceBuffers = new CActiveAEBufferPool(audioDSPOutputFormat);
-    m_silenceBuffers->Create(500);
-
-    m_sinkRequestFormat = audioDSPOutputFormat;
   }
-  
-  // try to create AudioDSP stream and use it as sinkRequestedFormat
-
-  if (m_streams.empty())
+  else
   {
     m_sinkRequestFormat = inputFormat;
     audioDSPOutputFormat = inputFormat;
   }
+
   ApplySettingsToFormat(m_sinkRequestFormat, m_settings, (int*)&m_mode);
   m_extKeepConfig = 0;
 
