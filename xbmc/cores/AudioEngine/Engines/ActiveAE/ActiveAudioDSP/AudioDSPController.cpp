@@ -53,3 +53,19 @@ DSPErrorCode_t CAudioDSPController::EnableNode(uint64_t ID, uint32_t Position)
 {
   return m_DSPNodeModel.EnableNode(ID, Position);
 }
+
+void CAudioDSPController::SendTimings(const std::vector<int64_t>& NodeTimings, int64_t ProcessingBegin, int64_t ProcessingEnd)
+{
+  if (m_timingMutex.try_lock())
+  {
+    m_processingBeginTime = ProcessingBegin;
+    m_processingEndTime = ProcessingEnd;
+
+    for (int ii = 0; ii < m_nodeTimings.size() && ii < NodeTimings.size(); ii++)
+    {
+      m_nodeTimings[ii] = NodeTimings[ii];
+    }
+
+    m_timingMutex.unlock();
+  }
+}

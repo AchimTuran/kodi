@@ -103,6 +103,7 @@ private:
   bool m_drain;
   CSampleBuffer *m_procSample;
   
+  std::vector<int64_t> m_nodeTimings;
 
   AudioDSPNodeChain_t m_DSPNodeChain;
 

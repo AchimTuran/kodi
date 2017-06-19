@@ -22,6 +22,7 @@
 #include "cores/AudioEngine/Engines/ActiveAE/ActiveAEBuffer.h"
 #include "cores/AudioEngine/Engines/ActiveAE/ActiveAudioDSP/AudioDSPNodeModel.h"
 #include "utils/log.h"
+#include "utils/TimeUtils.h"
 
 using namespace ActiveAE;
 using namespace DSP;
@@ -223,6 +224,8 @@ bool CAudioDSPProcessingBuffer::Create(unsigned int totaltime, bool ForceOutputF
     *configInParameters = nodeOutFormat;
   }
 
+  m_nodeTimings.resize(m_DSPNodeChain.size()*2);
+
   m_format = m_outputFormat;
   //! @todo AudioDSP V2 is this needed?
   if(!CActiveAEBufferPool::Create(totaltime))
@@ -241,6 +244,7 @@ void CAudioDSPProcessingBuffer::Destroy()
 
 bool CAudioDSPProcessingBuffer::ProcessBuffer()
 {
+  int64_t startTime = CurrentHostCounter();
   bool busy = false;
   CSampleBuffer *buffer;
 
@@ -299,7 +303,9 @@ bool CAudioDSPProcessingBuffer::ProcessBuffer()
         busy = true;
       }
 
+      m_nodeTimings[2*ii] = CurrentHostCounter();
       busy |= adspNodes[ii].m_mode->Process();
+      m_nodeTimings[2*ii + 1] = CurrentHostCounter();
 
       // move output buffers to next node input buffers and do a conversion if needed
       while (!adspNodes[ii].m_mode->m_outputSamples.empty())
@@ -315,6 +321,10 @@ bool CAudioDSPProcessingBuffer::ProcessBuffer()
 
     return busy;
   }
+
+  int64_t endTime = CurrentHostCounter();
+
+  m_AudioDSPController.SendTimings(m_nodeTimings, startTime, endTime);
 
   return busy;
 }

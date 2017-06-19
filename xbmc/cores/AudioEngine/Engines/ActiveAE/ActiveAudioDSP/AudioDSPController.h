@@ -23,6 +23,10 @@
 #include "cores/AudioEngine/Engines/ActiveAE/Interfaces/AudioDSPNodeModel.h"
 #include "cores/AudioEngine/Engines/ActiveAE/Interfaces/AudioDSPNodeModelCallback.h"
 
+#include "threads/CriticalSection.h"
+
+#include <vector>
+
 
 namespace ActiveAE
 {
@@ -41,7 +45,14 @@ public:
   // Position == 0 --> adds node to the end of active nodes
   DSPErrorCode_t EnableNode(uint64_t ID, uint32_t Position = 0);
 
+  void SendTimings(const std::vector<int64_t> &NodeTimings, int64_t ProcessingBegin, int64_t ProcessingEnd);
+
 private:
+  CCriticalSection m_timingMutex;
+  std::vector<int64_t> m_nodeTimings;
+  int64_t m_processingBeginTime;
+  int64_t m_processingEndTime;
+
   DSP::IDSPNodeModel &m_DSPNodeModel;
 };
 }
