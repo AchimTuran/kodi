@@ -224,7 +224,10 @@ bool CAudioDSPProcessingBuffer::Create(unsigned int totaltime, bool ForceOutputF
     *configInParameters = nodeOutFormat;
   }
 
-  m_nodeTimings.resize(m_DSPNodeChain.size()*2);
+  if (!ForceOutputFormat)
+  {
+    m_nodeTimings.resize(m_DSPNodeChain.size()*2);
+  }
 
   m_format = m_outputFormat;
   //! @todo AudioDSP V2 is this needed?
@@ -244,7 +247,11 @@ void CAudioDSPProcessingBuffer::Destroy()
 
 bool CAudioDSPProcessingBuffer::ProcessBuffer()
 {
-  int64_t startTime = CurrentHostCounter();
+  int64_t startTime = 0;
+  if (m_nodeTimings.size() > 0)
+  {
+    startTime = CurrentHostCounter();
+  }
   bool busy = false;
   CSampleBuffer *buffer;
 
@@ -303,9 +310,15 @@ bool CAudioDSPProcessingBuffer::ProcessBuffer()
         busy = true;
       }
 
-      m_nodeTimings[2*ii] = CurrentHostCounter();
+      if (m_nodeTimings.size() > 0)
+      {
+        m_nodeTimings[2*ii] = CurrentHostCounter();
+      }
       busy |= adspNodes[ii].m_mode->Process();
-      m_nodeTimings[2*ii + 1] = CurrentHostCounter();
+      if (m_nodeTimings.size() > 0)
+      {
+        m_nodeTimings[2*ii + 1] = CurrentHostCounter();
+      }
 
       // move output buffers to next node input buffers and do a conversion if needed
       while (!adspNodes[ii].m_mode->m_outputSamples.empty())
@@ -322,9 +335,12 @@ bool CAudioDSPProcessingBuffer::ProcessBuffer()
     return busy;
   }
 
-  int64_t endTime = CurrentHostCounter();
 
-  m_AudioDSPController.SendTimings(m_nodeTimings, startTime, endTime);
+  if (m_nodeTimings.size() > 0)
+  {
+    int64_t endTime = CurrentHostCounter();
+    m_AudioDSPController.SendTimings(m_nodeTimings, startTime, endTime);
+  }
 
   return busy;
 }
