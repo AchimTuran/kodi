@@ -25,7 +25,7 @@
 #include <vector>
 
 #include "settings/dialogs/GUIDialogSettingsManualBase.h"
-#include "addons/kodi-addon-dev-kit/include/kodi/kodi_adsp_types.h"
+#include "addons/kodi-addon-dev-kit/include/kodi/addon-instance/AudioDSP.h"
 
 class CVariant;
 
