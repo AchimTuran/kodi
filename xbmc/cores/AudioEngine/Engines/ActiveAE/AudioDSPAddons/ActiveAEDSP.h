@@ -76,6 +76,10 @@ namespace ActiveAE
   /*! @name initialization and configuration methods */
   //@{
     void Init(void);
+    /*!
+     * @brief Stops dsp processing and the backend info update thread.
+     */
+    void Shutdown(void);
 
     /*!
      * @brief Delete all objects and processing classes.
@@ -247,9 +251,9 @@ namespace ActiveAE
      * @param wasActive if it is true a recreation of present stream control becomes performed (process class becomes not deleted)
      * @return True if the dsp processing becomes available
      */
-    bool CreateDSPs(unsigned int &streamId, CActiveAEDSPProcessPtr &process, const AEAudioFormat &inputFormat, const AEAudioFormat &outputFormat, bool upmix,
-                                  AEQuality quality, enum AVMatrixEncoding matrix_encoding, enum AVAudioServiceType audio_service_type,
-                                  int profile, bool wasActive);
+    int CreateDSPs(int streamId, CActiveAEDSPProcessPtr &process, const AEAudioFormat &inputFormat, const AEAudioFormat &outputFormat,
+                   bool upmix, bool bypassDSP, AEQuality quality, enum AVMatrixEncoding matrix_encoding, enum AVAudioServiceType audio_service_type,
+                   int profile);
 
     /*!>
      * Destroy all allocated dsp add-ons streamId and stop processing.
