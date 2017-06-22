@@ -155,7 +155,7 @@ bool CAudioDSPConverter::Process()
       m_lastSamplePts += (in->pkt->nb_samples - in->pkt_start_offset) * 1000 / m_OutputFormat.m_sampleRate;
 
       // calculate pts for last sample in out
-      int bufferedSamples = 0;//! @todo AudioDSP V2 how to implement an interface for m_pTempoFilter->GetBufferedSamples()?
+      int bufferedSamples = m_resampler->GetBufferedSamples();
       out->pkt_start_offset = out->pkt->nb_samples;
       out->timestamp = m_lastSamplePts - bufferedSamples * 1000 / m_OutputFormat.m_sampleRate;
 
