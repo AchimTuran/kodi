@@ -396,8 +396,6 @@ float CAudioDSPProcessingBuffer::GetDelay()
     {
       delay += (float)(*itBuf)->pkt->nb_samples / (*itBuf)->pkt->config.sample_rate;
     }
-
-    //! @todo AudioDSP V2 implement buffered samples from nodes
   }
 
   return delay;
@@ -421,18 +419,6 @@ void CAudioDSPProcessingBuffer::Flush()
   {
     if (m_DSPNodeChain[ii].m_buffer)
     {
-      while (!m_DSPNodeChain[ii].m_buffer->m_inputSamples.empty())
-      {
-        m_DSPNodeChain[ii].m_buffer->m_inputSamples.front()->Return();
-        m_DSPNodeChain[ii].m_buffer->m_inputSamples.pop_front();
-      }
-
-      while (!m_DSPNodeChain[ii].m_buffer->m_outputSamples.empty())
-      {
-        m_DSPNodeChain[ii].m_buffer->m_outputSamples.front()->Return();
-        m_DSPNodeChain[ii].m_buffer->m_outputSamples.pop_front();
-      }
-
       m_DSPNodeChain[ii].m_buffer->Flush();
     }
 
