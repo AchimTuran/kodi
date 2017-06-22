@@ -36,7 +36,6 @@ CAudioDSPProcessingBuffer::CAudioDSPProcessingBuffer(const AEAudioFormat &InputF
   m_NodeFactory(NodeFactory),
   m_conversionModeID({ "Kodi", "AudioConverter" })
 {
-  m_procSample = nullptr;
 }
 
 bool CAudioDSPProcessingBuffer::Create(unsigned int totaltime, bool ForceOutputFormat)
@@ -282,6 +281,7 @@ bool CAudioDSPProcessingBuffer::ProcessBuffer()
         if (adspNodes[ii + 1].m_buffer)
         {
           //! @todo AudioDSP V2 get m_inputSamples from conversion buffer
+          bool dummy = false;
         }
         else
         {
@@ -365,11 +365,6 @@ float CAudioDSPProcessingBuffer::GetDelay()
   float delay = 0;
   std::deque<CSampleBuffer*>::iterator itBuf;
 
-  if (m_procSample)
-  {
-    delay += (float)m_procSample->pkt->nb_samples / m_procSample->pkt->config.sample_rate;
-  }
-
   for (itBuf = m_inputSamples.begin(); itBuf != m_inputSamples.end(); ++itBuf)
   {
     delay += (float)(*itBuf)->pkt->nb_samples / (*itBuf)->pkt->config.sample_rate;
@@ -409,13 +404,7 @@ float CAudioDSPProcessingBuffer::GetDelay()
 }
 
 void CAudioDSPProcessingBuffer::Flush()
-{
-  if (m_procSample)
-  {
-    m_procSample->Return();
-    m_procSample = NULL;
-  }
-  
+{  
   while (!m_inputSamples.empty())
   {
     m_inputSamples.front()->Return();
@@ -445,6 +434,21 @@ void CAudioDSPProcessingBuffer::Flush()
       }
 
       m_DSPNodeChain[ii].m_buffer->Flush();
+    }
+
+    if (m_DSPNodeChain[ii].m_mode)
+    {
+      while (!m_DSPNodeChain[ii].m_mode->m_inputSamples.empty())
+      {
+        m_DSPNodeChain[ii].m_mode->m_inputSamples.front()->Return();
+        m_DSPNodeChain[ii].m_mode->m_inputSamples.pop_front();
+      }
+
+      while (!m_DSPNodeChain[ii].m_mode->m_outputSamples.empty())
+      {
+        m_DSPNodeChain[ii].m_mode->m_outputSamples.front()->Return();
+        m_DSPNodeChain[ii].m_mode->m_outputSamples.pop_front();
+      }
     }
   }
 }

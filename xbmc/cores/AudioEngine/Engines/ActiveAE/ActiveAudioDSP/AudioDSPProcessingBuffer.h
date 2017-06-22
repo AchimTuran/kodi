@@ -101,7 +101,6 @@ private:
   bool m_fillPackets;
   bool m_empty;
   bool m_drain;
-  CSampleBuffer *m_procSample;
   
   std::vector<int64_t> m_nodeTimings;
 

@@ -126,8 +126,13 @@ bool CAudioDSPConverter::Process()
       {
         m_planes.at(ch) = in->pkt->data[0] + ch * m_InputFormat.m_frames * CAEUtil::DataFormatToBits(m_InputFormat.m_dataFormat) / 8;
       }
+      uint8_t **inputPlanes = m_planes.data();
+      if (!inputPlanes)
+      {
+        inputPlanes = in->pkt->data;
+      }
 
-      int out_samples = m_resampler->Resample(out->pkt->data, m_OutputFormat.m_frames, m_planes.data(), m_InputFormat.m_frames, m_resampleRatio);
+      int out_samples = m_resampler->Resample(out->pkt->data, m_OutputFormat.m_frames, inputPlanes, m_InputFormat.m_frames, m_resampleRatio);
       if (out_samples < 0)
       {
         out_samples = 0;
