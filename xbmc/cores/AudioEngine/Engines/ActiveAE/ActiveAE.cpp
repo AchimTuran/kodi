@@ -2802,11 +2802,11 @@ void CActiveAE::OnSettingsChange(const std::string& setting)
 bool CActiveAE::SupportsRaw(AEAudioFormat &format)
 {
   // check if passthrough is enabled
-  if (m_settings.passthrough)
+  if (!CServiceBroker::GetSettings().GetBool(CSettings::SETTING_AUDIOOUTPUT_PASSTHROUGH))
     return false;
 
   // fixed config disabled passthrough
-  if (m_settings.config == AE_CONFIG_FIXED)
+  if (CServiceBroker::GetSettings().GetInt(CSettings::SETTING_AUDIOOUTPUT_CONFIG) == AE_CONFIG_FIXED)
     return false;
 
   // check if the format is enabled in settings
