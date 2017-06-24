@@ -25,6 +25,7 @@
 #include "settings/Settings.h"
 #include "guilib/GUIWindowManager.h"
 #include "settings/dialogs/GUIDialogAudioDSPManager.h"
+#include "addons/binary-addons/BinaryAddonBase.h"
 
 #include "cores/AudioEngine/Engines/ActiveAE/ActiveAudioDSP/ActiveAudioDSP.h"
 #include "cores/AudioEngine/Engines/ActiveAE/ActiveAEStream.h"
@@ -91,17 +92,23 @@ void CActiveAudioDSP::Stop()
   m_ControlPort.Purge();
   m_ProcessorDataPort.Purge();
 
-  CServiceBroker::GetAddonMgr().UnregisterAddonMgrCallback(ADDON_ADSPDLL);
+  CServiceBroker::GetBinaryAddonManager().UnregisterCallback(ADDON_ADSPDLL);
 }
 
-bool CActiveAudioDSP::RequestRestart(AddonPtr addon, bool bDataChanged)
+void CActiveAudioDSP::EnableEvent(BinaryAddonBasePtr addon)
 {
-  return true;
 }
 
-bool CActiveAudioDSP::RequestRemoval(AddonPtr addon)
+void CActiveAudioDSP::DisableEvent(BinaryAddonBasePtr addon)
 {
-  return true;
+}
+
+void CActiveAudioDSP::InstalledEvent(BinaryAddonBasePtr addon)
+{
+}
+
+void CActiveAudioDSP::DeinstalledEvent(BinaryAddonBasePtr addon)
+{
 }
 
 void CActiveAudioDSP::EnableAddon(const string &Id, bool Enable)
@@ -286,7 +293,7 @@ void CActiveAudioDSP::StateMachine(int signal, Protocol *port, Message *msg)
               //! @todo AudioDSP V2.0 call this via CServiceBroker with
               CServiceBroker::GetSettings().RegisterCallback(this, settingSet);
               
-              if (!CServiceBroker::GetAddonMgr().RegisterAddonMgrCallback(ADDON_ADSPDLL, this))
+              if (!CServiceBroker::GetBinaryAddonManager().RegisterCallback(ADDON_ADSPDLL, this))
               {
                 msg->Reply(CAudioDSPControlProtocol::ERR);
                 CLog::Log(LOGERROR, "%s during add-on manager callback registration an error occured!", __FUNCTION__);
@@ -514,23 +521,23 @@ void CActiveAudioDSP::StateMachine(int signal, Protocol *port, Message *msg)
 
 void CActiveAudioDSP::PrepareAddons()
 {
-  VECADDONS addons;
-  CServiceBroker::GetAddonMgr().GetInstalledAddons(addons, ADDON_ADSPDLL);
+  BinaryAddonBaseList addonInfos;
+  CServiceBroker::GetBinaryAddonManager().GetAddonInfos(addonInfos, false, ADDON_ADSPDLL);
 
-  if (addons.empty())
+  if (addonInfos.empty())
     return;
 
-  for (auto &addon : addons)
+  for (auto &addonInfo : addonInfos)
   {
-    pAudioDSPAddon_t dspAddon = dynamic_pointer_cast<CActiveAEDSPAddon>(addon);
+    AE_DSP_ADDON dspAddon = std::make_shared<CActiveAEDSPAddon>(addonInfo);
     if(!dspAddon)
     {
       CLog::Log(LOGERROR, "%s - failed to cast addon to CActiveAEDSPAddon", __FUNCTION__);
       continue;
     }
-    if (CServiceBroker::GetAddonMgr().IsAddonDisabled(addon->ID()))
+    if (CServiceBroker::GetAddonMgr().IsAddonDisabled(addonInfo->ID()))
     {
-      m_DisabledAddons[addon->ID()] = dspAddon;
+      m_DisabledAddons[addonInfo->ID()] = dspAddon;
 
       //! @todo implement hash for dll calls
       //hash<string> hasher;
@@ -540,7 +547,7 @@ void CActiveAudioDSP::PrepareAddons()
     }
     else
     {
-      m_EnabledAddons[addon->ID()] = dspAddon;
+      m_EnabledAddons[addonInfo->ID()] = dspAddon;
     }
   }
 }

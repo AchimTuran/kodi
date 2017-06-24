@@ -36,6 +36,8 @@
 // internal Kodi AudioDSP processing mode include files
 #include "cores/AudioEngine/Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioDSPKodiModes.h"
 
+#include "addons/binary-addons/BinaryAddonManager.h"
+
 #include <map>
 #include <memory>
 
@@ -111,7 +113,7 @@ public:
 
 
 class CActiveAudioDSP : public IAEAudioDSP,
-                        public ADDON::IAddonMgrCallback,
+                        public ADDON::IBinaryAddonManagerCallback,
                         public ISettingCallback,
                         private CThread
 {
@@ -124,21 +126,12 @@ public:
   ~CActiveAudioDSP();
   void Start();
   void Stop();
-
-  /*!
-   * @brief Restart an AudioDSP add-on.
-   * @param addon The add-on to restart.
-   * @param bDataChanged True if add-on's data has changed, false otherwise (unused).
-   * @return True if the AudioDSP add-on was found and restarted, false otherwise.
-   */
-  virtual bool RequestRestart(ADDON::AddonPtr addon, bool bDataChanged) override;
-
-  /*!
-   * @brief Remove a single AudioDSP add-on.
-   * @param addon AudioDSP add-on to remove.
-   * @return True if the AudioDSP add-on was found and restarted, false otherwise.
-   */
-  virtual bool RequestRemoval(ADDON::AddonPtr addon) override;
+  
+  // IBinaryAddonManagerCallback interface implementation
+  virtual void EnableEvent(ADDON::BinaryAddonBasePtr addon) override;
+  virtual void DisableEvent(ADDON::BinaryAddonBasePtr addon) override;
+  virtual void InstalledEvent(ADDON::BinaryAddonBasePtr addon) override;
+  virtual void DeinstalledEvent(ADDON::BinaryAddonBasePtr addon) override;
 
   virtual void EnableAddon(const std::string &Id, bool Enable) override;
   virtual bool GetAddon(const std::string &Id, ADDON::AddonPtr &addon) override;
