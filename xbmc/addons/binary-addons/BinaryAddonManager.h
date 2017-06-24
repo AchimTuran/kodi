@@ -26,7 +26,6 @@
 
 namespace ADDON
 {
-
   class IAddonInstanceHandler;
 
   class CAddonDll;
@@ -35,6 +34,16 @@ namespace ADDON
   class CBinaryAddonBase;
   typedef std::shared_ptr<CBinaryAddonBase> BinaryAddonBasePtr;
   typedef std::vector<BinaryAddonBasePtr> BinaryAddonBaseList;
+
+  class IBinaryAddonManagerCallback
+  {
+  public:
+    virtual ~IBinaryAddonManagerCallback() {};
+    virtual void EnableEvent(BinaryAddonBasePtr addon) {}
+    virtual void DisableEvent(BinaryAddonBasePtr addon) {}
+    virtual void InstalledEvent(BinaryAddonBasePtr addon) {}
+    virtual void DeinstalledEvent(BinaryAddonBasePtr addon) {}
+  };
 
   class CBinaryAddonManager
   {
@@ -97,6 +106,10 @@ namespace ADDON
      */
     AddonPtr GetRunningAddon(const std::string& addonId) const;
 
+    bool RegisterCallback(const TYPE type, IBinaryAddonManagerCallback *cb);
+
+    void UnregisterCallback(const TYPE type);
+
   private:
     bool AddAddonBaseEntry(BINARY_ADDON_LIST_ENTRY& entry);
 
@@ -110,6 +123,8 @@ namespace ADDON
     typedef std::map<std::string, BinaryAddonBasePtr> BinaryAddonMgrBaseList;
     BinaryAddonMgrBaseList m_installedAddons;
     BinaryAddonMgrBaseList m_enabledAddons;
+
+    std::map<TYPE, IBinaryAddonManagerCallback*> m_managers;
   };
 
 } /* namespace ADDON */
