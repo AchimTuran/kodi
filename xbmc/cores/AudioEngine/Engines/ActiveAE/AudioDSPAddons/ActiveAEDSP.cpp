@@ -570,7 +570,7 @@ void CActiveAEDSP::UpdateAddons()
 
   for (auto &addonInfo : addonInfos)
   {
-    bool bEnabled = !CAddonMgr::GetInstance().IsAddonDisabled(addonInfo->ID());
+    bool bEnabled = !CServiceBroker::GetAddonMgr().IsAddonDisabled(addonInfo->ID());
     if (bEnabled && (!IsKnownAudioDSPAddon(addonInfo->ID()) || !IsReadyAudioDSPAddon(addonInfo)))
     {
       std::hash<std::string> hasher;
