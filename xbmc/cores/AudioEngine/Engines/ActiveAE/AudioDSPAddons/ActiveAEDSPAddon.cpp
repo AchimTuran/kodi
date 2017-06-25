@@ -36,7 +36,7 @@ using namespace ActiveAE;
 CActiveAEDSPAddon::CActiveAEDSPAddon(BinaryAddonBasePtr addonInfo)
   : IAddonInstanceHandler(ADDON_INSTANCE_ADSP, addonInfo)
 {
-  ResetProperties();
+  ResetProperties(AE_DSP_INVALID_ADDON_ID);
 }
 
 CActiveAEDSPAddon::~CActiveAEDSPAddon(void)
@@ -44,7 +44,7 @@ CActiveAEDSPAddon::~CActiveAEDSPAddon(void)
   Destroy();
 }
 
-void CActiveAEDSPAddon::ResetProperties(int iClientId /* = AE_DSP_INVALID_ADDON_ID */)
+void CActiveAEDSPAddon::ResetProperties(unsigned int uiClientId)
 {
   /* initialise members */
   m_menuhooks.clear();
@@ -52,7 +52,7 @@ void CActiveAEDSPAddon::ResetProperties(int iClientId /* = AE_DSP_INVALID_ADDON_
   m_strAddonPath          = CSpecialProtocol::TranslatePath(Path());
   m_bReadyToUse           = false;
   m_isInUse               = false;
-  m_iClientId             = iClientId;
+  m_uiClientId            = uiClientId;
   m_strAudioDSPVersion    = DEFAULT_INFO_STRING_VALUE;
   m_strFriendlyName       = DEFAULT_INFO_STRING_VALUE;
   m_strAudioDSPName       = DEFAULT_INFO_STRING_VALUE;
@@ -69,9 +69,9 @@ void CActiveAEDSPAddon::ResetProperties(int iClientId /* = AE_DSP_INVALID_ADDON_
   m_struct.toKodi.unregister_mode = cb_unregister_mode;
 }
 
-bool CActiveAEDSPAddon::Create(int iClientId)
+bool CActiveAEDSPAddon::Create(unsigned int iClientId)
 {
-  if (iClientId <= AE_DSP_INVALID_ADDON_ID)
+  if (iClientId == AE_DSP_INVALID_ADDON_ID)
     return false;
 
   /* ensure that a previous instance is destroyed */
@@ -108,16 +108,16 @@ void CActiveAEDSPAddon::Destroy(void)
   DestroyInstance();
 
   /* reset all properties to defaults */
-  ResetProperties();
+  ResetProperties(AE_DSP_INVALID_ADDON_ID);
 }
 
-void CActiveAEDSPAddon::ReCreate(void)
+bool CActiveAEDSPAddon::ReCreate(void)
 {
-  int iClientID(m_iClientId);
+  unsigned int uiClientID = m_uiClientId;
   Destroy();
 
   /* recreate the instance */
-  Create(iClientID);
+  return Create(uiClientID);
 }
 
 bool CActiveAEDSPAddon::ReadyToUse(void) const
@@ -125,9 +125,9 @@ bool CActiveAEDSPAddon::ReadyToUse(void) const
   return m_bReadyToUse;
 }
 
-int CActiveAEDSPAddon::GetID(void) const
+unsigned int CActiveAEDSPAddon::GetAudioDSPID(void) const
 {
-  return m_iClientId;
+  return m_uiClientId;
 }
 
 bool CActiveAEDSPAddon::IsInUse() const
@@ -476,13 +476,13 @@ void CActiveAEDSPAddon::cb_register_mode(void* kodiInstance, AE_DSP_MODES::AE_DS
   CActiveAEDSPAddon *addon = static_cast<CActiveAEDSPAddon*>(kodiInstance);
   if (!mode || !addon)
   {
-    CLog::Log(LOGERROR, "Audio DSP - %s - invalid mode data", __FUNCTION__);
+    CLog::Log(LOGERROR, "AudioDSP - %s - Fatal error invalid mode data or kodiInstance pointer!", __FUNCTION__);
     return;
   }
 
-  CActiveAEDSPMode transferMode(*mode, addon->GetID());
-  int idMode = transferMode.AddUpdate();
-  mode->iUniqueDBModeId = idMode;
+  CActiveAEDSPMode transferMode(*mode, addon->GetAudioDSPID());
+  unsigned int idMode = transferMode.AddUpdate();
+  mode->uiUniqueDBModeId = idMode;
 
   if (idMode > AE_DSP_INVALID_ADDON_ID)
   {
@@ -503,6 +503,6 @@ void CActiveAEDSPAddon::cb_unregister_mode(void* kodiInstance, AE_DSP_MODES::AE_
     return;
   }
 
-  CActiveAEDSPMode transferMode(*mode, addon->GetID());
+  CActiveAEDSPMode transferMode(*mode, addon->GetAudioDSPID());
   transferMode.Delete();
 }

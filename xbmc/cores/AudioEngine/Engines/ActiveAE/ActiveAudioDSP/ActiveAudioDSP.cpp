@@ -547,7 +547,17 @@ void CActiveAudioDSP::PrepareAddons()
     }
     else
     {
-      m_EnabledAddons[addonInfo->ID()] = dspAddon;
+      std::hash<std::string> hasher;
+      unsigned int uiAddonId = hasher(addonInfo->ID());
+      if (!dspAddon->Create(uiAddonId))
+      {
+        CServiceBroker::GetAddonMgr().DisableAddon(dspAddon->ID());
+        CLog::Log(LOGERROR, "failed to create add-on \"%s\"", dspAddon->ID().c_str());
+      }
+      else
+      {
+        m_EnabledAddons[addonInfo->ID()] = dspAddon;
+      }
     }
   }
 }

@@ -39,8 +39,8 @@ namespace ActiveAE
 
   #define AE_DSP_MASTER_MODE_ID_INTERNAL_TYPES              0xFF00
   #define AE_DSP_MASTER_MODE_ID_INTERNAL_STEREO_UPMIX       (AE_DSP_MASTER_MODE_ID_INTERNAL_TYPES)  /*!< Used to for internal stereo upmix over ffmpeg */
-  #define AE_DSP_MASTER_MODE_ID_PASSOVER                    0  /*!< Used to ignore master processing */
-  #define AE_DSP_MASTER_MODE_ID_INVALID                     -1
+  #define AE_DSP_MASTER_MODE_ID_PASSOVER                    1  /*!< Used to ignore master processing */
+  #define AE_DSP_MASTER_MODE_ID_INVALID                     0
 
   /*!
    * DSP Mode information class
@@ -58,14 +58,14 @@ namespace ActiveAE
      * @param baseType the used base of this internal mode
      * @note this creation is only used to get a internal bypass mode (no addon call process mode)
      */
-    CActiveAEDSPMode(int modeId, const AE_DSP_BASETYPE baseType);
+    CActiveAEDSPMode(unsigned int modeId, const AE_DSP_BASETYPE baseType);
 
     /*!
      * @brief Create the class about from addon given values
      * @param mode the from addon set identification structure
      * @param iAddonId the addon identification of the given data
      */
-    CActiveAEDSPMode(const AE_DSP_MODES::AE_DSP_MODE &mode, int iAddonId);
+    CActiveAEDSPMode(const AE_DSP_MODES::AE_DSP_MODE &mode, unsigned int iAddonId);
 
     /*!
      * @brief Create a new class about given class
@@ -205,14 +205,14 @@ namespace ActiveAE
      * @brief Get the identifier of this mode used on database
      * @return the mode identifier or -1 if unknown and not saved to database
      */
-    int ModeID(void) const;
+    unsigned int ModeID(void) const;
 
     /*!
      * @brief Add or update this mode to the audio DSP database
      * @param force if it is false it write only to the database on uknown id or if a change was inside the mode
-     * @return the database identifier of this mode, or -1 if a error was occurred
+     * @return the database identifier of this mode, or AE_DSP_MASTER_MODE_ID_INVALID if a error was occurred
      */
-    int AddUpdate(bool force = false);
+    unsigned int AddUpdate(bool force = false);
 
     /*!
      * @brief Delete this mode from the audio dsp database
@@ -293,7 +293,7 @@ namespace ActiveAE
     //@{
     AE_DSP_MODE_TYPE  m_iModeType;               /*!< the processing mode type */
     int               m_iModePosition;           /*!< the processing mode position */
-    int               m_iModeId;                 /*!< the identifier given to this mode by the DSP database */
+    unsigned int      m_uiModeId;                /*!< the identifier given to this mode by the DSP database */
     AE_DSP_BASETYPE   m_iBaseType;               /*!< The stream source coding format */
     bool              m_bIsEnabled;              /*!< true if this mode is enabled, false if not */
     std::string       m_strOwnIconPath;          /*!< the path to the icon for this mode */
@@ -310,7 +310,7 @@ namespace ActiveAE
     /*! @name Dynamic processing related data
      */
     //@{
-    float             m_fCPUUsage;               /*!< if mode is active the used cpu force in percent is set here */
+    float             m_fCPUUsage;               /*!< holds the used cpu load in percentage if the mode is active */
     //@}
 
     /*! @name Audio dsp add-on related mode data

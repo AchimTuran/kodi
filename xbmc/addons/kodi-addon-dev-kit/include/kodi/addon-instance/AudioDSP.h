@@ -454,7 +454,7 @@ extern "C" {
     unsigned int iModesCount;                                             /*!< @brief (required) count of how much modes are in AE_DSP_MODES */
     struct AE_DSP_MODE
     {
-      int               iUniqueDBModeId;                                  /*!< @brief (required) the inside add-on used identifier for the mode, set by KODI's audio DSP database */
+      unsigned int      uiUniqueDBModeId;                                 /*!< @brief (required) the inside add-on used identifier for the mode, set by KODI's audio DSP database */
       AE_DSP_MODE_TYPE  iModeType;                                        /*!< @brief (required) the processong mode type, see AE_DSP_MODE_TYPE */
       char              strModeName[ADDON_STANDARD_STRING_LENGTH];        /*!< @brief (required) the addon name of the mode, used on KODI's logs  */
 

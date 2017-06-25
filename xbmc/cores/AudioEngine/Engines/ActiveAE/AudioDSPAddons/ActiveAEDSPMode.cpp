@@ -28,7 +28,7 @@ using namespace ActiveAE;
 
 bool CActiveAEDSPMode::operator==(const CActiveAEDSPMode &right) const
 {
-  return (m_iModeId           == right.m_iModeId &&
+  return (m_uiModeId          == right.m_uiModeId &&
           m_iAddonId          == right.m_iAddonId &&
           m_iAddonModeNumber  == right.m_iAddonModeNumber &&
           m_iModeType         == right.m_iModeType &&
@@ -43,7 +43,7 @@ bool CActiveAEDSPMode::operator!=(const CActiveAEDSPMode &right) const
 CActiveAEDSPMode::CActiveAEDSPMode()
 {
   m_iModeType               = AE_DSP_MODE_TYPE_UNDEFINED;
-  m_iModeId                 = -1;
+  m_uiModeId                = AE_DSP_INVALID_ADDON_ID;
   m_iModePosition           = -1;
   m_bIsEnabled              = false;
   m_strOwnIconPath          = "";
@@ -65,10 +65,10 @@ CActiveAEDSPMode::CActiveAEDSPMode()
   m_strModeName             = "";
 }
 
-CActiveAEDSPMode::CActiveAEDSPMode(int modeId, const AE_DSP_BASETYPE baseType)
+CActiveAEDSPMode::CActiveAEDSPMode(unsigned int modeId, const AE_DSP_BASETYPE baseType)
 {
   m_iModeType               = AE_DSP_MODE_TYPE_MASTER_PROCESS;
-  m_iModeId                 = modeId;
+  m_uiModeId                = modeId;
   m_iModePosition           = 0;
   m_bIsEnabled              = true;
   m_strOwnIconPath          = "";
@@ -117,11 +117,11 @@ CActiveAEDSPMode::CActiveAEDSPMode(int modeId, const AE_DSP_BASETYPE baseType)
   m_iAddonModeNumber        = -1;
 }
 
-CActiveAEDSPMode::CActiveAEDSPMode(const AE_DSP_MODES::AE_DSP_MODE &mode, int iAddonId)
+CActiveAEDSPMode::CActiveAEDSPMode(const AE_DSP_MODES::AE_DSP_MODE &mode, unsigned int iAddonId)
 {
   m_iModeType               = mode.iModeType;
   m_iModePosition           = -1;
-  m_iModeId                 = mode.iUniqueDBModeId;
+  m_uiModeId                = mode.uiUniqueDBModeId;
   m_iAddonId                = iAddonId;
   m_iBaseType               = AE_DSP_ABASE_INVALID;
   m_bIsEnabled              = m_iModeType == AE_DSP_MODE_TYPE_MASTER_PROCESS ? !mode.bIsDisabled : false;
@@ -141,7 +141,7 @@ CActiveAEDSPMode::CActiveAEDSPMode(const AE_DSP_MODES::AE_DSP_MODE &mode, int iA
   m_fCPUUsage               = 0.0f;
 
   if (m_strModeName.empty())
-    m_strModeName = StringUtils::Format("%s %d", g_localizeStrings.Get(15023).c_str(), m_iModeId);
+    m_strModeName = StringUtils::Format("%s %d", g_localizeStrings.Get(15023).c_str(), m_uiModeId);
 }
 
 CActiveAEDSPMode::CActiveAEDSPMode(const CActiveAEDSPMode &mode)
@@ -151,7 +151,7 @@ CActiveAEDSPMode::CActiveAEDSPMode(const CActiveAEDSPMode &mode)
 
 CActiveAEDSPMode &CActiveAEDSPMode::operator=(const CActiveAEDSPMode &mode)
 {
-  m_iModeId                 = mode.m_iModeId;
+  m_uiModeId                = mode.m_uiModeId;
   m_iModeType               = mode.m_iModeType;
   m_iModePosition           = mode.m_iModePosition;
   m_bIsEnabled              = mode.m_bIsEnabled;
@@ -179,7 +179,7 @@ CActiveAEDSPMode &CActiveAEDSPMode::operator=(const CActiveAEDSPMode &mode)
 bool CActiveAEDSPMode::IsNew(void) const
 {
   CSingleLock lock(m_critSection);
-  return m_iModeId <= 0;
+  return m_uiModeId == AE_DSP_INVALID_ADDON_ID;
 }
 
 bool CActiveAEDSPMode::IsChanged(void) const
@@ -323,33 +323,33 @@ AE_DSP_BASETYPE CActiveAEDSPMode::BaseType(void) const
 
 /********** Audio DSP database related functions **********/
 
-int CActiveAEDSPMode::ModeID(void) const
+unsigned int CActiveAEDSPMode::ModeID(void) const
 {
   CSingleLock lock(m_critSection);
-  return m_iModeId;
+  return m_uiModeId;
 }
 
-int CActiveAEDSPMode::AddUpdate(bool force)
+unsigned int CActiveAEDSPMode::AddUpdate(bool force)
 {
   if (!force)
   {
     // not changed
     CSingleLock lock(m_critSection);
-    if (!m_bChanged && m_iModeId > 0)
-      return m_iModeId;
+    if (!m_bChanged && m_uiModeId > AE_DSP_MASTER_MODE_ID_INVALID)
+      return m_uiModeId;
   }
 
   CActiveAEDSPDatabase *database = nullptr;
   if (!database || !database->IsOpen())
   {
     CLog::Log(LOGERROR, "ActiveAE DSP - failed to open the database");
-    return -1;
+    return AE_DSP_MASTER_MODE_ID_INVALID;
   }
 
   database->AddUpdateMode(*this);
-  m_iModeId = database->GetModeId(*this);
+  m_uiModeId = database->GetModeId(*this);
 
-  return m_iModeId;
+  return m_uiModeId;
 }
 
 bool CActiveAEDSPMode::Delete(void)

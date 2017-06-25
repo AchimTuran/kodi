@@ -683,7 +683,7 @@ int CActiveAEDSP::GetEnabledAudioDSPAddons(AE_DSP_ADDONMAP &addons) const
   {
     if (!CAddonMgr::GetInstance().IsAddonDisabled(citr->second->ID()))
     {
-      addons.insert(std::make_pair(citr->second->GetID(), citr->second));
+      addons.insert(std::make_pair(citr->second->GetAudioDSPID(), citr->second));
       ++iReturn;
     }
   }
@@ -788,7 +788,7 @@ bool CActiveAEDSP::GetAudioDSPAddon(const std::string &strId, AE_DSP_ADDON &addo
 
 /*! @name Menu hook methods */
 //@{
-bool CActiveAEDSP::HaveMenuHooks(AE_DSP_MENUHOOK_CAT cat, int iDSPAddonID)
+bool CActiveAEDSP::HaveMenuHooks(AE_DSP_MENUHOOK_CAT cat, unsigned int iDSPAddonID)
 {
   CSingleLock lock(m_critSection);
   for (AE_DSP_ADDONMAP_CITR citr = m_addonMap.begin(); citr != m_addonMap.end(); ++citr)
@@ -797,7 +797,7 @@ bool CActiveAEDSP::HaveMenuHooks(AE_DSP_MENUHOOK_CAT cat, int iDSPAddonID)
     {
       if (citr->second->HaveMenuHooks(cat))
       {
-        if (iDSPAddonID > 0 && citr->second->GetID() == iDSPAddonID)
+        if (iDSPAddonID > 0 && citr->second->GetAudioDSPID() == iDSPAddonID)
           return true;
         else if (iDSPAddonID < 0)
           return true;

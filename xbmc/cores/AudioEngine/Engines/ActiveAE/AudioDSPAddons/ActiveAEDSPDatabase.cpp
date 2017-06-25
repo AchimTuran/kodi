@@ -215,7 +215,7 @@ bool CActiveAEDSPDatabase::AddUpdateMode(CActiveAEDSPMode &mode)
     if (m_pDS->num_rows() > 0)
     {
       /* get user selected settings */
-      mode.m_iModeId        = m_pDS->fv("idMode").get_asInt();
+      mode.m_uiModeId       = m_pDS->fv("idMode").get_asUInt();
       mode.m_iModePosition  = m_pDS->fv("iPosition").get_asInt();
       mode.m_iBaseType      = (AE_DSP_BASETYPE)m_pDS->fv("iBaseType").get_asInt();
       mode.m_bIsEnabled     = m_pDS->fv("bIsEnabled").get_asBool();
@@ -244,7 +244,7 @@ bool CActiveAEDSPDatabase::AddUpdateMode(CActiveAEDSPMode &mode)
         mode.AddonModeName().c_str(),
         (mode.HasSettingsDialog() ? 1 : 0),
         mode.AddonID(), mode.AddonModeNumber(), mode.ModeType());
-		bReturn = m_pDS->exec(strSQL);
+      bReturn = m_pDS->exec(strSQL) != 0;
     }
     else
     { // add the items
@@ -282,7 +282,7 @@ bool CActiveAEDSPDatabase::AddUpdateMode(CActiveAEDSPMode &mode)
         mode.AddonID(),
         mode.AddonModeNumber(),
         (mode.HasSettingsDialog() ? 1 : 0));
-      bReturn = m_pDS->exec(strSQL);
+      bReturn = m_pDS->exec(strSQL) != 0;
     }
   }
   catch (...)
@@ -315,7 +315,7 @@ int CActiveAEDSPDatabase::GetModes(AE_DSP_MODELIST &results, int modeType)
       {
         CActiveAEDSPModePtr mode = CActiveAEDSPModePtr(new CActiveAEDSPMode());
 
-        mode->m_iModeId                 = m_pDS->fv("idMode").get_asInt();
+        mode->m_uiModeId                = m_pDS->fv("idMode").get_asUInt();
         mode->m_iModeType               = (AE_DSP_MODE_TYPE)m_pDS->fv("iType").get_asInt();
         mode->m_iModePosition           = m_pDS->fv("iPosition").get_asInt();
         mode->m_iStreamTypeFlags        = m_pDS->fv("iStreamTypeFlags").get_asInt();

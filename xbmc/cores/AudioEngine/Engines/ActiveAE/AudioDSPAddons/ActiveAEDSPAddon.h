@@ -33,7 +33,7 @@ namespace ActiveAE
   typedef std::vector<AE_DSP_MENUHOOK>                    AE_DSP_MENUHOOKS;
   typedef std::shared_ptr<ActiveAE::CActiveAEDSPAddon>    AE_DSP_ADDON;
 
-  #define AE_DSP_INVALID_ADDON_ID (-1)
+  #define AE_DSP_INVALID_ADDON_ID (0)
 
   /*!
    * Interface from KODI to a Audio DSP add-on.
@@ -52,7 +52,7 @@ namespace ActiveAE
      * @brief Initialise the instance of this add-on.
      * @param iClientId The ID of this add-on.
      */
-    bool Create(int iClientId);
+    bool Create(unsigned int iClientId);
 
     /*!
      * @brief Destroy the instance of this add-on.
@@ -62,7 +62,7 @@ namespace ActiveAE
     /*!
      * @brief Destroy and recreate this add-on.
      */
-    void ReCreate(void);
+    bool ReCreate(void);
 
     /*!
      * @return True if this instance is initialised, false otherwise.
@@ -72,7 +72,7 @@ namespace ActiveAE
     /*!
      * @return The ID of this instance.
      */
-    int GetID(void) const;
+    unsigned int GetAudioDSPID(void) const;
 
     /*!
      * @return The false if this addon is currently not used.
@@ -363,7 +363,7 @@ namespace ActiveAE
     /*!
      * @brief Resets all class members to their defaults. Called by the constructors.
      */
-    void ResetProperties(int iClientId = AE_DSP_INVALID_ADDON_ID);
+    void ResetProperties(unsigned int uiClientId);
 
     void GetAddonProperties(void);
 
@@ -406,7 +406,7 @@ namespace ActiveAE
     bool                      m_bReadyToUse;            /*!< true if this add-on is connected to the audio DSP, false otherwise */
     bool                      m_isInUse;                /*!< true if this add-on currently processing data */
     AE_DSP_MENUHOOKS          m_menuhooks;              /*!< the menu hooks for this add-on */
-    int                       m_iClientId;              /*!< database ID of the audio DSP */
+    unsigned int              m_uiClientId;             /*!< database ID of the audio DSP */
 
     /* cached data */
     std::string               m_strAudioDSPName;        /*!< the cached audio DSP name */

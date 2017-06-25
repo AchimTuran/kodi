@@ -49,9 +49,9 @@ namespace ActiveAE
   class CActiveAEDSPAddon;
 
   typedef std::shared_ptr<ActiveAE::CActiveAEDSPProcess>  CActiveAEDSPProcessPtr;
-  typedef std::map< int, AE_DSP_ADDON >                   AE_DSP_ADDONMAP;
-  typedef std::map< int, AE_DSP_ADDON >::iterator         AE_DSP_ADDONMAP_ITR;
-  typedef std::map< int, AE_DSP_ADDON >::const_iterator   AE_DSP_ADDONMAP_CITR;
+  typedef std::map<unsigned int, AE_DSP_ADDON >                   AE_DSP_ADDONMAP;
+  typedef std::map<unsigned int, AE_DSP_ADDON >::iterator         AE_DSP_ADDONMAP_ITR;
+  typedef std::map<unsigned int, AE_DSP_ADDON >::const_iterator   AE_DSP_ADDONMAP_CITR;
 
   //@{
   /*!
@@ -319,7 +319,7 @@ namespace ActiveAE
      * standard addon settings dialog as option to it
      * see <kodi/addon-instance/AudioDSP.h> for available types
      */
-    bool HaveMenuHooks(AE_DSP_MENUHOOK_CAT cat, int iAddonId = -1);
+    bool HaveMenuHooks(AE_DSP_MENUHOOK_CAT cat, unsigned int iAddonId);
 
     /*!
      * @brief Get the menu hooks for a dsp addon.
