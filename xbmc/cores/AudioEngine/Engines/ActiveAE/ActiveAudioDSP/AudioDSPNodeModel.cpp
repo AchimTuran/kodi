@@ -19,6 +19,7 @@
  */
 
 #include "cores/AudioEngine/Engines/ActiveAE/ActiveAudioDSP/AudioDSPNodeModel.h"
+#include "utils/log.h"
 
 using namespace std;
 using namespace DSP;
@@ -75,6 +76,7 @@ DSPErrorCode_t CDSPNodeModel::RegisterNode(const CDSPNodeInfoQuery &Node, IDSPNo
   }
 
   m_Nodes.push_back(NodeInfo_t(id, false, creator, addonName, modeName, instanceModeName));
+  CLog::Log(LOGDEBUG, "%s - successful registered signal processing node creator for mode %s from add-on %s with ModeID %i, ModeInstanceID %i and UniqueAddonID &i", __FUNCTION__, modeName.c_str(), addonName.c_str(), id.ModeID, id.ModeInstanceID, id.UniqueAddonID);
 
   return DSP_ERR_NO_ERR;
 }
