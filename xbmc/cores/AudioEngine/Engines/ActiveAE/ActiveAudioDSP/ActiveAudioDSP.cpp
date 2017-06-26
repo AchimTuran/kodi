@@ -570,17 +570,22 @@ void CActiveAudioDSP::PrepareAddonModes()
   // get all add-on modes
   for (AudioDSPAddonMap_t::iterator iter = m_EnabledAddons.begin(); iter != m_EnabledAddons.end(); ++iter)
   {
-    AE_DSP_ADDON_CAPABILITIES caps = iter->second->GetAddonCapabilities();
-    unsigned int maxModeCount = 1;
-    for (unsigned int modeCount = 0; modeCount < maxModeCount; modeCount++)
-    {
-      uint32_t addonID = 0;         //! @todo get real parameters
-      uint16_t modeID = 0;          //! @todo get real parameters
-      uint16_t modeInstanceID = 0;  //! @todo get real parameters
+    CActiveAEDSPAddon::CAudioDSPModeVector_t modes;
+    iter->second->GetAudioDSPModes(modes);
 
-      NodeID_t id(addonID, modeID, modeInstanceID);
-      //m_DSPChainModelObject.RegisterNode(...);
-      //m_DSPChainModelObject.AddNode(IDSPNodeModel::CDSPNodeInfo(id, iter->first, false)); //! @todo how to handle errors?
+    if (modes.size() <= 0)
+    {
+      CLog::Log(LOGWARNING, "%s - the add-on %s doesn't provide any valid signal processing modes", __FUNCTION__, iter->second->ID().c_str());
+    }
+
+    for (unsigned int modeCount = 0; modeCount < modes.size(); modeCount++)
+    {
+      CAudioDSPAddonNodeCreator addonNodeCreator(iter->second);
+      DSPErrorCode_t err = m_DSPChainModelObject.RegisterNode(IDSPNodeModel::CDSPNodeInfoQuery({ iter->second->ID(), modes[modeCount].strModeName }), addonNodeCreator);
+      if (err != DSP_ERR_NO_ERR)
+      {
+        CLog::Log(LOGERROR, "%s failed to register %s from add-on %s!", __FUNCTION__, modes[modeCount].strModeName.c_str(), iter->second->Name().c_str());
+      }
     }
   }
 
