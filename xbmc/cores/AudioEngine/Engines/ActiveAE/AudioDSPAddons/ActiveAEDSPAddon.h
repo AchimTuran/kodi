@@ -43,6 +43,84 @@ namespace ActiveAE
   class CActiveAEDSPAddon : public ADDON::IAddonInstanceHandler
   {
   public:
+    class CAudioDSPMode
+    {
+    public:
+      CAudioDSPMode() 
+      {
+        uiUniqueDBModeId = AE_DSP_INVALID_ADDON_ID;  //! @todo AudioDSP V2 replace this with a new define which is not specific to ADDON_ID
+        iModeType = AE_DSP_MODE_TYPE_UNDEFINED;
+        strModeName.clear();
+
+        iModeNumber = AE_DSP_INVALID_ADDON_ID;  //! @todo AudioDSP V2 replace this with a new define which is not specific to ADDON_ID
+        iModeSupportTypeFlags = 0;
+        bHasSettingsDialog = false;
+        bIsDisabled = true;
+
+        iModeName = 0;
+        iModeSetupName = 0;
+        iModeDescription = 0;
+        iModeHelp = 0;
+
+        strOwnModeImage.clear();
+        strOverrideModeImage.clear();
+      }
+
+      CAudioDSPMode(const AE_DSP_MODES::AE_DSP_MODE *Mode)
+      {
+        *this = Mode;
+      }
+
+      unsigned int      uiUniqueDBModeId;                                 /*!< @brief (required) the inside add-on used identifier for the mode, set by KODI's audio DSP database */
+      AE_DSP_MODE_TYPE  iModeType;                                        /*!< @brief (required) the processong mode type, see AE_DSP_MODE_TYPE */
+      std::string       strModeName;                                      /*!< @brief (required) the addon name of the mode, used on KODI's logs  */
+
+      unsigned int      iModeNumber;                                      /*!< @brief (required) number of this mode on the add-on, is used on process functions with value "mode_id" */
+      unsigned int      iModeSupportTypeFlags;                            /*!< @brief (required) flags about supported input types for this mode, see AE_DSP_ASTREAM_PRESENT */
+      bool              bHasSettingsDialog;                               /*!< @brief (required) if setting dialog(s) are available it must be set to true */
+      bool              bIsDisabled;                                      /*!< @brief (optional) true if this mode is marked as disabled and not enabled default, only relevant for master processes, all other types always disabled as default */
+
+      unsigned int      iModeName;                                        /*!< @brief (required) the name id of the mode for this hook in g_localizeStrings */
+      unsigned int      iModeSetupName;                                   /*!< @brief (optional) the name id of the mode inside settings for this hook in g_localizeStrings */
+      unsigned int      iModeDescription;                                 /*!< @brief (optional) the description id of the mode for this hook in g_localizeStrings */
+      unsigned int      iModeHelp;                                        /*!< @brief (optional) help string id for inside DSP settings dialog of the mode for this hook in g_localizeStrings */
+
+      std::string       strOwnModeImage;                                  /*!< @brief (optional) flag image for the mode */
+      std::string       strOverrideModeImage;                             /*!< @brief (optional) image to override KODI Image for the mode, eg. Dolby Digital with Dolby Digital Ex (only used on master modes) */
+
+      CAudioDSPMode& operator= (const AE_DSP_MODES::AE_DSP_MODE *Mode)
+      {
+        uiUniqueDBModeId       = Mode->uiUniqueDBModeId;
+        iModeType              = Mode->iModeType;
+        strModeName            = Mode->strModeName;
+        iModeNumber            = Mode->iModeNumber;
+        iModeSupportTypeFlags  = Mode->iModeSupportTypeFlags;
+        bHasSettingsDialog     = Mode->bHasSettingsDialog;
+        bIsDisabled            = Mode->bIsDisabled;
+        iModeName              = Mode->iModeName;
+        iModeSetupName         = Mode->iModeSetupName;
+        iModeDescription       = Mode->iModeDescription;
+        iModeHelp              = Mode->iModeHelp;
+        strOwnModeImage        = Mode->strOwnModeImage;
+        strOverrideModeImage   = Mode->strOverrideModeImage;
+
+        return *this;
+      }
+    };
+
+    class CAudioDSPDialogHook
+    {
+    public:
+      unsigned int        iHookId;                /*!< @brief (required) this hook's identifier */
+      unsigned int        iLocalizedStringId;     /*!< @brief (required) the id of the label for this hook in g_localizeStrings */
+      AE_DSP_MENUHOOK_CAT category;               /*!< @brief (required) category of menu hook */
+      unsigned int        iRelevantModeId;        /*!< @brief (required) except category AE_DSP_MENUHOOK_SETTING and AE_DSP_MENUHOOK_ALL must be the related mode id present here */
+      bool                bNeedPlayback;          /*!< @brief (required) set to true if menu hook need playback and active processing */
+    };
+
+    typedef std::vector<CAudioDSPMode>   CAudioDSPModeVector_t;
+
+  public:
     explicit CActiveAEDSPAddon(ADDON::BinaryAddonBasePtr addonInfo);
     ~CActiveAEDSPAddon(void);
 
@@ -112,6 +190,12 @@ namespace ActiveAE
      * @return The menu hooks for this add-on.
      */
     AE_DSP_MENUHOOKS *GetMenuHooks(void);
+
+    /*!
+     * @brief Gets the registered AudioDSP modes.
+     * @param AudioDSP mode vector.
+     */
+    void GetAudioDSPModes(CAudioDSPModeVector_t &Modes);
 
     /*!
      * @brief Call one of the menu hooks of this addon.
@@ -360,6 +444,11 @@ namespace ActiveAE
     static const char *ToString(const AE_DSP_ERROR error);
 
   private:
+    static unsigned int m_uniqueModeID;
+    CAudioDSPModeVector_t m_registeredModes;
+    unsigned int RegisterMode(const CAudioDSPMode &Mode);
+    void DeregisterMode(const CAudioDSPMode &Mode);
+
     /*!
      * @brief Resets all class members to their defaults. Called by the constructors.
      */

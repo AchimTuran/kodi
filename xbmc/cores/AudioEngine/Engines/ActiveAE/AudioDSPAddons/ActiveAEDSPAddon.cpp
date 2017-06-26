@@ -33,6 +33,8 @@ using namespace ActiveAE;
 
 #define DEFAULT_INFO_STRING_VALUE "unknown"
 
+unsigned int CActiveAEDSPAddon::m_uniqueModeID = 0; //! @todo AudioDSP V2 make this thread safe or remove this if not needed
+
 CActiveAEDSPAddon::CActiveAEDSPAddon(BinaryAddonBasePtr addonInfo)
   : IAddonInstanceHandler(ADDON_INSTANCE_ADSP, addonInfo)
 {
@@ -193,9 +195,22 @@ bool CActiveAEDSPAddon::HaveMenuHooks(AE_DSP_MENUHOOK_CAT cat) const
   return false;
 }
 
+//! @todo AudioDSP V2 make this thread safe
 AE_DSP_MENUHOOKS *CActiveAEDSPAddon::GetMenuHooks(void)
 {
   return &m_menuhooks;
+}
+
+void ActiveAE::CActiveAEDSPAddon::GetAudioDSPModes(CAudioDSPModeVector_t &Modes)
+{
+  Modes.clear();
+
+  CSingleLock lock(m_critSection);
+
+  for (unsigned int ii = 0; ii < m_registeredModes.size(); ii++)
+  {
+    Modes.push_back(m_registeredModes[ii]);
+  }
 }
 
 void CActiveAEDSPAddon::CallMenuHook(const AE_DSP_MENUHOOK &hook, AE_DSP_MENUHOOK_DATA &hookData)
@@ -412,6 +427,59 @@ const char *CActiveAEDSPAddon::ToString(const AE_DSP_ERROR error)
   }
 }
 
+unsigned int CActiveAEDSPAddon::RegisterMode(const CAudioDSPMode &Mode)
+{
+  CSingleLock lock(m_critSection);
+
+  std::vector<CAudioDSPMode>::iterator iter = m_registeredModes.end();
+  unsigned int id = AE_DSP_INVALID_ADDON_ID; //! @todo AudioDSP V2 replace this with a new define which is not specific to ADDON_ID
+  for (unsigned int ii = 0; ii < m_registeredModes.size(); ii++)
+  {
+    if (m_registeredModes[ii].strModeName == Mode.strModeName && 
+        m_registeredModes[ii].iModeNumber == Mode.iModeNumber)
+    {
+      iter = m_registeredModes.begin() + ii;
+      break;
+    }
+  }
+
+  if (iter != m_registeredModes.end())
+  {
+    id = iter->uiUniqueDBModeId;
+    DeregisterMode(*iter);
+    //! @todo AudioDSP V2 assign new ModeID
+  }
+  else
+  {
+    m_uniqueModeID++;
+  }
+  
+  m_registeredModes.push_back(Mode);
+  m_registeredModes.back().uiUniqueDBModeId = id != AE_DSP_INVALID_ADDON_ID ? id : m_uniqueModeID; //! @todo AudioDSP V2 is uiUniqueDBModeId still required?
+
+  return m_registeredModes.back().uiUniqueDBModeId;
+}
+
+void CActiveAEDSPAddon::DeregisterMode(const CAudioDSPMode &Mode)
+{
+  CSingleLock lock(m_critSection);
+
+  std::vector<CAudioDSPMode>::iterator iter = m_registeredModes.end();
+  for (unsigned int ii = 0; ii < m_registeredModes.size(); ii++)
+  {
+    if (m_registeredModes[ii].strModeName == Mode.strModeName &&
+      m_registeredModes[ii].iModeNumber == Mode.iModeNumber)
+    {
+      iter = m_registeredModes.begin() + ii;
+    }
+  }
+
+  if (iter != m_registeredModes.end())
+  {
+    m_registeredModes.erase(iter);
+  }
+}
+
 bool CActiveAEDSPAddon::LogError(const AE_DSP_ERROR error, const char *strMethod) const
 {
   if (error != AE_DSP_ERROR_NO_ERROR && error != AE_DSP_ERROR_IGNORE_ME)
@@ -425,14 +493,14 @@ bool CActiveAEDSPAddon::LogError(const AE_DSP_ERROR error, const char *strMethod
 
 void CActiveAEDSPAddon::cb_add_menu_hook(void *kodiInstance, AE_DSP_MENUHOOK *hook)
 {
-  CActiveAEDSPAddon *client = static_cast<CActiveAEDSPAddon*>(kodiInstance);
-  if (!hook || !client)
+  CActiveAEDSPAddon *addon = static_cast<CActiveAEDSPAddon*>(kodiInstance);
+  if (!hook || !addon)
   {
     CLog::Log(LOGERROR, "Audio DSP - %s - invalid handler data", __FUNCTION__);
     return;
   }
 
-  AE_DSP_MENUHOOKS *hooks = client->GetMenuHooks();
+  AE_DSP_MENUHOOKS *hooks = addon->GetMenuHooks();
   if (hooks)
   {
     AE_DSP_MENUHOOK hookInt;
@@ -449,14 +517,14 @@ void CActiveAEDSPAddon::cb_add_menu_hook(void *kodiInstance, AE_DSP_MENUHOOK *ho
 
 void CActiveAEDSPAddon::cb_remove_menu_hook(void *kodiInstance, AE_DSP_MENUHOOK *hook)
 {
-  CActiveAEDSPAddon *client = static_cast<CActiveAEDSPAddon*>(kodiInstance);
-  if (!hook || !client)
+  CActiveAEDSPAddon *addon = static_cast<CActiveAEDSPAddon*>(kodiInstance);
+  if (!hook || !addon)
   {
     CLog::Log(LOGERROR, "Audio DSP - %s - invalid handler data", __FUNCTION__);
     return;
   }
 
-  AE_DSP_MENUHOOKS *hooks = client->GetMenuHooks();
+  AE_DSP_MENUHOOKS *hooks = addon->GetMenuHooks();
   if (hooks)
   {
     for (unsigned int i = 0; i < hooks->size(); i++)
@@ -480,11 +548,14 @@ void CActiveAEDSPAddon::cb_register_mode(void* kodiInstance, AE_DSP_MODES::AE_DS
     return;
   }
 
-  CActiveAEDSPMode transferMode(*mode, addon->GetAudioDSPID());
-  unsigned int idMode = transferMode.AddUpdate();
-  mode->uiUniqueDBModeId = idMode;
+  CActiveAEDSPAddon::CAudioDSPMode kodiMode = mode;
+  mode->uiUniqueDBModeId = addon->RegisterMode(kodiMode);
 
-  if (idMode > AE_DSP_INVALID_ADDON_ID)
+  //CActiveAEDSPMode transferMode(*mode, addon->GetAudioDSPID());
+  //unsigned int idMode = transferMode.AddUpdate();
+  //mode->uiUniqueDBModeId = idMode;
+
+  if (mode->uiUniqueDBModeId > AE_DSP_INVALID_ADDON_ID)
   {
     CLog::Log(LOGDEBUG, "Audio DSP - %s - successfully registered mode %s of %s adsp-addon", __FUNCTION__, mode->strModeName, addon->Name().c_str());
   }
@@ -503,6 +574,9 @@ void CActiveAEDSPAddon::cb_unregister_mode(void* kodiInstance, AE_DSP_MODES::AE_
     return;
   }
 
-  CActiveAEDSPMode transferMode(*mode, addon->GetAudioDSPID());
-  transferMode.Delete();
+  CActiveAEDSPAddon::CAudioDSPMode kodiMode = mode;
+  addon->DeregisterMode(kodiMode);
+
+  //CActiveAEDSPMode transferMode(*mode, addon->GetAudioDSPID());
+  //transferMode.Delete();
 }
