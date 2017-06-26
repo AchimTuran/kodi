@@ -1092,6 +1092,8 @@ namespace addon {
 
       m_instanceData = static_cast<AddonInstance_AudioDSP*>(instance);
 
+      m_instanceData->toAddon.addonInstance = this;
+
       m_instanceData->toAddon.get_capabilities = ADDON_GetCapabilities;
       m_instanceData->toAddon.get_dsp_name = ADDON_GetDSPName;
       m_instanceData->toAddon.get_dsp_version = ADDON_GetDSPVersion;
