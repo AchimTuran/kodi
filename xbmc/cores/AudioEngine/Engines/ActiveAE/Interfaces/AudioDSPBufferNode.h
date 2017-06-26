@@ -85,7 +85,8 @@ public:
         return busy;
       }
 
-      int out_samples = ProcessInstance(in->pkt->data, out->pkt->data);
+      const uint8_t **inP = (const uint8_t **)(in->pkt->data);
+      int out_samples = ProcessInstance(inP, out->pkt->data);
       if (out_samples < 0)
       {
         out_samples = 0;
@@ -160,7 +161,7 @@ public:
 
 protected:
   virtual DSPErrorCode_t CreateInstance(AEAudioFormat &InputFormat, AEAudioFormat &OutputFormat) = 0;
-  virtual int ProcessInstance(uint8_t **In, uint8_t **Out) = 0;
+  virtual int ProcessInstance(const uint8_t **In, uint8_t **Out) = 0;
   virtual DSPErrorCode_t DestroyInstance() = 0;
 
 private:

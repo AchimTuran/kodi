@@ -78,7 +78,7 @@ DSPErrorCode_t CAudioDSPCopyMode::DestroyInstance()
   return DSP_ERR_NO_ERR;
 }
 
-int CAudioDSPCopyMode::ProcessInstance(uint8_t **In, uint8_t **Out)
+int CAudioDSPCopyMode::ProcessInstance(const uint8_t **In, uint8_t **Out)
 {
   if (m_InputFormat.m_dataFormat == m_OutputFormat.m_dataFormat)
   {

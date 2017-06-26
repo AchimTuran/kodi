@@ -45,7 +45,7 @@ public:
   CAudioDSPCopyMode(uint64_t ID);
 
   virtual DSPErrorCode_t CreateInstance(AEAudioFormat &InputFormat, AEAudioFormat &OutputFormat) override;
-  virtual int ProcessInstance(uint8_t **In, uint8_t **Out) override;
+  virtual int ProcessInstance(const uint8_t **In, uint8_t **Out) override;
   virtual DSPErrorCode_t DestroyInstance() override;
 };
 }
