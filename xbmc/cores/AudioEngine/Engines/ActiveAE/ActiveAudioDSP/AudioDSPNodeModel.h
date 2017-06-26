@@ -79,7 +79,7 @@ class CDSPNodeModel : public IDSPNodeModel, public IDSPNodeFactory
 
       NodeID_t::UniqueAddonID = (uint32_t)hashObj(AddonName);
       NodeID_t::ModeID = (uint16_t)hashObj(ModeName);
-      NodeID_t::ModeInstanceID = (uint16_t)hashObj(InstanceModeName);
+      NodeID_t::ModeInstanceID = InstanceModeName.empty() ? 0x0 : (uint16_t)hashObj(InstanceModeName);
     }
   };
 
