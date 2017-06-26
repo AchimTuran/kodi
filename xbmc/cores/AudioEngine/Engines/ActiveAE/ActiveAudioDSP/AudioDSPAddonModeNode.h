@@ -21,23 +21,26 @@
 
 
 #include <string>
-#include "cores/AudioEngine/Engines/ActiveAE/Interfaces/AudioDSPNode.h"
-#include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/ActiveAEDSPAddon.h"
+#include "cores/AudioEngine/Engines/ActiveAE/Interfaces/AudioDSPBufferNode.h"
 
 
 namespace ActiveAE
 {
-class CAudioDSPAddonModeNode : public DSP::AUDIO::IADSPNode
+class CActiveAEDSPAddon;
+typedef std::shared_ptr<ActiveAE::CActiveAEDSPAddon>    AE_DSP_ADDON;
+
+class CAudioDSPAddonModeNode : public DSP::AUDIO::IADSPBufferNode
 {
 public:
   CAudioDSPAddonModeNode(AE_DSP_ADDON Addon, uint64_t ID, int32_t AddonModeID);
 
-  virtual DSPErrorCode_t Create(const AEAudioFormat &InputProperties, const AEAudioFormat &OutputProperties) override;
-  virtual bool Process() override;
-  virtual DSPErrorCode_t Destroy() override;
+  virtual DSPErrorCode_t CreateInstance(AEAudioFormat &InputFormat, AEAudioFormat &OutputFormat) override;
+  virtual int CAudioDSPAddonModeNode::ProcessInstance(const uint8_t **In, uint8_t **Out) override;
+  virtual DSPErrorCode_t DestroyInstance() override;
+
 
 private:
-  AE_DSP_ADDON m_Addon; //! @todo m_Addon is easier, but call history is bigger
-  //AudioDSP m_DllFunctions; //! @todo m_DllFunctions is more complex, but call history is smaller
+  ADDON_HANDLE_STRUCT m_handle;
+  AE_DSP_ADDON m_addon; //! @todo m_Addon is easier, but call history is bigger
 };
 }
