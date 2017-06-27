@@ -96,7 +96,6 @@ public:
     STREAMRESAMPLERATIO,
     STREAMRESAMPLEMODE,
     STREAMFADE,
-    STREAMFFMPEGINFO,
     STOPSOUND,
     GETSTATE,
     DISPLAYLOST,
@@ -166,14 +165,6 @@ struct MsgStreamFade
   float from;
   float target;
   unsigned int millis;
-};
-
-struct MsgStreamFFmpegInfo
-{
-  CActiveAEStream *stream;
-  int profile;
-  enum AVMatrixEncoding matrix_encoding;
-  enum AVAudioServiceType audio_service_type;
 };
 
 class CEngineStats

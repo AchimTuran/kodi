@@ -639,13 +639,6 @@ void CActiveAE::StateMachine(int signal, Protocol *port, Message *msg)
             //par->stream->m_processingBuffers->SetResampleRatio(1.0, m_settings.atempoThreshold);
           }
           return;
-        case CActiveAEControlProtocol::STREAMFFMPEGINFO:
-          MsgStreamFFmpegInfo *info;
-          info = (MsgStreamFFmpegInfo*)msg->data;
-          info->stream->m_profile = info->profile;
-          info->stream->m_matrixEncoding = info->matrix_encoding;
-          info->stream->m_audioServiceType = info->audio_service_type;
-          return;
         case CActiveAEControlProtocol::STREAMFADE:
           MsgStreamFade *fade;
           fade = (MsgStreamFade*)msg->data;
@@ -1593,7 +1586,8 @@ void CActiveAE::DiscardStream(CActiveAEStream *stream)
         {
           CLog::Log(LOGERROR, "%s - An error occured during releasing the processing buffer from stream %i", __FUNCTION__, (*it)->m_id);
         }
-        //! @todo AudioDSP reimplement this
+        (*it)->m_processingBuffers = nullptr;
+        //! @todo AudioDSP V2 reimplement this
         //m_discardBufferPools.push_back((*it)->m_processingBuffers->GetResampleBuffers());
         //m_discardBufferPools.push_back((*it)->m_processingBuffers->GetAtempoBuffers());
       }
@@ -3486,17 +3480,6 @@ void CActiveAE::SetStreamResampleMode(CActiveAEStream *stream, int mode)
   msg.parameter.int_par = mode;
   m_controlPort.SendOutMessage(CActiveAEControlProtocol::STREAMRESAMPLEMODE,
                                &msg, sizeof(MsgStreamParameter));
-}
-
-void CActiveAE::SetStreamFFmpegInfo(CActiveAEStream *stream, int profile, enum AVMatrixEncoding matrix_encoding, enum AVAudioServiceType audio_service_type)
-{
-  MsgStreamFFmpegInfo msg;
-  msg.stream = stream;
-  msg.profile = profile;
-  msg.matrix_encoding = matrix_encoding;
-  msg.audio_service_type = audio_service_type;
-
-  m_controlPort.SendOutMessage(CActiveAEControlProtocol::STREAMFFMPEGINFO, &msg, sizeof(MsgStreamFFmpegInfo));
 }
 
 void CActiveAE::SetStreamFade(CActiveAEStream *stream, float from, float target, unsigned int millis)

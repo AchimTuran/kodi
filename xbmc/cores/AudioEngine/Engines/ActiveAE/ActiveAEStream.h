@@ -170,7 +170,6 @@ public:
   virtual void SetVolume(float volume)  override;
   virtual void SetReplayGain(float factor)  override;
   virtual void SetAmplification(float amplify)  override;
-  virtual void SetFFmpegInfo(int profile, enum AVMatrixEncoding matrix_encoding, enum AVAudioServiceType audio_service_type) override;
 
   virtual const unsigned int GetFrameSize() const;
   virtual const unsigned int GetChannelCount() const;

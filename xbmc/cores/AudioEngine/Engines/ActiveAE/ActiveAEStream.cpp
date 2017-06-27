@@ -519,11 +519,6 @@ void CActiveAEStream::SetResampleMode(int mode)
   m_streamResampleMode = mode;
 }
 
-void CActiveAEStream::SetFFmpegInfo(int profile, enum AVMatrixEncoding matrix_encoding, enum AVAudioServiceType audio_service_type)
-{
-  m_activeAE.SetStreamFFmpegInfo(this, profile, matrix_encoding, audio_service_type);
-}
-
 void CActiveAEStream::FadeVolume(float from, float target, unsigned int time)
 {
   if (time == 0 || (m_format.m_dataFormat == AE_FMT_RAW))
