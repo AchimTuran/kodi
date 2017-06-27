@@ -79,7 +79,9 @@ CAEStreamInfo::CAEStreamInfo() :
   m_dataIsLE(true),
   m_dtsPeriod(0),
   m_repeat(0),
-  m_ac3FrameSize(0)
+  m_ac3FrameSize(0),
+  m_sampleRate(0),
+  m_channels(0)
 {
 }
 
