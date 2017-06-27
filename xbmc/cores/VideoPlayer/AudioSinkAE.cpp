@@ -66,12 +66,20 @@ bool CAudioSinkAE::Create(const DVDAudioFrame &audioframe, AVCodecID codec, bool
   unsigned int options = needresampler && !audioframe.passthrough ? AESTREAM_FORCE_RESAMPLE : 0;
   options |= AESTREAM_PAUSED;
 
+  AEStreamProperties streamProperties;
+  //! @todo AudioDSP V2 add conversion functions
+  //streamProperties.matrixEncoding = audioframe.matrix_encoding;
+  //streamProperties.sourceFormat = audioframe.profile;
+  //streamProperties.streamServiceType = audioframe.audio_service_type;
+  streamProperties.streamType = AE_STREAM_MOVIE;
+
   AEAudioFormat format = audioframe.format;
   //! @todo AudioDSP V2 add stream properties
   m_pAudioStream = CServiceBroker::GetActiveAE().MakeStream(
     format,
     options,
-    this
+    this,
+    &streamProperties
   );
   if (!m_pAudioStream)
     return false;

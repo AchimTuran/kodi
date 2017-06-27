@@ -27,6 +27,7 @@
 #include "system.h"
 
 #include "cores/AudioEngine/Utils/AEAudioFormat.h"
+#include "cores/AudioEngine/Utils/AEStreamProperties.h"
 
 typedef std::pair<std::string, std::string> AEDevice;
 typedef std::vector<AEDevice> AEDeviceList;
@@ -158,7 +159,7 @@ public:
    * @param options A bit field of stream options (see: enum AEStreamOptions)
    * @return a new IAEStream that will accept data in the requested format
    */
-  virtual IAEStream *MakeStream(AEAudioFormat &audioFormat, unsigned int options = 0, IAEClockCallback *clock = NULL) = 0;
+  virtual IAEStream *MakeStream(AEAudioFormat &audioFormat, unsigned int options = 0, IAEClockCallback *clock = nullptr, AEStreamProperties *streamProperties = nullptr) = 0;
 
   /**
    * This method will remove the specifyed stream from the engine.

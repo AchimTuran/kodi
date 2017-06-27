@@ -1511,6 +1511,11 @@ void CActiveAE::Configure(AEAudioFormat *desiredFmt)
 
 CActiveAEStream* CActiveAE::CreateStream(MsgStreamNew *streamMsg)
 {
+  if (!streamMsg)
+  {
+    return nullptr;
+  }
+
   // we only can handle a single pass through stream
   bool hasRawStream = false;
   bool hasStream = false;
@@ -1525,7 +1530,7 @@ CActiveAEStream* CActiveAE::CreateStream(MsgStreamNew *streamMsg)
   }
   if (hasRawStream || (hasStream && (streamMsg->format.m_dataFormat == AE_FMT_RAW)))
   {
-    return NULL;
+    return nullptr;
   }
 
   // create the stream
@@ -1553,10 +1558,15 @@ CActiveAEStream* CActiveAE::CreateStream(MsgStreamNew *streamMsg)
 
   if(streamMsg->options & AESTREAM_BYPASS_ADSP)
   {
-    //! @todo implement bypass AudioDSP functionality
+    //! @todo AudioDSP V2 implement this functionality
   }
 
   stream->m_pClock = streamMsg->clock;
+
+  if (streamMsg->streamProperties)
+  {
+    stream->m_streamProperties = *streamMsg->streamProperties;
+  }
 
   // every new stream is added to the end of the list and the assumption is that the last stream defines the internal used format.
   m_streams.push_back(stream);
@@ -3345,7 +3355,7 @@ bool CActiveAE::ResampleSound(CActiveAESound *sound)
 // Streams
 //-----------------------------------------------------------------------------
 
-IAEStream *CActiveAE::MakeStream(AEAudioFormat &audioFormat, unsigned int options, IAEClockCallback *clock)
+IAEStream *CActiveAE::MakeStream(AEAudioFormat &audioFormat, unsigned int options, IAEClockCallback *clock, AEStreamProperties *streamProperties)
 {
   if (audioFormat.m_dataFormat <= AE_FMT_INVALID || audioFormat.m_dataFormat >= AE_FMT_MAX)
   {
@@ -3372,6 +3382,7 @@ IAEStream *CActiveAE::MakeStream(AEAudioFormat &audioFormat, unsigned int option
   msg.format = format;
   msg.options = options;
   msg.clock = clock;
+  msg.streamProperties = streamProperties;
 
   Message *reply;
   if (m_dataPort.SendOutMessageSync(CActiveAEDataProtocol::NEWSTREAM,

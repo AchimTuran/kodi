@@ -57,9 +57,6 @@ CActiveAEStream::CActiveAEStream(AEAudioFormat *format, unsigned int streamid, C
   m_remapBuffer = NULL;
   m_streamResampleRatio = 1.0;
   m_streamResampleMode = 0;
-  m_profile = 0;
-  m_matrixEncoding = AV_MATRIX_ENCODING_NONE;
-  m_audioServiceType = AV_AUDIO_SERVICE_TYPE_MAIN;
   m_pClock = NULL;
   m_lastPts = 0;
   m_lastPtsJump = 0;

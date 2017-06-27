@@ -88,6 +88,7 @@ set(HEADERS AEResampleFactory.h
             Utils/AERingBuffer.h
             Utils/AEStreamData.h
             Utils/AEStreamInfo.h
+            Utils/AEStreamProperties.h
             Utils/AEUtil.h)
 
 if(ALSA_FOUND)

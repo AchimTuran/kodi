@@ -233,17 +233,15 @@ protected:
   float m_fadingBase;
   float m_fadingTarget;
   int m_fadingTime;
-  int m_profile;
   int m_resampleMode;
   double m_resampleIntegral;
   double m_clockSpeed;
-  enum AVMatrixEncoding m_matrixEncoding;
-  enum AVAudioServiceType m_audioServiceType;
   bool m_forceResampler;
   IAEClockCallback *m_pClock;
   CSyncError m_syncError;
   double m_lastSyncError;
   CAESyncInfo::AESyncState m_syncState;
+  AEStreamProperties m_streamProperties;
 };
 }
 
