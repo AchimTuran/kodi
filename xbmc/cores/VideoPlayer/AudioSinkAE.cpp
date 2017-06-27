@@ -67,6 +67,7 @@ bool CAudioSinkAE::Create(const DVDAudioFrame &audioframe, AVCodecID codec, bool
   options |= AESTREAM_PAUSED;
 
   AEAudioFormat format = audioframe.format;
+  //! @todo AudioDSP V2 add stream properties
   m_pAudioStream = CServiceBroker::GetActiveAE().MakeStream(
     format,
     options,
