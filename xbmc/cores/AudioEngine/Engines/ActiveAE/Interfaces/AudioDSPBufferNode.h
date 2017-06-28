@@ -43,15 +43,12 @@ public:
     m_lastSamplePts = 0;
   }
 
-  virtual DSPErrorCode_t Create(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat)
+  virtual DSPErrorCode_t Create() override
   {
-    if (InputFormat.m_dataFormat <= AE_FMT_INVALID || InputFormat.m_dataFormat >= AE_FMT_MAX || InputFormat.m_dataFormat == AE_FMT_RAW)
+    if (m_InputFormat.m_dataFormat <= AE_FMT_INVALID || m_InputFormat.m_dataFormat >= AE_FMT_MAX || m_InputFormat.m_dataFormat == AE_FMT_RAW)
     {
       return DSP_ERR_INVALID_DATA_FORMAT;
     }
-
-    m_InputFormat = InputFormat;
-    m_OutputFormat = OutputFormat;
 
     DSPErrorCode_t err = CreateInstance(m_InputFormat, m_OutputFormat);
     if (err != DSP_ERR_NO_ERR)
@@ -62,7 +59,7 @@ public:
     return err;
   }
 
-  virtual bool Process()
+  virtual bool Process() override
   {
     bool busy = false;
     ActiveAE::CSampleBuffer *out = nullptr;
@@ -154,7 +151,7 @@ public:
     return busy;
   }
   
-  virtual DSPErrorCode_t Destroy()
+  virtual DSPErrorCode_t Destroy() override
   {
     return DestroyInstance(); 
   }
