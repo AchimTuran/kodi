@@ -51,6 +51,7 @@ namespace ActiveAE
 using namespace Actor;
 class CActiveAEStream;
 class IActiveAEProcessingBuffer;
+class CAudioDSPProcessingBuffer;
 
 class CAudioDSPAddonControlProtocol : public Protocol
 {
@@ -119,7 +120,7 @@ class CActiveAudioDSP : public IAEAudioDSP,
 {
   typedef std::shared_ptr<ActiveAE::CActiveAEDSPAddon>  pAudioDSPAddon_t;
   typedef std::map<std::string, pAudioDSPAddon_t>       AudioDSPAddonMap_t;
-  typedef std::map<int, IActiveAEProcessingBuffer*>     AudioDSPProcessingBufferMap_t;
+  typedef std::map<int, CAudioDSPProcessingBuffer*>     AudioDSPProcessingBufferMap_t;
 
 public:
   CActiveAudioDSP(CEvent *inMsgEvent);

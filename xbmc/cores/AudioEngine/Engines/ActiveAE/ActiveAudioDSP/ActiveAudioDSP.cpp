@@ -373,8 +373,9 @@ void CActiveAudioDSP::StateMachine(int signal, Protocol *port, Message *msg)
                 //! @todo add addon to processing object
                 m_DisabledAddons.erase(addonId);
 
-                //! @todo implement hash ID here
-                iter->second->Create(0);
+                std::hash<std::string> hasher;
+                unsigned int uiAddonId = hasher(iter->second->ID());
+                iter->second->Create(uiAddonId);
               }
             }
             break;
@@ -439,9 +440,13 @@ void CActiveAudioDSP::StateMachine(int signal, Protocol *port, Message *msg)
           }
           else
           {
-            CAudioDSPProcessingBuffer *adspBuffer = new CAudioDSPProcessingBuffer(bufferMsg->audioStream->m_inputBuffers->m_format, bufferMsg->outputFormat, m_Controller, m_DSPChainModelObject);
-            //adspBuffer->m_processor = dynamic_cast<IADSPProcessor*>(new CAudioDSPProcessor(m_Controller, m_DSPChainModelObject));
-            //m_AudioDSPProcessors.push_back(adspBuffer->m_processor);
+            CAudioDSPProcessingBuffer *adspBuffer = new CAudioDSPProcessingBuffer(bufferMsg->audioStream->m_id,
+                                                                                  bufferMsg->audioStream->m_streamProperties,
+                                                                                  bufferMsg->audioStream->m_inputBuffers->m_format,
+                                                                                  bufferMsg->outputFormat,
+                                                                                  m_Controller,
+                                                                                  m_DSPChainModelObject);
+            m_ProcessingBuffers[bufferMsg->audioStream->m_id] = adspBuffer;
 
             buffer = dynamic_cast<IActiveAEProcessingBuffer*>(adspBuffer);
 
@@ -455,7 +460,6 @@ void CActiveAudioDSP::StateMachine(int signal, Protocol *port, Message *msg)
           }
           else
           {
-            m_ProcessingBuffers[bufferMsg->audioStream->m_id] = buffer;
             msg->Reply(CAudioDSPControlProtocol::SUCCESS, &buffer, sizeof(IActiveAEProcessingBuffer*));
           }
 
@@ -479,27 +483,15 @@ void CActiveAudioDSP::StateMachine(int signal, Protocol *port, Message *msg)
           else
           {
             CAudioDSPProcessingBuffer *adspBuffer = dynamic_cast<CAudioDSPProcessingBuffer*>(iter->second);
-            //if (adspBuffer && adspBuffer->m_processor)
-            //{
-            //  for (AudioDSPProcessorVector_t::iterator adspIter = m_AudioDSPProcessors.begin(); adspIter != m_AudioDSPProcessors.end(); ++adspIter)
-            //  {
-            //    if (adspBuffer->m_processor == (*adspIter))
-            //    {
-            //      adspBuffer->m_processor->Destroy();
-            //      adspBuffer->m_processor = nullptr;
-            //    
-            //      m_AudioDSPProcessors.erase(adspIter);
-            //    
-            //      CLog::Log(LOGDEBUG, "%s - Destroyed CAudioDSPProcessingBuffer", __FUNCTION__);
-            //      break;
-            //    }
-            //  }
-            //}
+            if (adspBuffer)
+            {
+              //! @todo AudioDSP V2 add specific deinitialization if needed
+            }
             iter->second->Flush();
             iter->second->Destroy();
             delete iter->second;
 
-            CLog::Log(LOGDEBUG, "%s - Destroyed m_ProcessingBuffers", __FUNCTION__);
+            CLog::Log(LOGDEBUG, "%s - Destroyed processing buffer with stream ID %i", __FUNCTION__, streamID);
 
             m_ProcessingBuffers.erase(iter);
           }
