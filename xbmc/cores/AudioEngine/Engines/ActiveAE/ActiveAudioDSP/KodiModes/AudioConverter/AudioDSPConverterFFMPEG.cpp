@@ -53,15 +53,12 @@ CAudioDSPConverter::~CAudioDSPConverter()
 {
 }
 
-DSPErrorCode_t CAudioDSPConverter::Create(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat)
+DSPErrorCode_t CAudioDSPConverter::Create()
 {
-  if (InputFormat.m_dataFormat <= AE_FMT_INVALID || InputFormat.m_dataFormat >= AE_FMT_MAX || InputFormat.m_dataFormat == AE_FMT_RAW)
+  if (m_InputFormat.m_dataFormat <= AE_FMT_INVALID || m_InputFormat.m_dataFormat >= AE_FMT_MAX || m_InputFormat.m_dataFormat == AE_FMT_RAW)
   {
     return DSP_ERR_INVALID_DATA_FORMAT;
   }
-
-  m_InputFormat = InputFormat;
-  m_OutputFormat = OutputFormat;
 
   m_needsSettingsUpdate = true;
   if (!UpdateSettings())

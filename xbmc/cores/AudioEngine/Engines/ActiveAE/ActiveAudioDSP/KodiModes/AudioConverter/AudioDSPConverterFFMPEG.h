@@ -34,7 +34,7 @@ public:
   virtual ~CAudioDSPConverter();
 
 protected:
-  virtual DSPErrorCode_t Create(const AEAudioFormat &InputProperties, const AEAudioFormat &OutputProperties) override;
+  virtual DSPErrorCode_t Create() override;
   virtual DSPErrorCode_t Destroy() override;
 
   virtual bool Process() override;
