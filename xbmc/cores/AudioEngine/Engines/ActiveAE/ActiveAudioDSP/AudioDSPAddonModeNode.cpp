@@ -5,9 +5,10 @@ using namespace DSP;
 using namespace DSP::AUDIO;
 using namespace ActiveAE;
 
-CAudioDSPAddonModeNode::CAudioDSPAddonModeNode(AE_DSP_ADDON Addon, uint64_t ID, int32_t AddonModeID) :
+CAudioDSPAddonModeNode::CAudioDSPAddonModeNode(ADDON_HANDLE_STRUCT &Handle, AE_DSP_ADDON Addon, uint64_t ID, int32_t AddonModeID) :
   m_addon(Addon),
-  IADSPBufferNode(Addon->ID(), ID)
+  IADSPBufferNode(Addon->ID(), ID),
+  m_handle(Handle)
 {
   memset(&m_handle, 0, sizeof(ADDON_HANDLE_STRUCT));
   //memset(&m_DllFunctions, 0, sizeof(m_DllFunctions));
@@ -52,18 +53,32 @@ DSPErrorCode_t CAudioDSPAddonModeNode::CreateInstance(AEAudioFormat &InputFormat
   pProperties.iSampleRate;
   pProperties.Profile;
 
-  DSPErrorCode_t dspErr = DSP_ERR_NO_ERR;
   if (m_addon->StreamInitialize(&m_handle, &addonSettings) != AE_DSP_ERROR_NO_ERROR)
   {
-    dspErr = DSP_ERR_FATAL_ERROR;
+    return DSP_ERR_FATAL_ERROR;
   }
 
-  if (m_addon->StreamCreate(&addonSettings, &pProperties, &m_handle) != AE_DSP_ERROR_NO_ERROR)
+  AE_DSP_STREAMTYPE addonStreamType = AE_DSP_ASTREAM_BASIC;// StreamProperties.streamType; //! @todo AudioDSP V2 add translation method
+  unsigned int addonModeID = 0; //! @todo AudioDSP V2 set correct addonModeID
+  if (m_addon->MasterProcessSetMode(&m_handle, addonStreamType, addonModeID, ID) != AE_DSP_ERROR_NO_ERROR)
   {
-    dspErr = DSP_ERR_FATAL_ERROR;
+    return DSP_ERR_FATAL_ERROR;
   }
 
-  return dspErr;
+  unsigned long outChannelFlags = 0x0;
+  int outputChannelAmount = 0;
+  outputChannelAmount = m_addon->MasterProcessGetOutChannels(&m_handle, outChannelFlags);
+
+  OutputFormat.m_channelLayout.Reset();
+  for (unsigned int ch = 0; ch < AE_DSP_CH_MAX; ch++)
+  {
+    if (outChannelFlags & 1 << ch)
+    {
+      OutputFormat.m_channelLayout += static_cast<AEChannel>(ch); //! @todo AudioDSP V2 add conversion method
+    }
+  }
+
+  return DSP_ERR_NO_ERR;
 }
 
 int CAudioDSPAddonModeNode::ProcessInstance(const uint8_t **In, uint8_t **Out)
@@ -73,6 +88,5 @@ int CAudioDSPAddonModeNode::ProcessInstance(const uint8_t **In, uint8_t **Out)
 
 DSPErrorCode_t CAudioDSPAddonModeNode::DestroyInstance()
 {
-  m_addon->StreamDestroy(&m_handle);
   return DSP_ERR_NO_ERR;
 }

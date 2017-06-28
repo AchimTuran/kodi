@@ -21,6 +21,7 @@
 
 #include "cores/AudioEngine/Engines/ActiveAE/ActiveAudioDSP/AudioDSPAddonNodeCreator.h"
 #include "cores/AudioEngine/Engines/ActiveAE/ActiveAudioDSP/AudioDSPAddonModeNode.h"
+#include "cores/AudioEngine/Engines/ActiveAE/ActiveAudioDSP/AudioDSPNodeModel.h"
 
 using namespace DSP;
 using namespace DSP::AUDIO;
@@ -52,9 +53,64 @@ IDSPNodeCreator* CAudioDSPAddonNodeCreator::CreateCreator()
   return dynamic_cast<IDSPNodeCreator*>(new CAudioDSPAddonNodeCreator(m_addon));
 }
 
-IADSPNode* CAudioDSPAddonNodeCreator::InstantiateNode(uint64_t ID)
+IADSPNode* CAudioDSPAddonNodeCreator::InstantiateNode(const AEAudioFormat &InputFormat, 
+                                                      const AEAudioFormat &OutputFormat, 
+                                                      const AEStreamProperties &StreamProperties, 
+                                                      unsigned int StreamID, 
+                                                      uint64_t ID)
 {
-  IADSPNode *node = dynamic_cast<IADSPNode*>(new CAudioDSPAddonModeNode(m_addon, ID, 0)); //! @todo use <add-on name>::<mode name> as ID identifier generation and add-on mode ID
+  AE_DSP_ERROR dspErr = AE_DSP_ERROR_NO_ERROR;
+  AudioDSPAddonStreamMap_t::iterator iter = m_addonModeMap.find(StreamID);
+  if (iter == m_addonModeMap.end())
+  { // create new add-on stream
+    m_addonModeMap[StreamID] = AddonStreamHandle_t();
+
+    //! @todo AudioDSP V2 translate variables
+    AE_DSP_SETTINGS addonSettings;
+    addonSettings.iStreamID = StreamID;
+    addonSettings.iStreamType;
+    addonSettings.iInChannels;
+    addonSettings.lInChannelPresentFlags;
+    addonSettings.iInFrames;
+    addonSettings.iInSamplerate;
+    addonSettings.iProcessFrames;
+    addonSettings.iProcessSamplerate;
+    addonSettings.iOutChannels;
+    addonSettings.lOutChannelPresentFlags;
+    addonSettings.iOutFrames;
+    addonSettings.iOutSamplerate;
+    addonSettings.bInputResamplingActive;
+    addonSettings.bStereoUpmix;
+    addonSettings.iQualityLevel;
+
+    AE_DSP_STREAM_PROPERTIES streamProperties;
+    streamProperties.iStreamID;
+    streamProperties.iStreamType;
+    streamProperties.iBaseType;
+    streamProperties.strName;
+    streamProperties.strCodecId;
+    streamProperties.strLanguage;
+    streamProperties.iIdentifier;
+    streamProperties.iChannels;
+    streamProperties.iSampleRate;
+    streamProperties.Profile;
+
+    dspErr = m_addon->StreamCreate(&addonSettings, &streamProperties, &m_addonModeMap[StreamID].handle);
+    if (dspErr != AE_DSP_ERROR_NO_ERROR)
+    {
+      return nullptr;
+    }
+  }
+
+  NodeID_t nodeID(ID);
+  //! @todo AudioDSP V3 add support for multiple mode instance support
+  std::map<unsigned int, unsigned int>::iterator modeIter = m_addonModeMap[StreamID].modes.find(nodeID.ModeID);
+  if (modeIter != m_addonModeMap[StreamID].modes.end())
+  {// current implementation only supports one mode instance
+    return nullptr;
+  }
+
+  IADSPNode *node = dynamic_cast<IADSPNode*>(new CAudioDSPAddonModeNode(m_addonModeMap[StreamID].handle, m_addon, ID, 0)); //! @todo use <add-on name>::<mode name> as ID identifier generation and add-on mode ID
   if (!node)
   {
     return nullptr;
