@@ -1151,6 +1151,7 @@ void CActiveAE::Configure(AEAudioFormat *desiredFmt)
           if (dspErr != DSP_ERR_NO_ERR)
           {//! @todo AudioDSP log AudioDSP error
           }
+          (*it)->m_processingBuffers = nullptr;
         }
         if (!(*it)->m_processingBuffers)
         {
