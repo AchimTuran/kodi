@@ -35,7 +35,7 @@ using namespace DSP;
 using namespace DSP::AUDIO;
 
 
-CAudioDSPConverter::CAudioDSPConverter(uint64_t ID, CAudioConverterModel &Model) :
+CAudioDSPConverter::CAudioDSPConverter(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat, uint64_t ID, CAudioConverterModel &Model) :
   IADSPNode("CAudioDSPConverter", ID),
   m_model(Model)
 {
@@ -47,6 +47,9 @@ CAudioDSPConverter::CAudioDSPConverter(uint64_t ID, CAudioConverterModel &Model)
   m_lastSamplePts = 0;
 
   m_resampler = nullptr;
+
+  m_InputFormat = InputFormat;
+  m_OutputFormat = OutputFormat;
 }
 
 CAudioDSPConverter::~CAudioDSPConverter()

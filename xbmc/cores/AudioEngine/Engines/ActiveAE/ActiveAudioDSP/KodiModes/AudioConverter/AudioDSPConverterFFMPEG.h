@@ -30,7 +30,7 @@ namespace ActiveAE
 class CAudioDSPConverter : public DSP::AUDIO::IADSPNode, public IAudioConverterNodeCallback
 {
 public:
-  CAudioDSPConverter(uint64_t ID, CAudioConverterModel &Model);
+  CAudioDSPConverter(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat, uint64_t ID, CAudioConverterModel &Model);
   virtual ~CAudioDSPConverter();
 
 protected:
