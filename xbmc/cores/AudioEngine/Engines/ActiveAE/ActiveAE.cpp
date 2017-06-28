@@ -1156,6 +1156,17 @@ void CActiveAE::Configure(AEAudioFormat *desiredFmt)
         {
           (*it)->m_processingBuffers = m_audioDSP.GetProcessingBuffer(*it, audioDSPOutputFormat);
 
+          if (!(*it)->m_processingBuffers)
+          {
+            CLog::Log(LOGERROR, "ActiveAE::%s - failed to configure processing buffer", __FUNCTION__);
+            m_stats.SetSinkCacheTotal(0);
+            m_stats.SetSinkLatency(0);
+            AEAudioFormat invalidFormat;
+            invalidFormat.m_dataFormat = AE_FMT_INVALID;
+            m_stats.SetCurrentSinkFormat(invalidFormat);
+            m_extError = true;
+            return;
+          }
           //! @todo AudioDSP reimplement this
           //stream->m_processingBuffers->ConfigureResampler(m_settings.normalizelevels, m_settings.stereoupmix, m_settings.resampleQuality);
           //(*it)->m_processingBuffers->ForceResampler((*it)->m_forceResampler);
