@@ -29,19 +29,27 @@ using namespace DSP;
 using namespace DSP::AUDIO;
 
 
-CAudioDSPProcessingBuffer::CAudioDSPProcessingBuffer(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat, CAudioDSPController &Controller, IDSPNodeFactory &NodeFactory) :
+CAudioDSPProcessingBuffer::CAudioDSPProcessingBuffer( unsigned int StreamID,
+                                                      const AEStreamProperties &StreamProperties,
+                                                      const AEAudioFormat &InputFormat,
+                                                      const AEAudioFormat &OutputFormat,
+                                                      CAudioDSPController &Controller,
+                                                      IDSPNodeFactory &NodeFactory) :
+
+  m_streamID(StreamID),
   IActiveAEProcessingBuffer(InputFormat, OutputFormat),
   CActiveAEBufferPool(OutputFormat),
-  m_AudioDSPController(Controller),
-  m_NodeFactory(NodeFactory),
-  m_conversionModeID({ "Kodi", "AudioConverter" })
+  m_audioDSPController(Controller),
+  m_nodeFactory(NodeFactory),
+  m_conversionModeID({ "Kodi", "AudioConverter" }),
+  m_streamProperties(StreamProperties)
 {
 }
 
 bool CAudioDSPProcessingBuffer::Create(unsigned int totaltime, bool ForceOutputFormat)
 {
   IDSPNodeModel::DSPNodeInfoVector_t nodeInfos;
-  DSPErrorCode_t dspErr = m_AudioDSPController.GetActiveNodes(nodeInfos);
+  DSPErrorCode_t dspErr = m_audioDSPController.GetActiveNodes(nodeInfos);
   if (dspErr != DSP_ERR_NO_ERR)
   {
     return false;
@@ -57,22 +65,22 @@ bool CAudioDSPProcessingBuffer::Create(unsigned int totaltime, bool ForceOutputF
   // create node chain
   for (uint32_t ii = 0; ii < nodeInfos.size(); ii++)
   {
-    IADSPNode *node = m_NodeFactory.InstantiateNode(nodeInfos.at(ii).ID);
+    IADSPNode *node = m_nodeFactory.InstantiateNode(*configInParameters, *configOutParameters, m_streamProperties, m_streamID, nodeInfos.at(ii).ID);
     if (!node)
     {
       return DSP_ERR_FATAL_ERROR;
     }
-    DSPErrorCode_t dspErr = node->Create(*configInParameters, *configOutParameters);
+    DSPErrorCode_t dspErr = node->Create();
     if (dspErr != DSP_ERR_NO_ERR)
     {
-      m_NodeFactory.DestroyNode(node);
+      m_nodeFactory.DestroyNode(node);
       return dspErr;
     }
 
     IADSPNode *adspNode = dynamic_cast<IADSPNode*>(node);
     if (!adspNode)
     {
-      m_NodeFactory.DestroyNode(node);
+      m_nodeFactory.DestroyNode(node);
       return DSP_ERR_FATAL_ERROR;
     }
 
@@ -90,17 +98,17 @@ bool CAudioDSPProcessingBuffer::Create(unsigned int totaltime, bool ForceOutputF
   if (m_DSPNodeChain.size() == 0)
   {
     IDSPNodeModel::CDSPNodeInfoQuery query({ "Kodi", "AudioConverter" });
-    IDSPNodeModel::CDSPNodeInfo audioConverterInfo = m_AudioDSPController.GetNodeInfo(query);
-    IADSPNode *audioConverter = dynamic_cast<IADSPNode*>(m_NodeFactory.InstantiateNode(audioConverterInfo.ID));
+    IDSPNodeModel::CDSPNodeInfo audioConverterInfo = m_audioDSPController.GetNodeInfo(query);
+    IADSPNode *audioConverter = dynamic_cast<IADSPNode*>(m_nodeFactory.InstantiateNode(m_inputFormat, m_outputFormat, m_streamProperties, m_streamID, audioConverterInfo.ID));
     if (!audioConverter)
     {
       return DSP_ERR_INVALID_NODE_ID;
     }
-    DSPErrorCode_t dspErr = audioConverter->Create(m_inputFormat, m_outputFormat);
+    DSPErrorCode_t dspErr = audioConverter->Create();
     if (dspErr != DSP_ERR_NO_ERR)
     {
       IADSPNode *node = dynamic_cast<IADSPNode*>(audioConverter);
-      m_NodeFactory.DestroyNode(node);
+      m_nodeFactory.DestroyNode(node);
       return dspErr;
     }
 
@@ -144,17 +152,17 @@ bool CAudioDSPProcessingBuffer::Create(unsigned int totaltime, bool ForceOutputF
     if (!(firstModeInputFormat == m_inputFormat))
     {
       IDSPNodeModel::CDSPNodeInfoQuery query({ "Kodi", "AudioConverter" });
-      IDSPNodeModel::CDSPNodeInfo audioConverterInfo = m_AudioDSPController.GetNodeInfo(query);
-      IADSPNode *audioConverter = dynamic_cast<IADSPNode*>(m_NodeFactory.InstantiateNode(audioConverterInfo.ID));
+      IDSPNodeModel::CDSPNodeInfo audioConverterInfo = m_audioDSPController.GetNodeInfo(query);
+      IADSPNode *audioConverter = dynamic_cast<IADSPNode*>(m_nodeFactory.InstantiateNode(m_inputFormat, firstModeInputFormat, m_streamProperties, m_streamID, audioConverterInfo.ID));
       if (!audioConverter)
       {
         return DSP_ERR_INVALID_NODE_ID;
       }
-      DSPErrorCode_t dspErr = audioConverter->Create(m_inputFormat, firstModeInputFormat);
+      DSPErrorCode_t dspErr = audioConverter->Create();
       if (dspErr != DSP_ERR_NO_ERR)
       {
         IADSPNode *node = dynamic_cast<IADSPNode*>(audioConverter);
-        m_NodeFactory.DestroyNode(node);
+        m_nodeFactory.DestroyNode(node);
         return dspErr;
       }
 
@@ -166,17 +174,17 @@ bool CAudioDSPProcessingBuffer::Create(unsigned int totaltime, bool ForceOutputF
     if (!(lastModeOutputFormat == m_outputFormat))
     {
       IDSPNodeModel::CDSPNodeInfoQuery query({ "Kodi", "AudioConverter" });
-      IDSPNodeModel::CDSPNodeInfo audioConverterInfo = m_AudioDSPController.GetNodeInfo(query);
-      IADSPNode *audioConverter = dynamic_cast<IADSPNode*>(m_NodeFactory.InstantiateNode(audioConverterInfo.ID));
+      IDSPNodeModel::CDSPNodeInfo audioConverterInfo = m_audioDSPController.GetNodeInfo(query);
+      IADSPNode *audioConverter = dynamic_cast<IADSPNode*>(m_nodeFactory.InstantiateNode(lastModeOutputFormat, m_outputFormat, m_streamProperties, m_streamID, audioConverterInfo.ID));
       if (!audioConverter)
       {
         return DSP_ERR_INVALID_NODE_ID;
       }
-      DSPErrorCode_t dspErr = audioConverter->Create(lastModeOutputFormat, m_outputFormat);
+      DSPErrorCode_t dspErr = audioConverter->Create();
       if (dspErr != DSP_ERR_NO_ERR)
       {
         IADSPNode *node = dynamic_cast<IADSPNode*>(audioConverter);
-        m_NodeFactory.DestroyNode(node);
+        m_nodeFactory.DestroyNode(node);
         return dspErr;
       }
 
@@ -242,6 +250,7 @@ bool CAudioDSPProcessingBuffer::Create(unsigned int totaltime, bool ForceOutputF
 
 void CAudioDSPProcessingBuffer::Destroy()
 {
+  //! @todo AudioDSP V2 destroy objects if needed
 }
 
 bool CAudioDSPProcessingBuffer::ProcessBuffer()
@@ -339,7 +348,7 @@ bool CAudioDSPProcessingBuffer::ProcessBuffer()
   if (m_nodeTimings.size() > 0)
   {
     int64_t endTime = CurrentHostCounter();
-    m_AudioDSPController.SendTimings(m_nodeTimings, startTime, endTime);
+    m_audioDSPController.SendTimings(m_nodeTimings, startTime, endTime);
   }
 
   return busy;
@@ -468,7 +477,7 @@ bool CAudioDSPProcessingBuffer::HasWork()
     return true;
   if (!m_outputSamples.empty())
     return true;
-  if (m_DSPNodeChain.size() > 0 && m_DSPNodeChain[0].m_buffer->m_inputSamples.size())
+  if (m_DSPNodeChain.size() > 0 && m_DSPNodeChain[0].m_buffer->m_inputSamples.size()) //! @todo AudioDSP V2 also check other nodes from the chain
     return true;
 
   return false;

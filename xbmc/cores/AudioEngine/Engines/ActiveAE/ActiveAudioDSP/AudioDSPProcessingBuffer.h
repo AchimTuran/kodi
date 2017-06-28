@@ -29,6 +29,7 @@
 
 #include "cores/AudioEngine/Engines/ActiveAE/Interfaces/AudioDSPNodeFactory.h"
 #include "cores/AudioEngine/Engines/ActiveAE/Interfaces/AudioDSPNodeModelCallback.h"
+#include "cores/AudioEngine/Utils/AEStreamProperties.h"
 
 
 namespace ActiveAE
@@ -78,7 +79,12 @@ class CAudioDSPProcessingBuffer : public IActiveAEProcessingBuffer, private CAct
 
 
 public:
-  CAudioDSPProcessingBuffer(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat, CAudioDSPController &Controller, DSP::IDSPNodeFactory &NodeFactory);
+  CAudioDSPProcessingBuffer(unsigned int ID, 
+                            const AEStreamProperties &StreamProperties,
+                            const AEAudioFormat &InputFormat, 
+                            const AEAudioFormat &OutputFormat, 
+                            CAudioDSPController &Controller,
+                            DSP::IDSPNodeFactory &NodeFactory);
 
   virtual bool Create(unsigned int totaltime, bool ForceOutputFormat = false) override;
   virtual void Destroy() override;
@@ -91,6 +97,8 @@ public:
   virtual void FillBuffer() override;
   virtual bool HasWork() override;
   virtual void SetOutputSampleRate(unsigned int OutputSampleRate) override;
+
+  const unsigned int m_streamID;
 
 private:
   // node model callbacks
@@ -106,8 +114,10 @@ private:
 
   AudioDSPNodeChain_t m_DSPNodeChain;
 
-  CAudioDSPController &m_AudioDSPController;
-  DSP::IDSPNodeFactory &m_NodeFactory;
+  CAudioDSPController &m_audioDSPController;
+  DSP::IDSPNodeFactory &m_nodeFactory;
+  
+  AEStreamProperties m_streamProperties;
 
   DSP::IDSPNodeModel::CDSPNodeInfoQuery m_conversionModeID;
 };
