@@ -357,13 +357,9 @@ bool CAudioDSPProcessingBuffer::ProcessBuffer()
 bool CAudioDSPProcessingBuffer::HasInputLevel(int level)
 {
   //! @todo AudioDSP V2 also calculate delay from conversion buffers
-  if (m_inputSamples.size() + m_DSPNodeChain[0].m_buffer->m_inputSamples.size() >= m_DSPNodeChain[0].m_buffer->m_allSamples.size() * level / 100)
+  if (m_inputSamples.size() + m_DSPNodeChain[0].m_buffer->m_inputSamples.size() > m_DSPNodeChain[0].m_buffer->m_allSamples.size() * level / 100)
   {
     return true;
-  }
-  else
-  {
-    return false;
   }
    
   return false;
@@ -384,24 +380,24 @@ float CAudioDSPProcessingBuffer::GetDelay()
     delay += (float)(*itBuf)->pkt->nb_samples / (*itBuf)->pkt->config.sample_rate;
   }
 
-  for (unsigned int ii = 0; ii < m_DSPNodeChain.size(); ii++)
+  for (auto &it : m_DSPNodeChain)
   {
-    for (itBuf = m_DSPNodeChain[ii].m_mode->m_inputSamples.begin(); itBuf != m_DSPNodeChain[ii].m_mode->m_inputSamples.end(); ++itBuf)
+    for (itBuf = it.m_mode->m_inputSamples.begin(); itBuf != it.m_mode->m_inputSamples.end(); ++itBuf)
     {
       delay += (float)(*itBuf)->pkt->nb_samples / (*itBuf)->pkt->config.sample_rate;
     }
 
-    for (itBuf = m_DSPNodeChain[ii].m_mode->m_outputSamples.begin(); itBuf != m_DSPNodeChain[ii].m_mode->m_outputSamples.end(); ++itBuf)
+    for (itBuf = it.m_mode->m_outputSamples.begin(); itBuf != it.m_mode->m_outputSamples.end(); ++itBuf)
     {
       delay += (float)(*itBuf)->pkt->nb_samples / (*itBuf)->pkt->config.sample_rate;
     }
 
-    for (itBuf = m_DSPNodeChain[ii].m_buffer->m_inputSamples.begin(); itBuf != m_DSPNodeChain[ii].m_buffer->m_inputSamples.end(); ++itBuf)
+    for (itBuf = it.m_buffer->m_inputSamples.begin(); itBuf != it.m_buffer->m_inputSamples.end(); ++itBuf)
     {
       delay += (float)(*itBuf)->pkt->nb_samples / (*itBuf)->pkt->config.sample_rate;
     }
 
-    for (itBuf = m_DSPNodeChain[ii].m_buffer->m_outputSamples.begin(); itBuf != m_DSPNodeChain[ii].m_buffer->m_outputSamples.end(); ++itBuf)
+    for (itBuf = it.m_buffer->m_outputSamples.begin(); itBuf != it.m_buffer->m_outputSamples.end(); ++itBuf)
     {
       delay += (float)(*itBuf)->pkt->nb_samples / (*itBuf)->pkt->config.sample_rate;
     }
@@ -424,25 +420,25 @@ void CAudioDSPProcessingBuffer::Flush()
     m_outputSamples.pop_front();
   }
 
-  for (int ii = 0; ii < m_DSPNodeChain.size(); ii++)
+  for (auto &it : m_DSPNodeChain)
   {
-    if (m_DSPNodeChain[ii].m_buffer)
+    if (it.m_buffer)
     {
-      m_DSPNodeChain[ii].m_buffer->Flush();
+      it.m_buffer->Flush();
     }
 
-    if (m_DSPNodeChain[ii].m_mode)
+    if (it.m_mode)
     {
-      while (!m_DSPNodeChain[ii].m_mode->m_inputSamples.empty())
+      while (!it.m_mode->m_inputSamples.empty())
       {
-        m_DSPNodeChain[ii].m_mode->m_inputSamples.front()->Return();
-        m_DSPNodeChain[ii].m_mode->m_inputSamples.pop_front();
+        it.m_mode->m_inputSamples.front()->Return();
+        it.m_mode->m_inputSamples.pop_front();
       }
 
-      while (!m_DSPNodeChain[ii].m_mode->m_outputSamples.empty())
+      while (!it.m_mode->m_outputSamples.empty())
       {
-        m_DSPNodeChain[ii].m_mode->m_outputSamples.front()->Return();
-        m_DSPNodeChain[ii].m_mode->m_outputSamples.pop_front();
+        it.m_mode->m_outputSamples.front()->Return();
+        it.m_mode->m_outputSamples.pop_front();
       }
     }
   }
@@ -451,19 +447,27 @@ void CAudioDSPProcessingBuffer::Flush()
 void CAudioDSPProcessingBuffer::SetDrain(bool drain)
 {
   m_drain = drain;
+  for (auto &it : m_DSPNodeChain)
+  {
+    it.m_buffer->SetDrain(drain);
+  }
 }
 
 bool CAudioDSPProcessingBuffer::IsDrained()
 {
-  if (//! @todo AudioDSP V2 implement this /*m_processor->m_inputSamples.empty() &&*/
-    !m_inputSamples.empty() ||
-    !m_outputSamples.empty())
-
+  bool isDrained = true;
+  for (auto &it : m_DSPNodeChain)
   {
-    return false;
+    isDrained &= it.m_mode->m_inputSamples.empty();
+    isDrained &= it.m_mode->m_outputSamples.empty();
+    isDrained &= it.m_buffer->m_inputSamples.empty();
+    isDrained &= it.m_buffer->m_outputSamples.empty();
   }
 
-  return true;
+  isDrained &= m_inputSamples.empty();
+  isDrained &= m_outputSamples.empty();
+
+  return isDrained;
 }
 
 void CAudioDSPProcessingBuffer::FillBuffer()
@@ -477,8 +481,19 @@ bool CAudioDSPProcessingBuffer::HasWork()
     return true;
   if (!m_outputSamples.empty())
     return true;
-  if (m_DSPNodeChain.size() > 0 && m_DSPNodeChain[0].m_buffer->m_inputSamples.size()) //! @todo AudioDSP V2 also check other nodes from the chain
-    return true;
+
+  for (auto &it : m_DSPNodeChain)
+  {
+    if (!it.m_mode->m_inputSamples.empty())
+    {
+      return true;
+    }
+
+    if (!it.m_buffer->m_inputSamples.empty())
+    {
+      return true;
+    }
+  }
 
   return false;
 }
