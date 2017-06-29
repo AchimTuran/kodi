@@ -211,7 +211,7 @@ extern "C" {
    */
   typedef enum
   {
-    AE_DSP_ABASE_INVALID = -1,
+    AE_DSP_ABASE_UNKNOWN = -1,
     AE_DSP_ABASE_STEREO = 0,
     AE_DSP_ABASE_MONO,
     AE_DSP_ABASE_MULTICHANNEL,
@@ -396,9 +396,7 @@ extern "C" {
     unsigned long     lOutChannelPresentFlags;  /*!< @brief the exact channel mapping flags for output */
     int               iOutFrames;               /*!< @brief the final out frame size for KODI */
     unsigned int      iOutSamplerate;           /*!< @brief the final sample rate of the audio packet */
-    bool              bInputResamplingActive;   /*!< @brief if a re-sampling is performed before master processing this flag is set to true */
-    bool              bStereoUpmix;             /*!< @brief true if the stereo upmix setting on kodi is set */
-    int               iQualityLevel;            /*!< @brief the from KODI selected quality level for signal processing */
+    AE_DSP_QUALITY    iQualityLevel;            /*!< @brief the from KODI selected quality level for signal processing */
     /*!
      * @note about "iProcessSamplerate" and "iProcessFrames" is set from KODI after call of StreamCreate on input re sample add-on, if re-sampling
      * and processing is handled inside the same add-on, this value must be ignored!
@@ -501,9 +499,9 @@ extern "C" {
    */
   typedef struct AE_DSP_STREAM_PROPERTIES
   {
-    AE_DSP_STREAM_ID  iStreamID;                  /*!< @brief stream id of the audio stream packets */
-    AE_DSP_STREAMTYPE iStreamType;                /*!< @brief the input stream type source eg, Movie or Music */
-    int               iBaseType;                  /*!< @brief the input stream base type source eg, Dolby Digital */
+    AE_DSP_STREAM_ID  StreamID;                   /*!< @brief stream id of the audio stream packets */
+    AE_DSP_STREAMTYPE StreamType;                 /*!< @brief the input stream type source eg, Movie or Music */
+    AE_DSP_BASETYPE   BaseType;                   /*!< @brief the input stream base type source eg, Dolby Digital */
     const char*       strName;                    /*!< @brief the audio stream name */
     const char*       strCodecId;                 /*!< @brief codec id string of the audio stream */
     const char*       strLanguage;                /*!< @brief language id of the audio stream */
