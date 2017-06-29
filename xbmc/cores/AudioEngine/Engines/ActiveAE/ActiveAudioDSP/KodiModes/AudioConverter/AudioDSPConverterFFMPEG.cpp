@@ -114,12 +114,11 @@ bool CAudioDSPConverter::Process()
 
     if (in /*|| skipInput || m_drain //! @todo AudioDSP V2 check if this is really need*/)
     {
-      busy = true;
-
       out = m_processingBuffers->GetFreeBuffer();
       if (!out)
       {
-        return busy;
+        in->Return();
+        return false;
       }
 
       for (int ch = 0; ch < m_planes.size(); ch++)

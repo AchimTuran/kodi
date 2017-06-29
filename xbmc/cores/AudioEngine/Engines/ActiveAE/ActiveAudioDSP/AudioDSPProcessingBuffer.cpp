@@ -340,10 +340,7 @@ bool CAudioDSPProcessingBuffer::ProcessBuffer()
       // prepare for next node
       in = &adspNodes[ii].m_mode->m_outputSamples;
     }
-
-    return busy;
   }
-
 
   if (m_nodeTimings.size() > 0)
   {
@@ -356,8 +353,17 @@ bool CAudioDSPProcessingBuffer::ProcessBuffer()
 
 bool CAudioDSPProcessingBuffer::HasInputLevel(int level)
 {
+  int packets = 0;
+  packets += m_inputSamples.size();
+
+  for (auto &it : m_DSPNodeChain)
+  {
+    packets += it.m_buffer->m_inputSamples.size();
+    packets += it.m_mode->m_inputSamples.size();
+  }
+
   //! @todo AudioDSP V2 also calculate delay from conversion buffers
-  if (m_inputSamples.size() + m_DSPNodeChain[0].m_buffer->m_inputSamples.size() > m_DSPNodeChain[0].m_buffer->m_allSamples.size() * level / 100)
+  if (packets >= m_DSPNodeChain[0].m_buffer->m_allSamples.size() * level / 100)
   {
     return true;
   }

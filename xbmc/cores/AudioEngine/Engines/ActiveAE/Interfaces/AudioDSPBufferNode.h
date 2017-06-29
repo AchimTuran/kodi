@@ -74,12 +74,11 @@ public:
 
     if (in /*|| skipInput || m_drain //! @todo AudioDSP V2 check if this is really need*/)
     {
-      busy = true;
-
       out = m_processingBuffers->GetFreeBuffer();
       if (!out)
       {
-        return busy;
+        in->Return();
+        return false;
       }
 
       const uint8_t **inP = (const uint8_t **)(in->pkt->data);
