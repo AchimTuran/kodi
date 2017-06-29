@@ -150,7 +150,7 @@ void CGUIDialogAudioSettings::FrameMove()
     }
 
     int               modeUniqueId = 0;
-    AE_DSP_BASETYPE   usedBaseType = AE_DSP_ABASE_INVALID;
+    AE_DSP_BASETYPE   usedBaseType = AE_DSP_ABASE_UNKNOWN;
     AE_DSP_STREAMTYPE streamTypeUsed = AE_DSP_ASTREAM_INVALID;
     //m_ActiveStreamProcess->GetMasterModeTypeInformation(streamTypeUsed, usedBaseType, modeUniqueId);
     if (forceReload || m_baseTypeUsed != usedBaseType || m_streamTypeUsed != streamTypeUsed)
