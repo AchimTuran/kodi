@@ -46,7 +46,6 @@ namespace ActiveAE
 CActiveAudioDSP::CActiveAudioDSP(CEvent *inMsgEvent) :
   CThread("ActiveAudioDSP"),
   m_AddonControlPort("AudioDSPAddonControlPort", inMsgEvent, &m_outMsgEvent),
-  m_ProcessorDataPort("AudioDSPProcessorDataPort", inMsgEvent, &m_outMsgEvent),
   m_ControlPort("AudioDSPControlPort", inMsgEvent, &m_outMsgEvent),
   m_Controller(m_DSPChainModelObject)
 {
@@ -90,25 +89,28 @@ void CActiveAudioDSP::Stop()
 
   m_AddonControlPort.Purge();
   m_ControlPort.Purge();
-  m_ProcessorDataPort.Purge();
 
   CServiceBroker::GetBinaryAddonManager().UnregisterCallback(ADDON_ADSPDLL);
 }
 
 void CActiveAudioDSP::EnableEvent(BinaryAddonBasePtr addon)
 {
+  //! @todo AudioDSP V2 implement messaging
 }
 
 void CActiveAudioDSP::DisableEvent(BinaryAddonBasePtr addon)
 {
+  //! @todo AudioDSP V2 implement messaging
 }
 
 void CActiveAudioDSP::InstalledEvent(BinaryAddonBasePtr addon)
 {
+  //! @todo AudioDSP V2 implement messaging
 }
 
 void CActiveAudioDSP::DeinstalledEvent(BinaryAddonBasePtr addon)
 {
+  //! @todo AudioDSP V2 implement messaging
 }
 
 void CActiveAudioDSP::EnableAddon(const string &Id, bool Enable)
@@ -252,20 +254,6 @@ void CActiveAudioDSP::StateMachine(int signal, Protocol *port, Message *msg)
             break;
           }
         }
-        else if (port == &m_ProcessorDataPort)
-        {
-          switch (signal)
-          {
-            case CAudioDSPProcessorControlProtocol::CREATE_PROCESSOR:
-              return;
-          
-            case CAudioDSPProcessorControlProtocol::DESTROY_PROCESSOR:
-              return;
-
-            default:
-            break;
-          }
-        }
 
         {
           string portName = port == nullptr ? "timer" : port->portName;
@@ -290,7 +278,6 @@ void CActiveAudioDSP::StateMachine(int signal, Protocol *port, Message *msg)
 
               std::set<std::string> settingSet;
               settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_DSPSETTINGS);
-              //! @todo AudioDSP V2.0 call this via CServiceBroker with
               CServiceBroker::GetSettings().RegisterCallback(this, settingSet);
               
               if (!CServiceBroker::GetBinaryAddonManager().RegisterCallback(ADDON_ADSPDLL, this))
@@ -369,13 +356,19 @@ void CActiveAudioDSP::StateMachine(int signal, Protocol *port, Message *msg)
               }
               else
               {
-                m_EnabledAddons[addonId] = iter->second;
-                //! @todo add addon to processing object
-                m_DisabledAddons.erase(addonId);
-
                 std::hash<std::string> hasher;
                 unsigned int uiAddonId = hasher(iter->second->ID());
-                iter->second->Create(uiAddonId);
+                if (!iter->second->Create(uiAddonId))
+                {
+                  iter->second->Destroy();
+                  CLog::Log(LOGERROR, "%s - failed to create AudioDSP add-on %s", __FUNCTION__, addonId.c_str());
+                }
+                else
+                {
+                  m_EnabledAddons[addonId] = iter->second;
+                  //! @todo AudioDSP V2 add addon to processing object
+                  m_DisabledAddons.erase(addonId);
+                }
               }
             }
             break;
@@ -392,28 +385,13 @@ void CActiveAudioDSP::StateMachine(int signal, Protocol *port, Message *msg)
               {
                 iter->second->Destroy();
                 m_DisabledAddons[addonId] = iter->second;
-                //! @todo remove addon from processing object
+                //! @todo AudioDSP V2 remove addon from processing object
                 m_EnabledAddons.erase(addonId);
               }
             }
             break;
 
             case CAudioDSPAddonControlProtocol::REMOVE_ADDON:
-            break;
-
-            default:
-            break;
-          }
-        }
-        else if (port == &m_ProcessorDataPort)
-        {
-          switch (signal)
-          {
-            case CAudioDSPProcessorControlProtocol::CREATE_PROCESSOR:
-              msg->replyMessage = m_ProcessorDataPort.GetMessage();
-            break;
-
-            case CAudioDSPProcessorControlProtocol::DESTROY_PROCESSOR:
             break;
 
             default:
@@ -487,6 +465,40 @@ void CActiveAudioDSP::StateMachine(int signal, Protocol *port, Message *msg)
             {
               //! @todo AudioDSP V2 add specific deinitialization if needed
             }
+
+            CActiveAEStreamBuffers *streamBuffer = dynamic_cast<CActiveAEStreamBuffers*>(iter->second);
+            if (streamBuffer)
+            {
+              std::list<CActiveAEBufferPool*> discardBufferPools;
+              discardBufferPools.push_back(streamBuffer->GetAtempoBuffers());
+              discardBufferPools.push_back(streamBuffer->GetResampleBuffers());
+
+              auto it = discardBufferPools.begin();
+              while (it != discardBufferPools.end())
+              {
+                if (*it)
+                {
+                  CActiveAEBufferPoolResample *rbuf = dynamic_cast<CActiveAEBufferPoolResample*>(*it);
+                  if (rbuf)
+                  {
+                    rbuf->Flush();
+                  }
+
+                  // if all buffers have returned, we can delete the buffer pool
+                  if ((*it)->m_allSamples.size() == (*it)->m_freeSamples.size())
+                  {
+                    delete (*it);
+                    CLog::Log(LOGDEBUG, "%s - buffer pool deleted", __FUNCTION__);
+                    it = discardBufferPools.erase(it);
+                  }
+                  else
+                  {
+                    ++it;
+                  }
+                }
+              }
+            }
+
             iter->second->Flush();
             iter->second->Destroy();
             delete iter->second;
@@ -530,12 +542,6 @@ void CActiveAudioDSP::PrepareAddons()
     if (CServiceBroker::GetAddonMgr().IsAddonDisabled(addonInfo->ID()))
     {
       m_DisabledAddons[addonInfo->ID()] = dspAddon;
-
-      //! @todo implement hash for dll calls
-      //hash<string> hasher;
-      //int iAddonId = static_cast<int>(hasher(addon->ID()));
-      //if (iAddonId < 0)
-      //  iAddonId = -iAddonId;
     }
     else
     {
@@ -585,10 +591,10 @@ void CActiveAudioDSP::PrepareAddonModes()
   //GetActiveNodesFromJsonFile(tmpActiveNodeInfos);
   for (IDSPNodeModel::DSPNodeInfoVector_t::iterator iter = tmpActiveNodeInfos.begin(); iter != tmpActiveNodeInfos.end(); ++iter)
   {
-    uint32_t addonID;         //! @todo get real parameters
-    uint16_t modeID;          //! @todo get real parameters
-    uint16_t modeInstanceID;  //! @todo get real parameters
-    uint32_t pos;             //! @todo get real parameters
+    uint32_t addonID;         //! @todo AudioDSP V2 get real parameters
+    uint16_t modeID;          //! @todo AudioDSP V2 get real parameters
+    uint16_t modeInstanceID;  //! @todo AudioDSP V2 get real parameters
+    uint32_t pos;             //! @todo AudioDSP V2 get real parameters
     
     NodeID_t id(addonID, modeID, modeInstanceID);
 
@@ -664,11 +670,6 @@ void CActiveAudioDSP::Process()
     {
       gotMsg = true;
       port = &m_AddonControlPort;
-    }
-    else if (m_ProcessorDataPort.ReceiveOutMessage(&msg))
-    {
-      gotMsg = true;
-      port = &m_ProcessorDataPort;
     }
 
     if (gotMsg)

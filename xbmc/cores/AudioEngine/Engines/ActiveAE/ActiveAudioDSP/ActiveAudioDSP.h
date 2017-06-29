@@ -97,22 +97,6 @@ public:
   };
 };
 
-class CAudioDSPProcessorControlProtocol : public Protocol
-{
-public:
-  CAudioDSPProcessorControlProtocol(std::string name, CEvent *inEvent, CEvent *outEvent) : Protocol(name, inEvent, outEvent) {}
-  enum OutSignal
-  {
-    CREATE_PROCESSOR = 0,
-    DESTROY_PROCESSOR,
-  };
-  enum InSignal
-  {
-    ACC,
-  };
-};
-
-
 class CActiveAudioDSP : public IAEAudioDSP,
                         public ADDON::IBinaryAddonManagerCallback,
                         public ISettingCallback,
@@ -153,7 +137,6 @@ protected:
   // ports
   CAudioDSPControlProtocol m_ControlPort;
   CAudioDSPAddonControlProtocol m_AddonControlPort;
-  CAudioDSPProcessorControlProtocol m_ProcessorDataPort;
 
   // state machine variables
   void Process();
