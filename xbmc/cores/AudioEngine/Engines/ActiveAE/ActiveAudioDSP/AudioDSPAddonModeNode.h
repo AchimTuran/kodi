@@ -35,7 +35,7 @@ public:
   CAudioDSPAddonModeNode(ADDON_HANDLE_STRUCT &Handle, AE_DSP_ADDON Addon, uint64_t ID, int32_t AddonModeID);
 
   virtual DSPErrorCode_t CreateInstance(AEAudioFormat &InputFormat, AEAudioFormat &OutputFormat) override;
-  virtual int CAudioDSPAddonModeNode::ProcessInstance(const uint8_t **In, uint8_t **Out) override;
+  virtual int ProcessInstance(const uint8_t **In, uint8_t **Out) override;
   virtual DSPErrorCode_t DestroyInstance() override;
 
   ADDON_HANDLE_STRUCT &m_handle;
