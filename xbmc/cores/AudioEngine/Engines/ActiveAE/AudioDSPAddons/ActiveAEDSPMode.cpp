@@ -49,7 +49,7 @@ CActiveAEDSPMode::CActiveAEDSPMode()
   m_strOwnIconPath          = "";
   m_strOverrideIconPath     = "";
   m_iStreamTypeFlags        = 0;
-  m_iBaseType               = AE_DSP_ABASE_INVALID;
+  m_iBaseType               = AE_DSP_ABASE_UNKNOWN;
   m_iModeName               = -1;
   m_iModeSetupName          = -1;
   m_iModeDescription        = -1;
@@ -123,7 +123,7 @@ CActiveAEDSPMode::CActiveAEDSPMode(const AE_DSP_MODES::AE_DSP_MODE &mode, unsign
   m_iModePosition           = -1;
   m_uiModeId                = mode.uiUniqueDBModeId;
   m_iAddonId                = iAddonId;
-  m_iBaseType               = AE_DSP_ABASE_INVALID;
+  m_iBaseType               = AE_DSP_ABASE_UNKNOWN;
   m_bIsEnabled              = m_iModeType == AE_DSP_MODE_TYPE_MASTER_PROCESS ? !mode.bIsDisabled : false;
   m_strOwnIconPath          = mode.strOwnModeImage;
   m_strOverrideIconPath     = mode.strOverrideModeImage;

@@ -212,9 +212,9 @@ bool CActiveAEDSPProcess::Create(const AEAudioFormat &inputFormat, const AEAudio
     m_addonStreamProperties.iChannels     = m_inputFormat.m_channelLayout.Count();
   }
 
-  m_addonStreamProperties.iStreamID       = m_streamId;
-  m_addonStreamProperties.iStreamType     = m_streamTypeUsed;
-  m_addonStreamProperties.iBaseType       = GetBaseType(&m_addonStreamProperties);
+  m_addonStreamProperties.StreamID       = m_streamId;
+  m_addonStreamProperties.StreamType     = m_streamTypeUsed;
+  m_addonStreamProperties.BaseType       = GetBaseType(&m_addonStreamProperties);
 
   /*!
    * Create the profile about additional stream related data, e.g. the different Dolby Digital stream flags
@@ -236,9 +236,7 @@ bool CActiveAEDSPProcess::Create(const AEAudioFormat &inputFormat, const AEAudio
   m_addonSettings.iOutChannels            = m_outputFormat.m_channelLayout.Count(); /*!< The for output required amount of channels */
   m_addonSettings.iOutFrames              = m_outputFormat.m_frames;              /*! Output frames requested */
   m_addonSettings.iOutSamplerate          = m_outputFormat.m_sampleRate;          /*!< The required sample rate for pass over resampling on ActiveAEResample */
-  m_addonSettings.bStereoUpmix            = upmix;                                /*! Stereo upmix value given from KODI settings */
-  m_addonSettings.bInputResamplingActive  = false;                                /*! Becomes true if input resampling is in use */
-  m_addonSettings.iQualityLevel           = m_streamQuality;                      /*! Requested stream processing quality, is optional and can be from addon ignored */
+  m_addonSettings.iQualityLevel           = AE_DSP_QUALITY_REALLYHIGH;//! @todo AudioDSP V2 add translation for m_streamQuality;                      /*! Requested stream processing quality, is optional and can be from addon ignored */
 
   /*! @warning If you change or add new channel enums to AEChannel in
    * xbmc/cores/AudioEngine/Utils/AEChannelData.h you have to adapt this loop
@@ -270,13 +268,13 @@ bool CActiveAEDSPProcess::Create(const AEAudioFormat &inputFormat, const AEAudio
   {
     CLog::Log(LOGDEBUG, "  ----  Input stream  ----");
     CLog::Log(LOGDEBUG, "  | Identifier           : %d", m_addonStreamProperties.iIdentifier);
-    CLog::Log(LOGDEBUG, "  | Stream Type          : %s", m_addonStreamProperties.iStreamType == AE_DSP_ASTREAM_BASIC   ? "Basic"   :
-                                                         m_addonStreamProperties.iStreamType == AE_DSP_ASTREAM_MUSIC   ? "Music"   :
-                                                         m_addonStreamProperties.iStreamType == AE_DSP_ASTREAM_MOVIE   ? "Movie"   :
-                                                         m_addonStreamProperties.iStreamType == AE_DSP_ASTREAM_GAME    ? "Game"    :
-                                                         m_addonStreamProperties.iStreamType == AE_DSP_ASTREAM_APP     ? "App"     :
-                                                         m_addonStreamProperties.iStreamType == AE_DSP_ASTREAM_PHONE   ? "Phone"   :
-                                                         m_addonStreamProperties.iStreamType == AE_DSP_ASTREAM_MESSAGE ? "Message" :
+    CLog::Log(LOGDEBUG, "  | Stream Type          : %s", m_addonStreamProperties.StreamType == AE_DSP_ASTREAM_BASIC   ? "Basic"   :
+                                                         m_addonStreamProperties.StreamType == AE_DSP_ASTREAM_MUSIC   ? "Music"   :
+                                                         m_addonStreamProperties.StreamType == AE_DSP_ASTREAM_MOVIE   ? "Movie"   :
+                                                         m_addonStreamProperties.StreamType == AE_DSP_ASTREAM_GAME    ? "Game"    :
+                                                         m_addonStreamProperties.StreamType == AE_DSP_ASTREAM_APP     ? "App"     :
+                                                         m_addonStreamProperties.StreamType == AE_DSP_ASTREAM_PHONE   ? "Phone"   :
+                                                         m_addonStreamProperties.StreamType == AE_DSP_ASTREAM_MESSAGE ? "Message" :
                                                          "Unknown");
     CLog::Log(LOGDEBUG, "  | Name                 : %s", m_addonStreamProperties.strName);
     CLog::Log(LOGDEBUG, "  | Language             : %s", m_addonStreamProperties.strLanguage);
@@ -321,7 +319,7 @@ void CActiveAEDSPProcess::InitFFMpegDSPProcessor()
    * if the amount of input channels is higher as output and the active master mode gives more channels out or if it is not set of it
    * a forced channel downmix becomes enabled.
    */
-  bool upmix = m_addonSettings.bStereoUpmix && m_addons_MasterProc[m_activeMode].pMode->ModeID() == AE_DSP_MASTER_MODE_ID_INTERNAL_STEREO_UPMIX ? true : false;
+  bool upmix = /*m_addonSettings.*/ false && m_addons_MasterProc[m_activeMode].pMode->ModeID() == AE_DSP_MASTER_MODE_ID_INTERNAL_STEREO_UPMIX ? true : false;
   if (upmix || (m_addonSettings.iInChannels > m_addonSettings.iOutChannels && (m_activeModeOutChannels <= 0 || m_activeModeOutChannels > m_addonSettings.iOutChannels)))
   {
     m_resamplerDSPProcessor = CAEResampleFactory::Create();
@@ -351,7 +349,7 @@ bool CActiveAEDSPProcess::CreateStreamProfile()
 {
   bool ret = true;
 
-  switch (m_addonStreamProperties.iBaseType)
+  switch (m_addonStreamProperties.BaseType)
   {
     case AE_DSP_ABASE_AC3:
     case AE_DSP_ABASE_EAC3:
@@ -616,7 +614,7 @@ bool CActiveAEDSPProcess::GetMasterModeStreamInfoString(std::string &strInfo)
 
 bool CActiveAEDSPProcess::GetMasterModeTypeInformation(AE_DSP_STREAMTYPE &streamTypeUsed, AE_DSP_BASETYPE &baseType, int &iModeID)
 {
-  streamTypeUsed  = (AE_DSP_STREAMTYPE)m_addonStreamProperties.iStreamType;
+  streamTypeUsed  = (AE_DSP_STREAMTYPE)m_addonStreamProperties.StreamType;
 
   if (m_activeMode < 0)
     return false;
@@ -673,7 +671,7 @@ bool CActiveAEDSPProcess::MasterModeChange(int iModeID, AE_DSP_STREAMTYPE iStrea
    * If the addon want to use another stream type, it can be becomes written inside
    * the m_addonStreamProperties.iStreamType.
    */
-  m_addonStreamProperties.iStreamType = m_streamTypeUsed;
+  m_addonStreamProperties.StreamType = m_streamTypeUsed;
   m_addonSettings.iStreamType         = m_streamTypeUsed;
   m_activeModeOutChannels             = -1;
 
@@ -693,7 +691,7 @@ bool CActiveAEDSPProcess::MasterModeChange(int iModeID, AE_DSP_STREAMTYPE iStrea
       {
         if (m_addons_MasterProc[ptr].pAddon)
         {
-          AE_DSP_ERROR err = m_addons_MasterProc[ptr].pAddon->MasterProcessSetMode(&m_addons_MasterProc[ptr].handle, m_addonStreamProperties.iStreamType, mode->AddonModeNumber(), mode->ModeID());
+          AE_DSP_ERROR err = m_addons_MasterProc[ptr].pAddon->MasterProcessSetMode(&m_addons_MasterProc[ptr].handle, m_addonStreamProperties.StreamType, mode->AddonModeNumber(), mode->ModeID());
           if (err != AE_DSP_ERROR_NO_ERROR)
           {
             CLog::Log(LOGERROR, "ActiveAE DSP - %s - addon master mode selection failed on %s with Mode '%s' with %s",
@@ -706,7 +704,7 @@ bool CActiveAEDSPProcess::MasterModeChange(int iModeID, AE_DSP_STREAMTYPE iStrea
           {
             CLog::Log(LOGINFO, "ActiveAE DSP - Switching master mode to '%s' as '%s' on '%s'",
                                     mode->AddonModeName().c_str(),
-                                    GetStreamTypeName((AE_DSP_STREAMTYPE)m_addonStreamProperties.iStreamType),
+                                    GetStreamTypeName((AE_DSP_STREAMTYPE)m_addonStreamProperties.StreamType),
                                     m_addons_MasterProc[ptr].pAddon->GetAudioDSPName().c_str());
 
             m_activeMode            = (int)ptr;
@@ -718,7 +716,7 @@ bool CActiveAEDSPProcess::MasterModeChange(int iModeID, AE_DSP_STREAMTYPE iStrea
         {
           CLog::Log(LOGINFO, "ActiveAE DSP - Switching master mode to internal '%s' as '%s'",
                                   mode->AddonModeName().c_str(),
-                                  GetStreamTypeName((AE_DSP_STREAMTYPE)m_addonStreamProperties.iStreamType));
+                                  GetStreamTypeName((AE_DSP_STREAMTYPE)m_addonStreamProperties.StreamType));
 
           m_activeMode            = (int)ptr;
           m_activeModeOutChannels = -1;
@@ -1265,16 +1263,16 @@ void CActiveAEDSPProcess::UpdateActiveModes()
   sDSPProcessHandle internalMode;
   internalMode.Clear();
   internalMode.iAddonModeNumber = AE_DSP_MASTER_MODE_ID_PASSOVER;
-  internalMode.pMode = CActiveAEDSPModePtr(new CActiveAEDSPMode(internalMode.iAddonModeNumber, (AE_DSP_BASETYPE)m_addonStreamProperties.iBaseType));
+  internalMode.pMode = CActiveAEDSPModePtr(new CActiveAEDSPMode(internalMode.iAddonModeNumber, (AE_DSP_BASETYPE)m_addonStreamProperties.BaseType));
   internalMode.iLastTime = 0;
   m_addons_MasterProc.push_back(internalMode);
   m_activeMode = AE_DSP_MASTER_MODE_ID_PASSOVER;
 
-  if (m_addonSettings.bStereoUpmix && m_addonSettings.iInChannels <= 2)
+  if (/*m_addonSettings.bStereoUpmix &&*/ false && m_addonSettings.iInChannels <= 2)
   {
     internalMode.Clear();
     internalMode.iAddonModeNumber = AE_DSP_MASTER_MODE_ID_INTERNAL_STEREO_UPMIX;
-    internalMode.pMode = CActiveAEDSPModePtr(new CActiveAEDSPMode(internalMode.iAddonModeNumber, (AE_DSP_BASETYPE)m_addonStreamProperties.iBaseType));
+    internalMode.pMode = CActiveAEDSPModePtr(new CActiveAEDSPMode(internalMode.iAddonModeNumber, (AE_DSP_BASETYPE)m_addonStreamProperties.BaseType));
     internalMode.iLastTime = 0;
     m_addons_MasterProc.push_back(internalMode);
   }
