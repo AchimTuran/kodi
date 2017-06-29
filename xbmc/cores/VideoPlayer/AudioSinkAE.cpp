@@ -67,14 +67,13 @@ bool CAudioSinkAE::Create(const DVDAudioFrame &audioframe, AVCodecID codec, bool
   options |= AESTREAM_PAUSED;
 
   AEStreamProperties streamProperties;
-  //! @todo AudioDSP V2 add conversion functions
-  //streamProperties.matrixEncoding = audioframe.matrix_encoding;
-  //streamProperties.sourceFormat = audioframe.profile;
-  //streamProperties.streamServiceType = audioframe.audio_service_type;
+  streamProperties.matrixEncoding = CAEUtil::GetAEMatrixEncoding(audioframe.matrix_encoding);
+  streamProperties.sourceFormat = CAEUtil::GetAESourceFormat(codec);
+  streamProperties.profile = CAEUtil::GetAEProfile(audioframe.profile); //! @todo AudioDSP V2 ask AlwinEsch, Fritsch or FernetMenta what does "audioframe.profile" store?
+  streamProperties.streamServiceType = CAEUtil::GetAEAudioServiceType(audioframe.audio_service_type);
   streamProperties.streamType = AE_STREAM_MOVIE;
 
   AEAudioFormat format = audioframe.format;
-  //! @todo AudioDSP V2 add stream properties
   m_pAudioStream = CServiceBroker::GetActiveAE().MakeStream(
     format,
     options,
