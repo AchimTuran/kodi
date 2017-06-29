@@ -42,5 +42,6 @@ public:
 
 private:
   AE_DSP_ADDON m_addon; //! @todo m_Addon is easier, but call history is bigger
+  int m_streamID;
 };
 }
