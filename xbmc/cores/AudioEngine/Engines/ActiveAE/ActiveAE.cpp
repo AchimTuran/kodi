@@ -635,7 +635,7 @@ void CActiveAE::StateMachine(int signal, Protocol *port, Message *msg)
           {
             unsigned int outSampleRate = static_cast<unsigned int>((double)stream->m_processingBuffers->m_inputFormat.m_sampleRate / par->parameter.double_par);
             par->stream->m_processingBuffers->SetOutputSampleRate(outSampleRate);
-            //! @todo AudioDSP reimplement this
+            //! @todo AudioDSP V2 reimplement this
             //par->stream->m_processingBuffers->SetResampleRatio(1.0, m_settings.atempoThreshold);
           }
           return;
@@ -1149,7 +1149,8 @@ void CActiveAE::Configure(AEAudioFormat *desiredFmt)
         {
           DSPErrorCode_t dspErr = m_audioDSP.ReleaseProcessingBuffer((*it)->m_id);
           if (dspErr != DSP_ERR_NO_ERR)
-          {//! @todo AudioDSP log AudioDSP error
+          {
+            //! @todo AudioDSP log AudioDSP error
           }
           (*it)->m_processingBuffers = nullptr;
         }
@@ -1168,10 +1169,6 @@ void CActiveAE::Configure(AEAudioFormat *desiredFmt)
             m_extError = true;
             return;
           }
-          //! @todo AudioDSP reimplement this
-          //stream->m_processingBuffers->ConfigureResampler(m_settings.normalizelevels, m_settings.stereoupmix, m_settings.resampleQuality);
-          //(*it)->m_processingBuffers->ForceResampler((*it)->m_forceResampler);
-          //(*it)->m_processingBuffers->SetExtraData((*it)->m_profile, (*it)->m_matrixEncoding, (*it)->m_audioServiceType);
 
           (*it)->m_processingBuffers->Create(static_cast<unsigned int>(MAX_CACHE_LEVEL * 1000), forceOutputFormat);
         }
@@ -1603,15 +1600,11 @@ void CActiveAE::DiscardStream(CActiveAEStream *stream)
         m_discardBufferPools.push_back((*it)->m_inputBuffers);
       if ((*it)->m_processingBuffers)
       {
-        (*it)->m_processingBuffers->Flush();
         if (m_audioDSP.ReleaseProcessingBuffer((*it)->m_id) != DSP_ERR_NO_ERR)
         {
           CLog::Log(LOGERROR, "%s - An error occured during releasing the processing buffer from stream %i", __FUNCTION__, (*it)->m_id);
         }
         (*it)->m_processingBuffers = nullptr;
-        //! @todo AudioDSP V2 reimplement this
-        //m_discardBufferPools.push_back((*it)->m_processingBuffers->GetResampleBuffers());
-        //m_discardBufferPools.push_back((*it)->m_processingBuffers->GetAtempoBuffers());
       }
       CLog::Log(LOGDEBUG, "CActiveAE::DiscardStream - audio stream deleted");
       m_stats.RemoveStream((*it)->m_id);
@@ -2449,7 +2442,7 @@ CSampleBuffer* CActiveAE::SyncStream(CActiveAEStream *stream)
     stream->m_syncState = CAESyncInfo::AESyncState::SYNC_MUTE;
     stream->m_syncError.Flush(100);
     //stream->m_processingBuffers->SetOutputSampleRate(); stream->SetRR(1.0, m_settings.atempoThreshold);
-      //! @todo reimplement this with AudioDSP V2
+      //! @todo AudioDSP V2 reimplement this
     stream->m_resampleIntegral = 0;
     CLog::Log(LOGDEBUG,"ActiveAE - start sync of audio stream");
   }
@@ -2598,7 +2591,7 @@ CSampleBuffer* CActiveAE::SyncStream(CActiveAEStream *stream)
         stream->m_syncState = CAESyncInfo::AESyncState::SYNC_INSYNC;
         stream->m_syncError.Flush(1000);
         stream->m_resampleIntegral = 0;
-        //! @todo AudioDSP reimplement this
+        //! @todo AudioDSP V2 reimplement this
         //stream->m_processingBuffers->SetResampleRatio(1.0, m_settings.atempoThreshold);
         CLog::Log(LOGDEBUG,"ActiveAE::SyncStream - average error %f below threshold of %f", error, 30.0);
       }
@@ -2616,12 +2609,13 @@ CSampleBuffer* CActiveAE::SyncStream(CActiveAEStream *stream)
     {
       unsigned int outSampleRate = static_cast<unsigned int>(static_cast<double>(stream->m_processingBuffers->m_inputFormat.m_sampleRate / stream->CalcResampleRatio(error)));
       stream->m_processingBuffers->SetOutputSampleRate(outSampleRate);
-      //! @todo AudioDSP reimplement this
+      //! @todo AudioDSP V2 reimplement this
       //stream->m_processingBuffers->SetResampleRatio(stream->CalcResampleRatio(error), m_settings.atempoThreshold);
     }
   }
   else if (stream->m_processingBuffers)
   {
+    //! @todo AudioDSP V2 reimplement this
     //stream->m_processingBuffers->SetResampleRatio(1.0, m_settings.atempoThreshold);
   }
   stream->m_syncError.Flush(stream->GetErrorInterval());
