@@ -27,12 +27,13 @@ struct AEStreamProperties
   AEAudioServiceType  streamServiceType;
   AEMatrixEncoding    matrixEncoding;
   AESourceFormat      sourceFormat;
+  AEProfile           profile;
 
   AEStreamProperties()
   {
     streamType        = AE_STREAM_INVALID;
     streamServiceType = AE_AUDIO_SERVICE_INVALID;
     matrixEncoding    = AE_MATRIX_ENCODING_INVALID;
-    sourceFormat      = AE_SOURCE_FORMAT_INVALID;
+    sourceFormat      = AE_SOURCE_FORMAT_UNKNOWN;
   }
 };
