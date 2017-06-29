@@ -117,7 +117,7 @@ bool CAudioDSPConverter::Process()
       out = m_processingBuffers->GetFreeBuffer();
       if (!out)
       {
-        in->Return();
+        m_inputSamples.push_front(in);
         return false;
       }
 
