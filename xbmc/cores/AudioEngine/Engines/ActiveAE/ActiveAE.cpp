@@ -1129,7 +1129,7 @@ void CActiveAE::Configure(AEAudioFormat *desiredFmt)
       {
         bool forceOutputFormat = true;
         if (it == m_streams.rbegin())
-        { // all streams except the last one should use try to match the output format
+        { // all streams except the last one should try to match the output format
           forceOutputFormat = false;
         }
         if (!(*it)->m_inputBuffers)
