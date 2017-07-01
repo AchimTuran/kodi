@@ -223,10 +223,6 @@ void CWinRenderer::SelectRenderMethod()
 
 bool CWinRenderer::Configure(unsigned int width, unsigned int height, unsigned int d_width, unsigned int d_height, float fps, unsigned flags, ERenderFormat format, void *hwPic, unsigned int orientation)
 {
-  if (!hwPic)
-  {
-    return false;
-  }
   m_sourceWidth       = width;
   m_sourceHeight      = height;
   m_renderOrientation = orientation;
