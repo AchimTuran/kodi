@@ -212,6 +212,10 @@ bool CAudioDSPConverter::UpdateSettings()
     delete m_resampler;
   }
 
+  if (!m_model.StereoUpmix() && m_InputFormat.m_channelLayout.Count() == 2)
+  {
+    m_OutputFormat.m_channelLayout = m_InputFormat.m_channelLayout;
+  }
 
   if (m_InputFormat.m_channelLayout != m_OutputFormat.m_channelLayout ||
       m_InputFormat.m_sampleRate    != m_OutputFormat.m_sampleRate ||
