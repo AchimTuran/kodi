@@ -601,6 +601,23 @@ void CActiveAudioDSP::PrepareAddonModes()
     m_DSPChainModelObject.EnableNode(id, pos);
   }
 
+
+  // temporarily enable adsp.freesurround and audio converter
+  IDSPNodeModel::DSPNodeInfoVector_t nodeInfos;
+  m_DSPChainModelObject.GetNodeInfos(nodeInfos);
+
+  for (auto &it : nodeInfos)
+  {
+    if (it.Name == "Kodi::AudioConverter")
+    {
+      m_DSPChainModelObject.EnableNode(it.ID, 0);
+    }
+
+    if (it.Name == "adsp.freesurround::Free Surround")
+    {
+      m_DSPChainModelObject.EnableNode(it.ID, 1);
+    }
+  }
 }
 
 void CActiveAudioDSP::CreateDSPNodeModel()
