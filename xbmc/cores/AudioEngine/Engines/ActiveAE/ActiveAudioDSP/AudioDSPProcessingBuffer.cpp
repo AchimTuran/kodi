@@ -66,32 +66,29 @@ bool CAudioDSPProcessingBuffer::Create(unsigned int totaltime, bool ForceOutputF
   for (uint32_t ii = 0; ii < nodeInfos.size(); ii++)
   {
     IADSPNode *node = m_nodeFactory.InstantiateNode(*configInParameters, *configOutParameters, m_streamProperties, m_streamID, nodeInfos.at(ii).ID);
-    if (!node)
+    
+    //! @todo AudioDSP V2 improve error handling when an add-on returned ignore
+    if (node)
     {
-      return DSP_ERR_FATAL_ERROR;
-    }
-    DSPErrorCode_t dspErr = node->Create();
-    if (dspErr != DSP_ERR_NO_ERR)
-    {
-      m_nodeFactory.DestroyNode(node);
-      return dspErr;
-    }
+      DSPErrorCode_t dspErr = node->Create();
+      if (dspErr != DSP_ERR_NO_ERR)
+      {
+        m_nodeFactory.DestroyNode(node);
+      }
+      else
+      { // only a sucessful created nodes
+        *configOutParameters = node->GetOutputFormat();
 
-    IADSPNode *adspNode = dynamic_cast<IADSPNode*>(node);
-    if (!adspNode)
-    {
-      m_nodeFactory.DestroyNode(node);
-      return DSP_ERR_FATAL_ERROR;
+        // swap pointer for parameters
+        AEAudioFormat *p = configInParameters;
+        configInParameters = configOutParameters;
+        configOutParameters = p;
+        // the default behaviour is to try to set the m_outputFormat for every node
+        *configOutParameters = m_outputFormat;
+
+        m_DSPNodeChain.push_back(CAudioDSPModeHandle(node));
+      }
     }
-
-    // swap pointer for parameters
-    AEAudioFormat *p = configInParameters;
-    configInParameters = configOutParameters;
-    configOutParameters = p;
-    // the default behaviour is to set the same output as input configuration
-    *configOutParameters = *configInParameters;
-
-    m_DSPNodeChain.push_back(CAudioDSPModeHandle(adspNode, nullptr));
   }
 
   // configure buffers
@@ -131,20 +128,16 @@ bool CAudioDSPProcessingBuffer::Create(unsigned int totaltime, bool ForceOutputF
     else
     {
       AEAudioFormat inFmt = m_inputFormat;
+      //! @todo AudioDSP V2 remove this loop if it is not needed
       for (uint32_t ii = 0; ii < m_DSPNodeChain.size(); ii++)
       {
         AEAudioFormat outFmt;
         outFmt = m_DSPNodeChain.at(ii).m_mode->GetInputFormat();
 
-        if (!(inFmt == outFmt))
-        { // create conversion buffer
-          //! @todo add buffer
-        }
-
         inFmt = m_DSPNodeChain.at(ii).m_mode->GetOutputFormat();
       }
 
-      m_outputFormat = inFmt;
+      m_outputFormat = inFmt; //! @todo AudioDSP V2 only force the format if the bool variable is set
     }
 
     // add audio converter if the first mode needed a different input format
@@ -289,8 +282,7 @@ bool CAudioDSPProcessingBuffer::ProcessBuffer()
       {
         if (adspNodes[ii + 1].m_buffer)
         {
-          //! @todo AudioDSP V2 get m_inputSamples from conversion buffer
-          bool dummy = false;
+          out = &adspNodes[ii + 1].m_buffer->m_inputSamples;
         }
         else
         {

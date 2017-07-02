@@ -70,6 +70,12 @@ class CAudioDSPProcessingBuffer : public IActiveAEProcessingBuffer, private CAct
       m_buffer = Buffer;
     }
 
+    CAudioDSPModeHandle(DSP::AUDIO::IADSPNode *Mode)
+    {
+      m_mode = Mode;
+      m_buffer = nullptr;
+    }
+
     DSP::AUDIO::IADSPNode *m_mode;
     CActiveAEBufferPoolResample *m_buffer;
   };
