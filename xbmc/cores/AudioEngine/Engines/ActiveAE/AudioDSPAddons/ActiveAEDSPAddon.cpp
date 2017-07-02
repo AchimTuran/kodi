@@ -225,7 +225,10 @@ AE_DSP_ERROR CActiveAEDSPAddon::StreamCreate(const AE_DSP_SETTINGS *addonSetting
 {
   AE_DSP_ERROR retVal = m_struct.toAddon.stream_create(&m_struct, addonSettings, pProperties, handle);
   if (retVal == AE_DSP_ERROR_NO_ERROR)
+  {
     m_isInUse = true;
+  }
+  
   LogError(retVal, __FUNCTION__);
 
   return retVal;
@@ -242,9 +245,13 @@ bool CActiveAEDSPAddon::StreamIsModeSupported(const ADDON_HANDLE handle, AE_DSP_
 {
   AE_DSP_ERROR retVal = m_struct.toAddon.stream_is_mode_supported(&m_struct, handle, type, addon_mode_id, unique_db_mode_id);
   if (retVal == AE_DSP_ERROR_NO_ERROR)
+  {
     return true;
+  }
   else if (retVal != AE_DSP_ERROR_IGNORE_ME)
+  {
     LogError(retVal, __FUNCTION__);
+  }
 
   return false;
 }
