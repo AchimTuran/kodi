@@ -29,7 +29,8 @@ using namespace DSP::AUDIO;
 namespace ActiveAE
 {
 AE_DSP_BASETYPE GetAEDSPBaseType(AESourceFormat SourceFormat);
-AE_DSP_CHANNEL GetAEDSPChannel(AEChannel Channel);
+AE_DSP_STREAMTYPE TranslateStreamType(AEStreamType StreamType);
+AE_DSP_CHANNEL TranslateAEChannel(AEChannel Channel);
 unsigned long GetPresentChannels(const CAEChannelInfo &ChannelLayout);
 
 CAudioDSPAddonNodeCreator::CAudioDSPAddonNodeCreator(const AE_DSP_ADDON &Addon) :
@@ -79,7 +80,7 @@ IADSPNode* CAudioDSPAddonNodeCreator::InstantiateNode(const AEAudioFormat &Input
     AE_DSP_SETTINGS addonSettings;
     addonSettings.iStreamID = StreamID;                /*!< @brief id of the audio stream packets */
     //! @todo AudioDSP V2 this should be set during mode creation
-    addonSettings.iStreamType = AE_DSP_ASTREAM_AUTO;             /*!< @brief the input stream type source eg, Movie or Music */
+    addonSettings.iStreamType = TranslateStreamType(StreamProperties.streamType);             /*!< @brief the input stream type source eg, Movie or Music */
     addonSettings.iInChannels = InputFormat.m_channelLayout.Count();              /*!< @brief the amount of input channels */
     addonSettings.iInFrames = InputFormat.m_frames;                /*!< @brief the input frame size from KODI */
     addonSettings.iInSamplerate = InputFormat.m_sampleRate;            /*!< @brief the basic sample rate of the audio packet */
@@ -97,7 +98,7 @@ IADSPNode* CAudioDSPAddonNodeCreator::InstantiateNode(const AEAudioFormat &Input
     AE_DSP_STREAM_PROPERTIES streamProperties;
     streamProperties.StreamID = StreamID;
     //! @todo AudioDSP V2 this should be set during mode creation
-    streamProperties.StreamType = AE_DSP_ASTREAM_AUTO;
+    streamProperties.StreamType = TranslateStreamType(StreamProperties.streamType);
     streamProperties.BaseType = GetAEDSPBaseType(StreamProperties.sourceFormat);
     streamProperties.strName = ""; //! @todo AudioDSP V2 add stream name
     streamProperties.strCodecId = ""; //! @todo AudioDSP codec ID
@@ -129,7 +130,7 @@ IADSPNode* CAudioDSPAddonNodeCreator::InstantiateNode(const AEAudioFormat &Input
     return nullptr;
   }
 
-  IADSPNode *node = dynamic_cast<IADSPNode*>(new CAudioDSPAddonModeNode(m_addonModeMap[StreamID].handle, m_addon, ID, 0)); //! @todo use <add-on name>::<mode name> as ID identifier generation and add-on mode ID
+  IADSPNode *node = dynamic_cast<IADSPNode*>(new CAudioDSPAddonModeNode(InputFormat, OutputFormat, m_addonModeMap[StreamID].handle, m_addon, ID, 0)); //! @todo use <add-on name>::<mode name> as ID identifier generation and add-on mode ID
   if (!node)
   {
     return nullptr;
@@ -391,4 +392,29 @@ unsigned long GetPresentChannels(const CAEChannelInfo &ChannelLayout)
 
   return channelFlags;
 }
+
+AE_DSP_STREAMTYPE TranslateStreamType(AEStreamType StreamType)
+{
+  switch (StreamType)
+  {
+    case AE_STREAM_MUSIC:
+      return AE_DSP_ASTREAM_MUSIC;
+    case AE_STREAM_MOVIE:
+      return AE_DSP_ASTREAM_MOVIE;
+    case AE_STREAM_GAME:
+      return AE_DSP_ASTREAM_GAME;
+    case AE_STREAM_APP:
+      return AE_DSP_ASTREAM_APP;
+    case AE_STREAM_PHONE:
+      return AE_DSP_ASTREAM_PHONE;
+    case AE_STREAM_MESSAGE:
+      return AE_DSP_ASTREAM_MESSAGE;
+    default:
+      return AE_DSP_ASTREAM_INVALID;
+  }
+}
+
+//! @todo AudioDSP V2 merge add-on and AE enums
+//case AE_STREAM_TV:
+//return AE_DSP_ASTREAM_BASIC;
 }
