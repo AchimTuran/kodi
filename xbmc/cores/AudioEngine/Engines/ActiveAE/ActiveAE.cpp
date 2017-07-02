@@ -1170,7 +1170,17 @@ void CActiveAE::Configure(AEAudioFormat *desiredFmt)
             return;
           }
 
-          (*it)->m_processingBuffers->Create(static_cast<unsigned int>(MAX_CACHE_LEVEL * 1000), forceOutputFormat);
+          if(!(*it)->m_processingBuffers->Create(static_cast<unsigned int>(MAX_CACHE_LEVEL * 1000), forceOutputFormat))
+          {
+            CLog::Log(LOGERROR, "ActiveAE::%s - failed to configure processing buffer", __FUNCTION__);
+            m_stats.SetSinkCacheTotal(0);
+            m_stats.SetSinkLatency(0);
+            AEAudioFormat invalidFormat;
+            invalidFormat.m_dataFormat = AE_FMT_INVALID;
+            m_stats.SetCurrentSinkFormat(invalidFormat);
+            m_extError = true;
+            return;
+          }
         }
 
         if (m_mode == MODE_TRANSCODE || m_streams.size() > 1)
