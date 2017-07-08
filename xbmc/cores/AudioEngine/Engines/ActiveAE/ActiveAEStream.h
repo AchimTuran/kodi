@@ -150,11 +150,11 @@ public:
   unsigned int GetSpace() override;
   // public interface methods
   unsigned int AddData(const uint8_t* const *data, unsigned int offset, unsigned int frames, double pts = 0.0) override;
-  unsigned int AddData(const uint8_t* const *data, unsigned int offset, unsigned int frames, double pts = 0.0) override;
   double GetDelay() override;
   bool IsBuffering() override;
   double GetCacheTime() override;
   double GetCacheTotal() override;
+  CAESyncInfo GetSyncInfo() override;
 
   void Pause() override;
   void Resume() override;

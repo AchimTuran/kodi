@@ -31,9 +31,9 @@
 #include "dialogs/GUIDialogKaiToast.h"
 #include "video/dialogs/GUIDialogAudioSettings.h"
 #include "video/dialogs/GUIDialogSubtitleSettings.h"
-#ifdef HAS_VIDEO_PLAYBACK
+//#ifdef HAS_VIDEO_PLAYBACK
 #include "cores/VideoPlayer/VideoRenderers/OverlayRendererGUI.h"
-#endif
+//#endif
 #include "Application.h"
 #include "utils/LangCodeExpander.h"
 #include "utils/StringUtils.h"

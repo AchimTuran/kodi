@@ -37,7 +37,5 @@ public:
   int m_MasterStreamTypeSel;
   int m_MasterStreamType;
   int m_MasterStreamBase;
-  //int m_MasterModes[AE_DSP_ASTREAM_MAX][AE_DSP_ABASE_MAX];
-
 private:
 };

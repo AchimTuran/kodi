@@ -115,10 +115,10 @@ IADSPNode* CAudioDSPAddonNodeCreator::InstantiateNode(const AEAudioFormat &Input
       return nullptr;
     }
 
-    if (m_addon->StreamInitialize(&m_addonModeMap[StreamID].handle, &addonSettings) != AUDIODSP_ADDON_ERROR_NO_ERROR)
-    {
-      return nullptr;
-    }
+    //if (m_addon->StreamInitialize(&m_addonModeMap[StreamID].handle, &addonSettings) != AUDIODSP_ADDON_ERROR_NO_ERROR)
+    //{
+    //  return nullptr;
+    //}
   }
 
 

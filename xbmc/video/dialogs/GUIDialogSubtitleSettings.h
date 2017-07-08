@@ -32,7 +32,7 @@ class CGUIDialogSubtitleSettings : public CGUIDialogSettingsManualBase
 {
 public:
   CGUIDialogSubtitleSettings();
-  ~CGUIDialogAudioSubtitleSettings() override;
+  ~CGUIDialogSubtitleSettings() override;
 
   // specialization of CGUIWindow
   void FrameMove() override;
