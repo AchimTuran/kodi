@@ -27,6 +27,7 @@
 #include "threads/Thread.h"
 
 #include "ActiveAESink.h"
+#include "cores/AudioEngine/Engines/ActiveAE/ActiveAudioDSP/ActiveAudioDSP.h"
 #include "cores/AudioEngine/Interfaces/AEStream.h"
 #include "cores/AudioEngine/Interfaces/AESound.h"
 #include "cores/AudioEngine/Engines/ActiveAE/ActiveAEBuffer.h"
@@ -66,11 +67,9 @@ struct AudioSettings
   bool stereoupmix;
   bool normalizelevels;
   bool passthrough;
-  bool dspaddonsenabled;
   int config;
   int guisoundmode;
   unsigned int samplerate;
-  AEQuality resampleQuality;
   double atempoThreshold;
   bool streamNoise;
   int silenceTimeout;
@@ -97,7 +96,6 @@ public:
     STREAMRESAMPLERATIO,
     STREAMRESAMPLEMODE,
     STREAMFADE,
-    STREAMFFMPEGINFO,
     STOPSOUND,
     GETSTATE,
     DISPLAYLOST,
@@ -142,6 +140,7 @@ struct MsgStreamNew
   AEAudioFormat format;
   unsigned int options;
   IAEClockCallback *clock;
+  AEStreamProperties *streamProperties;
 };
 
 struct MsgStreamSample
@@ -169,14 +168,6 @@ struct MsgStreamFade
   unsigned int millis;
 };
 
-struct MsgStreamFFmpegInfo
-{
-  CActiveAEStream *stream;
-  int profile;
-  enum AVMatrixEncoding matrix_encoding;
-  enum AVAudioServiceType audio_service_type;
-};
-
 class CEngineStats
 {
 public:
@@ -189,25 +180,22 @@ public:
   void UpdateStream(CActiveAEStream *stream);
   void GetDelay(AEDelayStatus& status, CActiveAEStream *stream);
   void GetSyncInfo(CAESyncInfo& info, CActiveAEStream *stream);
-  float GetCacheTime(CActiveAEStream *stream);
-  float GetCacheTotal(CActiveAEStream *stream);
-  float GetWaterLevel();
+  double GetCacheTime(CActiveAEStream *stream);
+  double GetCacheTotal(CActiveAEStream *stream);
+  double GetWaterLevel();
   void SetSuspended(bool state);
-  void SetDSP(bool state);
   void SetCurrentSinkFormat(const AEAudioFormat& SinkFormat);
   void SetSinkCacheTotal(float time) { m_sinkCacheTotal = time; }
   void SetSinkLatency(float time) { m_sinkLatency = time; }
   bool IsSuspended();
-  bool HasDSP();
   AEAudioFormat GetCurrentSinkFormat();
 protected:
-  float m_sinkCacheTotal;
+  double m_sinkCacheTotal;
   float m_sinkLatency;
   int m_bufferedSamples;
   unsigned int m_sinkSampleRate;
   AEDelayStatus m_sinkDelay;
   bool m_suspended;
-  bool m_hasDSP;
   AEAudioFormat m_sinkFormat;
   bool m_pcmOutput;
   CCriticalSection m_lock;
@@ -249,7 +237,7 @@ public:
   void SetSoundMode(const int mode) override;
 
   /* returns a new stream for data in the specified format */
-  IAEStream *MakeStream(AEAudioFormat &audioFormat, unsigned int options = 0, IAEClockCallback *clock = NULL) override;
+  IAEStream *MakeStream(AEAudioFormat &audioFormat, unsigned int options = 0, IAEClockCallback *clock = NULL, AEStreamProperties *streamProperties = nullptr) override;
   bool FreeStream(IAEStream *stream) override;
 
   /* returns a new sound object */
@@ -268,7 +256,6 @@ public:
   bool IsSettingVisible(const std::string &settingId) override;
   void KeepConfiguration(unsigned int millis) override;
   void DeviceChange() override;
-  bool HasDSP() override;
   bool GetCurrentSinkFormat(AEAudioFormat &SinkFormat) override;
 
   void RegisterAudioCallback(IAudioCallback* pCallback) override;
@@ -278,14 +265,16 @@ public:
   void OnResetDisplay() override;
   void OnAppFocusChange(bool focus) override;
 
+  virtual IAEAudioDSP& GetAudioDSP() { return m_audioDSP; }
+
 protected:
   void PlaySound(CActiveAESound *sound);
   static uint8_t **AllocSoundSample(SampleConfig &config, int &samples, int &bytes_per_sample, int &planes, int &linesize);
   static void FreeSoundSample(uint8_t **data);
   void GetDelay(AEDelayStatus& status, CActiveAEStream *stream) { m_stats.GetDelay(status, stream); }
   void GetSyncInfo(CAESyncInfo& info, CActiveAEStream *stream) { m_stats.GetSyncInfo(info, stream); }
-  float GetCacheTime(CActiveAEStream *stream) { return m_stats.GetCacheTime(stream); }
-  float GetCacheTotal(CActiveAEStream *stream) { return m_stats.GetCacheTotal(stream); }
+  double GetCacheTime(CActiveAEStream *stream) { return m_stats.GetCacheTime(stream); }
+  double GetCacheTotal(CActiveAEStream *stream) { return m_stats.GetCacheTotal(stream); }
   void FlushStream(CActiveAEStream *stream);
   void PauseStream(CActiveAEStream *stream, bool pause);
   void StopSound(CActiveAESound *sound);
@@ -318,7 +307,6 @@ protected:
   void ClearDiscardedBuffers();
   void SStopSound(CActiveAESound *sound);
   void DiscardSound(CActiveAESound *sound);
-  void ChangeResamplers();
 
   bool RunStages();
   bool HasWork();
@@ -398,5 +386,7 @@ protected:
   float m_aeVolume;
   bool m_aeMuted;
   bool m_aeGUISoundForce;
+
+  CActiveAudioDSP m_audioDSP;
 };
 };
