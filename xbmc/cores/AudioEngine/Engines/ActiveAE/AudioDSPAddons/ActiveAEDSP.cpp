@@ -75,7 +75,7 @@ CActiveAEDSP::CActiveAEDSP()
 
 CActiveAEDSP::~CActiveAEDSP()
 {
-  Shutdown();
+  //Shutdown();
   //CSettings::GetInstance().UnregisterCallback(this);
   //CLog::Log(LOGDEBUG, "ActiveAE DSP - destroyed");
 }
@@ -88,10 +88,10 @@ void CActiveAEDSP::Init(void)
   if (!m_databaseDSP.IsOpen())
     m_databaseDSP.Open();
 
-  std::set<std::string> settingSet;
-  settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_DSPADDONSENABLED);
-  settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_DSPSETTINGS);
-  settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_DSPRESETDB);
+  //std::set<std::string> settingSet;
+  //settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_DSPADDONSENABLED);
+  //settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_DSPSETTINGS);
+  //settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_DSPRESETDB);
   //! @todo reimplement this with AudioDSP V2.0
   //CSettings::GetInstance().RegisterCallback(this, settingSet);
 
@@ -159,26 +159,6 @@ void CActiveAEDSP::TriggerModeUpdate(bool bAsync /* = true */)
       m_usedProcesses[i]->ForceReinit();
     }
   }
-}
-
-void CActiveAEDSP::Shutdown(void)
-{
-  /* check whether the audio dsp is loaded */
-  if (!m_isActive)
-    return;
-
-  CSingleLock lock(m_critSection);
-
-  CLog::Log(LOGNOTICE, "ActiveAE DSP - stopping");
-
-  m_addonMap.clear();
-
-  /* unload all data */
-  Cleanup();
-
-  /* close database */
-  if (m_databaseDSP.IsOpen())
-    m_databaseDSP.Close();
 }
 
 void CActiveAEDSP::Cleanup(void)
@@ -250,15 +230,6 @@ void CActiveAEDSP::OnSettingAction(std::shared_ptr<const CSetting> setting)
 
     if (dialog)
       dialog->Open();
-  }
-  else if (settingId == CSettings::SETTING_AUDIOOUTPUT_DSPRESETDB)
-  {
-    if (HELPERS::ShowYesNoDialogLines(CVariant{19098}, CVariant{36440}, CVariant{750}) ==
-      DialogResponse::YES)
-    {
-      CDateTime::ResetTimezoneBias();
-      ResetDatabase();
-    }
   }
 }
 //@}
@@ -446,8 +417,8 @@ CAEChannelInfo CActiveAEDSP::GetInternalChannelLayout(AEStdChLayout stdLayout)
   return CAEUtil::GetAEChannelLayout(channelLayoutOut);
 }
 
-int CActiveAEDSP::CreateDSPs(int streamId, CActiveAEDSPProcessPtr &process, const AEAudioFormat &inputFormat, const AEAudioFormat &outputFormat, bool upmix,
-                             bool bypassDSP, AEQuality quality, enum AVMatrixEncoding matrix_encoding, enum AVAudioServiceType audio_service_type,
+int CActiveAEDSP::CreateDSPs(int streamId, CActiveAEDSPProcessPtr &process, const AEAudioFormat &inputFormat, const AEAudioFormat &outputFormat,
+                             bool upmix, bool bypassDSP, AEQuality quality, enum AVMatrixEncoding matrix_encoding, enum AVAudioServiceType audio_service_type,
                              int profile)
 {
   if (!IsActivated() || m_usedProcessesCnt >= AE_DSP_STREAM_MAX_STREAMS)
@@ -599,7 +570,7 @@ void CActiveAEDSP::UpdateAddons()
 
   for (auto &addonInfo : addonInfos)
   {
-    bool bEnabled = !CAddonMgr::GetInstance().IsAddonDisabled(addonInfo->ID());
+    bool bEnabled = !CServiceBroker::GetAddonMgr().IsAddonDisabled(addonInfo->ID());
     if (bEnabled && (!IsKnownAudioDSPAddon(addonInfo->ID()) || !IsReadyAudioDSPAddon(addonInfo)))
     {
       std::hash<std::string> hasher;
@@ -712,7 +683,7 @@ int CActiveAEDSP::GetEnabledAudioDSPAddons(AE_DSP_ADDONMAP &addons) const
   {
     if (!CAddonMgr::GetInstance().IsAddonDisabled(citr->second->ID()))
     {
-      addons.insert(std::make_pair(citr->second->GetID(), citr->second));
+      addons.insert(std::make_pair(citr->second->GetAudioDSPID(), citr->second));
       ++iReturn;
     }
   }
@@ -817,7 +788,7 @@ bool CActiveAEDSP::GetAudioDSPAddon(const std::string &strId, AE_DSP_ADDON &addo
 
 /*! @name Menu hook methods */
 //@{
-bool CActiveAEDSP::HaveMenuHooks(AE_DSP_MENUHOOK_CAT cat, int iDSPAddonID)
+bool CActiveAEDSP::HaveMenuHooks(AE_DSP_MENUHOOK_CAT cat, unsigned int iDSPAddonID)
 {
   CSingleLock lock(m_critSection);
   for (AE_DSP_ADDONMAP_CITR citr = m_addonMap.begin(); citr != m_addonMap.end(); ++citr)
@@ -826,7 +797,7 @@ bool CActiveAEDSP::HaveMenuHooks(AE_DSP_MENUHOOK_CAT cat, int iDSPAddonID)
     {
       if (citr->second->HaveMenuHooks(cat))
       {
-        if (iDSPAddonID > 0 && citr->second->GetID() == iDSPAddonID)
+        if (iDSPAddonID > 0 && citr->second->GetAudioDSPID() == iDSPAddonID)
           return true;
         else if (iDSPAddonID < 0)
           return true;

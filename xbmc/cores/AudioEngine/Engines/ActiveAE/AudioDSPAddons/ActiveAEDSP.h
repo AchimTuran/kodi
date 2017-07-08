@@ -49,9 +49,9 @@ namespace ActiveAE
   class CActiveAEDSPAddon;
 
   typedef std::shared_ptr<ActiveAE::CActiveAEDSPProcess>  CActiveAEDSPProcessPtr;
-  typedef std::map< int, AE_DSP_ADDON >                   AE_DSP_ADDONMAP;
-  typedef std::map< int, AE_DSP_ADDON >::iterator         AE_DSP_ADDONMAP_ITR;
-  typedef std::map< int, AE_DSP_ADDON >::const_iterator   AE_DSP_ADDONMAP_CITR;
+  typedef std::map<unsigned int, AE_DSP_ADDON >                   AE_DSP_ADDONMAP;
+  typedef std::map<unsigned int, AE_DSP_ADDON >::iterator         AE_DSP_ADDONMAP_ITR;
+  typedef std::map<unsigned int, AE_DSP_ADDON >::const_iterator   AE_DSP_ADDONMAP_CITR;
 
   //@{
   /*!
@@ -293,13 +293,13 @@ namespace ActiveAE
      * @param modeType The type to get
      * @return modes Pointer to a buffer array where all available modes of type written in
      */
-    const AE_DSP_MODELIST &GetAvailableModes(AE_DSP_MODE_TYPE modeType);
+    const AE_DSP_MODELIST &GetAvailableModes();
 
     /*!
      * @brief Load the settings for the current audio from the database.
      * @return If it was present inside settings it return the type of this settings
      */
-    AE_DSP_STREAMTYPE LoadCurrentAudioSettings(void);
+    AUDIODSP_ADDON_STREAMTYPE LoadCurrentAudioSettings(void);
 
     /*!
      * @brief Perfoms a update of all processing calls over the add-ons
@@ -319,7 +319,7 @@ namespace ActiveAE
      * standard addon settings dialog as option to it
      * see <kodi/addon-instance/AudioDSP.h> for available types
      */
-    bool HaveMenuHooks(AE_DSP_MENUHOOK_CAT cat, int iAddonId = -1);
+    bool HaveMenuHooks(AUDIODSP_MENU_HOOK_CAT cat, unsigned int iAddonId);
 
     /*!
      * @brief Get the menu hooks for a dsp addon.
@@ -331,7 +331,7 @@ namespace ActiveAE
      * can't be opened with it (is only in the menu list from ProcessMenuHooks)
      * see <kodi/addon-instance/AudioDSP.h> for available types
      */
-    bool GetMenuHooks(int iDSPAddonID, AE_DSP_MENUHOOK_CAT cat, AE_DSP_MENUHOOKS &hooks);
+    bool GetMenuHooks(int iDSPAddonID, AUDIODSP_MENU_HOOK_CAT cat, AE_DSP_MENUHOOKS &hooks);
   //@}
 
   /*! @name General helper functions */
@@ -339,12 +339,12 @@ namespace ActiveAE
     /*!
      * @brief Translate audio dsp channel flag to KODI channel flag
      */
-    static enum AEChannel GetKODIChannel(AE_DSP_CHANNEL channel);
+    static enum AEChannel GetKODIChannel(AUDIODSP_ADDON_CHANNEL channel);
 
     /*!
      * @brief Translate KODI channel flag to audio dsp channel flag
      */
-    static AE_DSP_CHANNEL GetDSPChannel(enum AEChannel channel);
+    static AUDIODSP_ADDON_CHANNEL GetDSPChannel(enum AEChannel channel);
 
     /*!
      * @brief Get name label id to given stream type id
@@ -384,10 +384,9 @@ namespace ActiveAE
     CCriticalSection        m_critSection;                              /*!< Critical lock for control functions */
     CCriticalSection        m_critUpdateSection;                        /*!< Critical lock for update thread related functions */
     unsigned int            m_usedProcessesCnt;                         /*!< the amount of used addon processes */
-    CActiveAEDSPProcessPtr  m_usedProcesses[AE_DSP_STREAM_MAX_STREAMS]; /*!< Pointer to active process performing classes */
     int                     m_activeProcessId;                          /*!< The currently active audio stream id of a playing file source */
     bool                    m_isValidAudioDSPSettings;                  /*!< if settings load was successfull it becomes true */
-    AE_DSP_MODELIST         m_modes[AE_DSP_MODE_TYPE_MAX];              /*!< list of currently used dsp processing calls */
+    AE_DSP_MODELIST         m_modes;              /*!< list of currently used dsp processing calls */
     std::map<std::string, int> m_addonNameIds; /*!< map add-on names to IDs */
   };
   //@}

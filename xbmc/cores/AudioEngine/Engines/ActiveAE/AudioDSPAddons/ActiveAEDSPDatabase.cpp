@@ -209,15 +209,15 @@ bool CActiveAEDSPDatabase::AddUpdateMode(CActiveAEDSPMode &mode)
 
     if (NULL == m_pDB.get()) return false;
     if (NULL == m_pDS.get()) return false;
-    std::string strSQL = PrepareSQL("SELECT * FROM modes WHERE modes.iAddonId=%i AND modes.iAddonModeNumber=%i AND modes.iType=%i", mode.AddonID(), mode.AddonModeNumber(), mode.ModeType());
+    std::string strSQL = PrepareSQL("SELECT * FROM modes WHERE modes.iAddonId=%i AND modes.iAddonModeNumber=%i AND modes.iType=%i", mode.AddonID(), mode.AddonModeNumber()/*, mode.ModeType()*/);
 
     m_pDS->query( strSQL );
     if (m_pDS->num_rows() > 0)
     {
       /* get user selected settings */
-      mode.m_iModeId        = m_pDS->fv("idMode").get_asInt();
+      mode.m_uiModeId       = m_pDS->fv("idMode").get_asUInt();
       mode.m_iModePosition  = m_pDS->fv("iPosition").get_asInt();
-      mode.m_iBaseType      = (AE_DSP_BASETYPE)m_pDS->fv("iBaseType").get_asInt();
+      mode.m_iBaseType      = (AUDIODSP_ADDON_BASETYPE)m_pDS->fv("iBaseType").get_asInt();
       mode.m_bIsEnabled     = m_pDS->fv("bIsEnabled").get_asBool();
       m_pDS->close();
 
@@ -243,8 +243,8 @@ bool CActiveAEDSPDatabase::AddUpdateMode(CActiveAEDSPMode &mode)
         mode.ModeDescription(),
         mode.AddonModeName().c_str(),
         (mode.HasSettingsDialog() ? 1 : 0),
-        mode.AddonID(), mode.AddonModeNumber(), mode.ModeType());
-		bReturn = m_pDS->exec(strSQL);
+        mode.AddonID(), mode.AddonModeNumber()/*, mode.ModeType()*/);
+      bReturn = m_pDS->exec(strSQL) != 0;
     }
     else
     { // add the items
@@ -267,7 +267,6 @@ bool CActiveAEDSPDatabase::AddUpdateMode(CActiveAEDSPMode &mode)
         "iAddonModeNumber, "
         "bHasSettings) "
         "VALUES (%i, %i, %i, %i, %i, '%s', '%s', %i,  %i, %i, %i, '%s', %i, %i, %i)",
-        mode.ModeType(),
         mode.ModePosition(),
         mode.StreamTypeFlags(),
         mode.BaseType(),
@@ -282,7 +281,7 @@ bool CActiveAEDSPDatabase::AddUpdateMode(CActiveAEDSPMode &mode)
         mode.AddonID(),
         mode.AddonModeNumber(),
         (mode.HasSettingsDialog() ? 1 : 0));
-      bReturn = m_pDS->exec(strSQL);
+      bReturn = m_pDS->exec(strSQL) != 0;
     }
   }
   catch (...)
@@ -294,7 +293,7 @@ bool CActiveAEDSPDatabase::AddUpdateMode(CActiveAEDSPMode &mode)
 
 int CActiveAEDSPDatabase::GetModeId(const CActiveAEDSPMode &mode)
 {
-  std::string id = GetSingleValue(PrepareSQL("SELECT * from modes WHERE modes.iAddonId=%i and modes.iAddonModeNumber=%i and modes.iType=%i", mode.AddonID(), mode.AddonModeNumber(), mode.ModeType()));
+  std::string id = GetSingleValue(PrepareSQL("SELECT * from modes WHERE modes.iAddonId=%i and modes.iAddonModeNumber=%i and modes.iType=%i", mode.AddonID(), mode.AddonModeNumber()));
   if (id.empty())
     return -1;
   return strtol(id.c_str(), NULL, 10);
@@ -315,11 +314,11 @@ int CActiveAEDSPDatabase::GetModes(AE_DSP_MODELIST &results, int modeType)
       {
         CActiveAEDSPModePtr mode = CActiveAEDSPModePtr(new CActiveAEDSPMode());
 
-        mode->m_iModeId                 = m_pDS->fv("idMode").get_asInt();
-        mode->m_iModeType               = (AE_DSP_MODE_TYPE)m_pDS->fv("iType").get_asInt();
+        mode->m_uiModeId                = m_pDS->fv("idMode").get_asUInt();
+        //mode->m_iModeType               = (AUDIODSP_ADDON_MODE_TYPE)m_pDS->fv("iType").get_asInt();
         mode->m_iModePosition           = m_pDS->fv("iPosition").get_asInt();
         mode->m_iStreamTypeFlags        = m_pDS->fv("iStreamTypeFlags").get_asInt();
-        mode->m_iBaseType               = (AE_DSP_BASETYPE)m_pDS->fv("iBaseType").get_asInt();
+        mode->m_iBaseType               = (AUDIODSP_ADDON_BASETYPE)m_pDS->fv("iBaseType").get_asInt();
         mode->m_bIsEnabled              = m_pDS->fv("bIsEnabled").get_asBool();
         mode->m_strOwnIconPath          = m_pDS->fv("sOwnIconPath").get_asString();
         mode->m_strOverrideIconPath     = m_pDS->fv("sOverrideIconPath").get_asString();
@@ -387,10 +386,6 @@ bool CActiveAEDSPDatabase::GetActiveDSPSettings(const CFileItem &item, CAudioSet
       int base                            = m_pDS->fv("MasterBaseType").get_asInt();
       settings.m_MasterStreamType         = type;
       settings.m_MasterStreamBase         = base;
-      settings.m_MasterModes[type][base]  = m_pDS->fv("MasterModeId").get_asInt();
-
-      /*! if auto mode is selected, copy the identifier of previous used processor to the auto mode entry */
-      settings.m_MasterModes[settings.m_MasterStreamTypeSel][base] = settings.m_MasterModes[type][base];
 
       m_pDS->close();
       return true;
@@ -428,7 +423,6 @@ void CActiveAEDSPDatabase::SetActiveDSPSettings(const CFileItem &item, const CAu
           setting.m_MasterStreamTypeSel,
           setting.m_MasterStreamType,
           setting.m_MasterStreamBase,
-          setting.m_MasterModes[setting.m_MasterStreamType][setting.m_MasterStreamBase],
           strPath.c_str(),
           strFileName.c_str());
       m_pDS->exec(strSQL);
@@ -451,8 +445,7 @@ void CActiveAEDSPDatabase::SetActiveDSPSettings(const CFileItem &item, const CAu
                            strFileName.c_str(),
                            setting.m_MasterStreamTypeSel,
                            setting.m_MasterStreamType,
-                           setting.m_MasterStreamBase,
-                           setting.m_MasterModes[setting.m_MasterStreamType][setting.m_MasterStreamBase]);
+                           setting.m_MasterStreamBase);
       m_pDS->exec(strSQL);
     }
   }
