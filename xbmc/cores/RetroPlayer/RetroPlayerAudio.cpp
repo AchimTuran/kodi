@@ -93,7 +93,7 @@ bool CRetroPlayerAudio::OpenPCMStream(AEDataFormat format, unsigned int samplera
   audioFormat.m_dataFormat = format;
   audioFormat.m_sampleRate = samplerate;
   audioFormat.m_channelLayout = channelLayout;
-  m_pAudioStream = CServiceBroker::GetActiveAE().MakeStream(audioFormat);
+  m_pAudioStream = CServiceBroker::GetActiveAE().MakeStream(audioFormat); //! @todo AudioDSP V2 add stream properties
 
   if (!m_pAudioStream)
   {
