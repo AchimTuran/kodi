@@ -259,28 +259,33 @@ bool VideoPlayerCodec::Init(const CFileItem &file, unsigned int filecache)
   {
     m_needConvert = true;
     m_pResampler = ActiveAE::CAEResampleFactory::Create();
-    m_pResampler->Init(CAEUtil::GetAVChannelLayout(m_srcFormat.m_channelLayout),
-                       m_channels,
-                       m_srcFormat.m_sampleRate,
-                       CAEUtil::GetAVSampleFormat(AE_FMT_FLOAT),
-                       CAEUtil::DataFormatToUsedBits(AE_FMT_FLOAT),
-                       CAEUtil::DataFormatToDitherBits(AE_FMT_FLOAT),
-                       CAEUtil::GetAVChannelLayout(m_srcFormat.m_channelLayout),
-                       m_channels,
-                       m_srcFormat.m_sampleRate,
-                       CAEUtil::GetAVSampleFormat(m_srcFormat.m_dataFormat),
-                       CAEUtil::DataFormatToUsedBits(m_srcFormat.m_dataFormat),
-                       CAEUtil::DataFormatToDitherBits(m_srcFormat.m_dataFormat),
-                       false,
-                       false,
-                       NULL,
-                       AE_QUALITY_UNKNOWN,
-                       false);
-
+    
     m_planes = AE_IS_PLANAR(m_srcFormat.m_dataFormat) ? m_channels : 1;
     m_format = m_srcFormat;
     m_format.m_dataFormat = AE_FMT_FLOAT;
     m_bitsPerSample = CAEUtil::DataFormatToBits(m_format.m_dataFormat);
+
+    if(!m_pResampler ||  !m_pResampler->Init(CAEUtil::GetAVChannelLayout(m_srcFormat.m_channelLayout),
+                                             m_channels,
+                                             m_srcFormat.m_sampleRate,
+                                             CAEUtil::GetAVSampleFormat(m_format.m_dataFormat),
+                                             CAEUtil::DataFormatToUsedBits(m_format.m_dataFormat),
+                                             CAEUtil::DataFormatToDitherBits(m_format.m_dataFormat),
+                                             CAEUtil::GetAVChannelLayout(m_srcFormat.m_channelLayout),
+                                             m_channels,
+                                             m_srcFormat.m_sampleRate,
+                                             CAEUtil::GetAVSampleFormat(m_srcFormat.m_dataFormat),
+                                             CAEUtil::DataFormatToUsedBits(m_srcFormat.m_dataFormat),
+                                             CAEUtil::DataFormatToDitherBits(m_srcFormat.m_dataFormat),
+                                             false,
+                                             false,
+                                             NULL,
+                                             AE_QUALITY_UNKNOWN, //! @todo AchimTuran ask, is it valid to use AE_QUALITY_UNKNOWN here?
+                                             false))
+    {
+      CLog::Log(LOGDEBUG, "%s: Could not initialize resampler!", __FUNCTION__);
+      return false;
+    }
   }
 
   m_strFileName = strFile;
@@ -500,7 +505,7 @@ CAEStreamInfo::DataType VideoPlayerCodec::GetPassthroughStreamType(AVCodecID cod
   AEAudioFormat format;
   format.m_dataFormat = AE_FMT_RAW;
   format.m_sampleRate = samplerate;
-  format.m_streamInfo.m_type = CAEStreamInfo::DataType::STREAM_TYPE_NULL;
+  format.m_streamInfo.m_type = CAEStreamInfo::DataType::STREAM_TYPE_NULL; //! @todo AchimTuran ask, why AEAudioFormat is used here?
   switch (codecId)
   {
     case AV_CODEC_ID_AC3:

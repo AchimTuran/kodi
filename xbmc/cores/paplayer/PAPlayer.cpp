@@ -481,6 +481,7 @@ inline bool PAPlayer::PrepareStream(StreamInfo *si)
 
   /* get a paused stream */
   AEAudioFormat format = si->m_audioFormat;
+  //! @todo AudioDSP V2 add stream properties
   si->m_stream = CServiceBroker::GetActiveAE().MakeStream(
     format,
     AESTREAM_PAUSED
