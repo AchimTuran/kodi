@@ -280,7 +280,7 @@ int CActiveAEFilter::ProcessFilter(uint8_t **dst_buffer, int dst_samples, uint8_
       return -1;
     }
 
-    m_SamplesOut = outFrame->pts;
+    m_SamplesOut = static_cast<int>(outFrame->pts);
 
     if (m_needConvert)
     {
@@ -346,7 +346,7 @@ bool CActiveAEFilter::IsActive()
 
 int CActiveAEFilter::GetBufferedSamples()
 {
-  int ret = m_SamplesIn - (m_SamplesOut * m_tempo);
+  int ret = m_SamplesIn - static_cast<int>(m_SamplesOut * m_tempo);
   if (m_hasData)
   {
     ret += (m_pOutFrame->nb_samples - m_sampleOffset);
