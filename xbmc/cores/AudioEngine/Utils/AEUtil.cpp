@@ -553,6 +553,9 @@ AVSampleFormat CAEUtil::GetAVSampleFormat(AEDataFormat format)
       return AV_SAMPLE_FMT_DBLP;
     case AEDataFormat::AE_FMT_RAW:
       return AV_SAMPLE_FMT_U8;
+    case AEDataFormat::AE_FMT_MAX:
+    case AEDataFormat::AE_FMT_INVALID:
+      return AV_SAMPLE_FMT_NONE;
     default:
     {
       if (AE_IS_PLANAR(format))
@@ -593,4 +596,396 @@ uint64_t CAEUtil::GetAVChannel(enum AEChannel aechannel)
 int CAEUtil::GetAVChannelIndex(enum AEChannel aechannel, uint64_t layout)
 {
   return av_get_channel_layout_channel_index(layout, GetAVChannel(aechannel));
+}
+
+AEMatrixEncoding CAEUtil::GetAEMatrixEncoding(AVMatrixEncoding AVEncoding)
+{
+  switch (AVEncoding)
+  {
+    case AV_MATRIX_ENCODING_NONE:
+      return AE_MATRIX_ENCODING_NONE;
+
+    case AV_MATRIX_ENCODING_DOLBY:
+      return AE_MATRIX_ENCODING_DOLBY;
+
+    case AV_MATRIX_ENCODING_DPLII:
+      return AE_MATRIX_ENCODING_DPLII;
+
+    case AV_MATRIX_ENCODING_DPLIIX:
+      return AE_MATRIX_ENCODING_DPLIIX;
+
+    case AV_MATRIX_ENCODING_DPLIIZ:
+      return AE_MATRIX_ENCODING_DPLIIZ;
+
+    case AV_MATRIX_ENCODING_DOLBYEX:
+      return AE_MATRIX_ENCODING_DOLBYEX;
+
+    case AV_MATRIX_ENCODING_DOLBYHEADPHONE:
+      return AE_MATRIX_ENCODING_DOLBYHEADPHONE;
+
+    default:
+      return AE_MATRIX_ENCODING_NONE;
+  }
+}
+
+AEAudioServiceType CAEUtil::GetAEAudioServiceType(AVAudioServiceType AVServiceType)
+{
+  switch (AVServiceType)
+  {
+    case AV_AUDIO_SERVICE_TYPE_MAIN:
+      return AE_AUDIO_SERVICE_TYPE_MAIN;
+
+    case AV_AUDIO_SERVICE_TYPE_EFFECTS:
+      return AE_AUDIO_SERVICE_TYPE_EFFECTS;
+
+    case AV_AUDIO_SERVICE_TYPE_VISUALLY_IMPAIRED:
+      return AE_AUDIO_SERVICE_TYPE_VISUALLY_IMPAIRED;
+
+    case AV_AUDIO_SERVICE_TYPE_HEARING_IMPAIRED:
+      return AE_AUDIO_SERVICE_TYPE_HEARING_IMPAIRED;
+
+    case AV_AUDIO_SERVICE_TYPE_DIALOGUE:
+      return AE_AUDIO_SERVICE_TYPE_DIALOGUE;
+
+    case AV_AUDIO_SERVICE_TYPE_COMMENTARY:
+      return AE_AUDIO_SERVICE_TYPE_COMMENTARY;
+
+    case AV_AUDIO_SERVICE_TYPE_EMERGENCY:
+      return AE_AUDIO_SERVICE_TYPE_EMERGENCY;
+
+    case AV_AUDIO_SERVICE_TYPE_VOICE_OVER:
+      return AE_AUDIO_SERVICE_TYPE_VOICE_OVER;
+
+    case AV_AUDIO_SERVICE_TYPE_KARAOKE:
+      return AE_AUDIO_SERVICE_TYPE_KARAOKE;
+
+    default:
+      return AE_AUDIO_SERVICE_INVALID;
+  }
+}
+
+AESourceFormat CAEUtil::GetAESourceFormat(AVCodecID AVCodec)
+{
+  switch (AVCodec)
+  {
+    case AV_CODEC_ID_PCM_S16LE:
+    case AV_CODEC_ID_PCM_S16BE:
+    case AV_CODEC_ID_PCM_U16LE:
+    case AV_CODEC_ID_PCM_U16BE:
+    case AV_CODEC_ID_PCM_S8:
+    case AV_CODEC_ID_PCM_U8:
+    case AV_CODEC_ID_PCM_MULAW:
+    case AV_CODEC_ID_PCM_ALAW:
+    case AV_CODEC_ID_PCM_S32LE:
+    case AV_CODEC_ID_PCM_S32BE:
+    case AV_CODEC_ID_PCM_U32LE:
+    case AV_CODEC_ID_PCM_U32BE:
+    case AV_CODEC_ID_PCM_S24LE:
+    case AV_CODEC_ID_PCM_S24BE:
+    case AV_CODEC_ID_PCM_U24LE:
+    case AV_CODEC_ID_PCM_U24BE:
+    case AV_CODEC_ID_PCM_S24DAUD:
+    case AV_CODEC_ID_PCM_ZORK:
+    case AV_CODEC_ID_PCM_S16LE_PLANAR:
+    case AV_CODEC_ID_PCM_DVD:
+    case AV_CODEC_ID_PCM_F32BE:
+    case AV_CODEC_ID_PCM_F32LE:
+    case AV_CODEC_ID_PCM_F64BE:
+    case AV_CODEC_ID_PCM_F64LE:
+    case AV_CODEC_ID_PCM_BLURAY:
+    case AV_CODEC_ID_PCM_LXF:
+    case AV_CODEC_ID_S302M:
+    case AV_CODEC_ID_PCM_S8_PLANAR:
+    case AV_CODEC_ID_PCM_S24LE_PLANAR:
+    case AV_CODEC_ID_PCM_S32LE_PLANAR:
+    case AV_CODEC_ID_PCM_S16BE_PLANAR:
+    case AV_CODEC_ID_PCM_S64LE:
+    case AV_CODEC_ID_PCM_S64BE:
+    case AV_CODEC_ID_PCM_F16LE:
+    case AV_CODEC_ID_PCM_F24LE:
+      return AE_SOURCE_FORMAT_PCM;
+
+    /* various ADPCM codecs */
+    case AV_CODEC_ID_ADPCM_IMA_QT:
+    case AV_CODEC_ID_ADPCM_IMA_WAV:
+    case AV_CODEC_ID_ADPCM_IMA_DK3:
+    case AV_CODEC_ID_ADPCM_IMA_DK4:
+    case AV_CODEC_ID_ADPCM_IMA_WS:
+    case AV_CODEC_ID_ADPCM_IMA_SMJPEG:
+    case AV_CODEC_ID_ADPCM_MS:
+    case AV_CODEC_ID_ADPCM_4XM:
+    case AV_CODEC_ID_ADPCM_XA:
+    case AV_CODEC_ID_ADPCM_ADX:
+    case AV_CODEC_ID_ADPCM_EA:
+    case AV_CODEC_ID_ADPCM_G726:
+    case AV_CODEC_ID_ADPCM_CT:
+    case AV_CODEC_ID_ADPCM_SWF:
+    case AV_CODEC_ID_ADPCM_YAMAHA:
+    case AV_CODEC_ID_ADPCM_SBPRO_4:
+    case AV_CODEC_ID_ADPCM_SBPRO_3:
+    case AV_CODEC_ID_ADPCM_SBPRO_2:
+    case AV_CODEC_ID_ADPCM_THP:
+    case AV_CODEC_ID_ADPCM_IMA_AMV:
+    case AV_CODEC_ID_ADPCM_EA_R1:
+    case AV_CODEC_ID_ADPCM_EA_R3:
+    case AV_CODEC_ID_ADPCM_EA_R2:
+    case AV_CODEC_ID_ADPCM_IMA_EA_SEAD:
+    case AV_CODEC_ID_ADPCM_IMA_EA_EACS:
+    case AV_CODEC_ID_ADPCM_EA_XAS:
+    case AV_CODEC_ID_ADPCM_EA_MAXIS_XA:
+    case AV_CODEC_ID_ADPCM_IMA_ISS:
+    case AV_CODEC_ID_ADPCM_G722:
+    case AV_CODEC_ID_ADPCM_IMA_APC:
+    case AV_CODEC_ID_ADPCM_VIMA:
+    case AV_CODEC_ID_ADPCM_AFC:
+    case AV_CODEC_ID_ADPCM_IMA_OKI:
+    case AV_CODEC_ID_ADPCM_DTK:
+    case AV_CODEC_ID_ADPCM_IMA_RAD:
+    case AV_CODEC_ID_ADPCM_G726LE:
+    case AV_CODEC_ID_ADPCM_THP_LE:
+    case AV_CODEC_ID_ADPCM_PSX:
+    case AV_CODEC_ID_ADPCM_AICA:
+    case AV_CODEC_ID_ADPCM_IMA_DAT4:
+    case AV_CODEC_ID_ADPCM_MTAF:
+      return AE_SOURCE_FORMAT_ADPCM;
+
+    /* AMR */
+    //! @todo AudioDSP V2 add AMR and RealAudio codecs
+    //case AV_CODEC_ID_AMR_NB:
+    //case AV_CODEC_ID_AMR_WB:
+    /* RealAudio codecs*/
+    //case AV_CODEC_ID_RA_144:
+    //case AV_CODEC_ID_RA_288:
+
+    /* various DPCM codecs */
+    case AV_CODEC_ID_ROQ_DPCM:
+    case AV_CODEC_ID_INTERPLAY_DPCM:
+    case AV_CODEC_ID_XAN_DPCM:
+    case AV_CODEC_ID_SOL_DPCM:
+    case AV_CODEC_ID_SDX2_DPCM:
+      return AE_SOURCE_FORMAT_DPCM;
+
+    /* audio codecs */
+    case AV_CODEC_ID_MP2:
+      return AE_SOURCE_FORMAT_MP2;
+    case AV_CODEC_ID_MP3: ///< preferred ID for decoding MPEG audio layer 1: 2 or 3
+      return AE_SOURCE_FORMAT_MP3;
+    case AV_CODEC_ID_AAC:
+      return AE_SOURCE_FORMAT_AAC;
+    case AV_CODEC_ID_AC3:
+      return AE_SOURCE_FORMAT_AC3;
+    case AV_CODEC_ID_DTS:
+      return AE_SOURCE_FORMAT_DTS;
+    case AV_CODEC_ID_VORBIS:
+      return AE_SOURCE_FORMAT_VORBIS;
+    case AV_CODEC_ID_DVAUDIO:
+      return AE_SOURCE_FORMAT_DVAUDIO;
+    case AV_CODEC_ID_WMAV1:
+      return AE_SOURCE_FORMAT_WMAV1;
+    case AV_CODEC_ID_WMAV2:
+      return AE_SOURCE_FORMAT_WMAV2;
+    case AV_CODEC_ID_MACE3:
+      return AE_SOURCE_FORMAT_MACE3;
+    case AV_CODEC_ID_MACE6:
+      return AE_SOURCE_FORMAT_MACE6;
+    case AV_CODEC_ID_VMDAUDIO:
+      return AE_SOURCE_FORMAT_VMDAUDIO;
+    case AV_CODEC_ID_FLAC:
+      return AE_SOURCE_FORMAT_FLAC;
+    case AV_CODEC_ID_MP3ADU:
+      return AE_SOURCE_FORMAT_MP3ADU;
+    case AV_CODEC_ID_MP3ON4:
+      return AE_SOURCE_FORMAT_MP3ON4;
+    case AV_CODEC_ID_SHORTEN:
+      return AE_SOURCE_FORMAT_SHORTEN;
+    case AV_CODEC_ID_ALAC:
+      return AE_SOURCE_FORMAT_ALAC;
+    case AV_CODEC_ID_WESTWOOD_SND1:
+      return AE_SOURCE_FORMAT_WESTWOOD_SND1;
+    case AV_CODEC_ID_GSM: ///< as in Berlin toast format
+      return AE_SOURCE_FORMAT_GSM; ///< as in Berlin toast format
+    case AV_CODEC_ID_QDM2:
+      return AE_SOURCE_FORMAT_QDM2;
+    case AV_CODEC_ID_COOK:
+      return AE_SOURCE_FORMAT_COOK;
+    case AV_CODEC_ID_TRUESPEECH:
+      return AE_SOURCE_FORMAT_TRUESPEECH;
+    case AV_CODEC_ID_TTA:
+      return AE_SOURCE_FORMAT_TTA;
+    case AV_CODEC_ID_SMACKAUDIO:
+      return AE_SOURCE_FORMAT_SMACKAUDIO;
+    case AV_CODEC_ID_QCELP:
+      return AE_SOURCE_FORMAT_QCELP;
+    case AV_CODEC_ID_WAVPACK:
+      return AE_SOURCE_FORMAT_WAVPACK;
+    case AV_CODEC_ID_DSICINAUDIO:
+      return AE_SOURCE_FORMAT_DSICINAUDIO;
+    case AV_CODEC_ID_IMC:
+      return AE_SOURCE_FORMAT_IMC;
+    case AV_CODEC_ID_MUSEPACK7:
+      return AE_SOURCE_FORMAT_MUSEPACK7;
+    case AV_CODEC_ID_MLP:
+      return AE_SOURCE_FORMAT_MLP;
+    case AV_CODEC_ID_GSM_MS: /* as found in WAV */
+      return AE_SOURCE_FORMAT_GSM_MS; ///< as found in WAV
+    case AV_CODEC_ID_ATRAC3:
+      return AE_SOURCE_FORMAT_ATRAC3;
+#if FF_API_VOXWARE
+    case AV_CODEC_ID_VOXWARE:
+      return AE_SOURCE_FORMAT_VOXWARE;
+#endif
+    case AV_CODEC_ID_APE:
+      return AE_SOURCE_FORMAT_APE;
+    case AV_CODEC_ID_NELLYMOSER:
+      return AE_SOURCE_FORMAT_NELLYMOSER;
+    case AV_CODEC_ID_MUSEPACK8:
+      return AE_SOURCE_FORMAT_MUSEPACK8;
+    case AV_CODEC_ID_SPEEX:
+      return AE_SOURCE_FORMAT_SPEEX;
+    case AV_CODEC_ID_WMAVOICE:
+      return AE_SOURCE_FORMAT_WMAVOICE;
+    case AV_CODEC_ID_WMAPRO:
+      return AE_SOURCE_FORMAT_WMAPRO;
+    case AV_CODEC_ID_WMALOSSLESS:
+      return AE_SOURCE_FORMAT_WMALOSSLESS;
+    case AV_CODEC_ID_ATRAC3P:
+      return AE_SOURCE_FORMAT_ATRAC3P;
+    case AV_CODEC_ID_EAC3:
+      return AE_SOURCE_FORMAT_EAC3;
+    case AV_CODEC_ID_SIPR:
+      return AE_SOURCE_FORMAT_SIPR;
+    case AV_CODEC_ID_MP1:
+      return AE_SOURCE_FORMAT_MP1;
+    case AV_CODEC_ID_TWINVQ:
+      return AE_SOURCE_FORMAT_TWINVQ;
+    case AV_CODEC_ID_TRUEHD:
+      return AE_SOURCE_FORMAT_TRUEHD;
+    case AV_CODEC_ID_MP4ALS:
+      return AE_SOURCE_FORMAT_MP4ALS;
+    case AV_CODEC_ID_ATRAC1:
+      return AE_SOURCE_FORMAT_ATRAC1;
+    case AV_CODEC_ID_BINKAUDIO_RDFT:
+      return AE_SOURCE_FORMAT_BINKAUDIO_RDFT;
+    case AV_CODEC_ID_BINKAUDIO_DCT:
+      return AE_SOURCE_FORMAT_BINKAUDIO_DCT;
+    case AV_CODEC_ID_AAC_LATM:
+      return AE_SOURCE_FORMAT_AAC_LATM;
+    case AV_CODEC_ID_QDMC:
+      return AE_SOURCE_FORMAT_QDMC;
+    case AV_CODEC_ID_CELT:
+      return AE_SOURCE_FORMAT_CELT;
+    case AV_CODEC_ID_G723_1:
+      return AE_SOURCE_FORMAT_G723_1;
+    case AV_CODEC_ID_G729:
+      return AE_SOURCE_FORMAT_G729;
+    case AV_CODEC_ID_8SVX_EXP:
+      return AE_SOURCE_FORMAT_8SVX_EXP;
+    case AV_CODEC_ID_8SVX_FIB:
+      return AE_SOURCE_FORMAT_8SVX_FIB;
+    case AV_CODEC_ID_BMV_AUDIO:
+      return AE_SOURCE_FORMAT_BMV_AUDIO;
+    case AV_CODEC_ID_RALF:
+      return AE_SOURCE_FORMAT_RALF;
+    case AV_CODEC_ID_IAC:
+      return AE_SOURCE_FORMAT_IAC;
+    case AV_CODEC_ID_ILBC:
+      return AE_SOURCE_FORMAT_ILBC;
+    case AV_CODEC_ID_OPUS:
+      return AE_SOURCE_FORMAT_OPUS;
+    case AV_CODEC_ID_COMFORT_NOISE:
+      return AE_SOURCE_FORMAT_COMFORT_NOISE;
+    case AV_CODEC_ID_TAK:
+      return AE_SOURCE_FORMAT_TAK;
+    case AV_CODEC_ID_METASOUND:
+      return AE_SOURCE_FORMAT_METASOUND;
+    case AV_CODEC_ID_PAF_AUDIO:
+      return AE_SOURCE_FORMAT_PAF_AUDIO;
+    case AV_CODEC_ID_ON2AVC:
+      return AE_SOURCE_FORMAT_ON2AVC;
+    case AV_CODEC_ID_DSS_SP:
+      return AE_SOURCE_FORMAT_DSS_SP;
+
+    case AV_CODEC_ID_FFWAVESYNTH:
+      return AE_SOURCE_FORMAT_FFWAVESYNTH;
+    case AV_CODEC_ID_SONIC:
+      return AE_SOURCE_FORMAT_SONIC;
+    case AV_CODEC_ID_SONIC_LS:
+      return AE_SOURCE_FORMAT_SONIC_LS;
+    case AV_CODEC_ID_EVRC:
+      return AE_SOURCE_FORMAT_EVRC;
+    case AV_CODEC_ID_SMV:
+      return AE_SOURCE_FORMAT_SMV;
+    case AV_CODEC_ID_DSD_LSBF:
+      return AE_SOURCE_FORMAT_DSD_LSBF;
+    case AV_CODEC_ID_DSD_MSBF:
+      return AE_SOURCE_FORMAT_DSD_MSBF;
+    case AV_CODEC_ID_DSD_LSBF_PLANAR:
+      return AE_SOURCE_FORMAT_DSD_LSBF_PLANAR;
+    case AV_CODEC_ID_DSD_MSBF_PLANAR:
+      return AE_SOURCE_FORMAT_DSD_MSBF_PLANAR;
+    case AV_CODEC_ID_4GV:
+      return AE_SOURCE_FORMAT_4GV;
+    case AV_CODEC_ID_INTERPLAY_ACM:
+      return AE_SOURCE_FORMAT_INTERPLAY_ACM;
+    case AV_CODEC_ID_XMA1:
+      return AE_SOURCE_FORMAT_XMA1;
+    case AV_CODEC_ID_XMA2:
+      return AE_SOURCE_FORMAT_XMA2;
+    case AV_CODEC_ID_DST:
+      return AE_SOURCE_FORMAT_DST;
+    case AV_CODEC_ID_ATRAC3AL:
+      return AE_SOURCE_FORMAT_ATRAC3AL;
+    case AV_CODEC_ID_ATRAC3PAL:
+      return AE_SOURCE_FORMAT_ATRAC3PAL;
+    default:
+      return AE_SOURCE_FORMAT_UNKNOWN;
+    }
+
+    //! @todo AudioDSP V2 where should these IDs be assigned?
+    //return AE_SOURCE_FORMAT_STEREO;
+    //return AE_SOURCE_FORMAT_MONO;
+    //return AE_SOURCE_FORMAT_MULTICHANNEL;
+    //return AE_SOURCE_FORMAT_DTSHD_MA;
+    //return AE_SOURCE_FORMAT_DTSHD_HRA;
+}
+
+AEProfile CAEUtil::GetAEProfile(int Profile)
+{
+  switch (Profile)
+  {
+    case FF_PROFILE_AAC_MAIN:
+      return AE_PROFILE_AAC_MAIN;
+    case FF_PROFILE_AAC_LOW:
+      return AE_PROFILE_AAC_LOW;
+    case FF_PROFILE_AAC_SSR:
+      return AE_PROFILE_AAC_SSR;
+    case FF_PROFILE_AAC_LTP:
+      return AE_PROFILE_AAC_LTP;
+    case FF_PROFILE_AAC_HE:
+      return AE_PROFILE_AAC_HE;
+    case FF_PROFILE_AAC_HE_V2:
+      return AE_PROFILE_AAC_HE_V2;
+    case FF_PROFILE_AAC_LD:
+      return AE_PROFILE_AAC_LD;
+    case FF_PROFILE_AAC_ELD:
+      return AE_PROFILE_AAC_ELD;
+    case FF_PROFILE_MPEG2_AAC_LOW:
+      return AE_PROFILE_MPEG2_AAC_LOW;
+    case FF_PROFILE_MPEG2_AAC_HE:
+      return AE_PROFILE_MPEG2_AAC_HE;
+    case FF_PROFILE_DTS:
+      return AE_PROFILE_DTS;
+    case FF_PROFILE_DTS_ES:
+      return AE_PROFILE_DTS_ES;
+    case FF_PROFILE_DTS_96_24:
+      return AE_PROFILE_DTS_96_24;
+    case FF_PROFILE_DTS_HD_HRA:
+      return AE_PROFILE_DTS_HD_HRA;
+    case FF_PROFILE_DTS_HD_MA:
+      return AE_PROFILE_DTS_HD_MA;
+    case FF_PROFILE_DTS_EXPRESS:
+      return AE_PROFILE_DTS_EXPRESS;
+    default:
+      return AE_PROFILE_UNKNOWN;
+  }
 }
