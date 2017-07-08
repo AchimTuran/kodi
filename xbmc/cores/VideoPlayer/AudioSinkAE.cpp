@@ -66,11 +66,19 @@ bool CAudioSinkAE::Create(const DVDAudioFrame &audioframe, AVCodecID codec, bool
   unsigned int options = needresampler && !audioframe.passthrough ? AESTREAM_FORCE_RESAMPLE : 0;
   options |= AESTREAM_PAUSED;
 
+  AEStreamProperties streamProperties;
+  streamProperties.matrixEncoding = CAEUtil::GetAEMatrixEncoding(audioframe.matrix_encoding);
+  streamProperties.sourceFormat = CAEUtil::GetAESourceFormat(codec);
+  streamProperties.profile = CAEUtil::GetAEProfile(audioframe.profile); //! @todo AudioDSP V2 ask AlwinEsch, Fritsch or FernetMenta what does "audioframe.profile" store?
+  streamProperties.streamServiceType = CAEUtil::GetAEAudioServiceType(audioframe.audio_service_type);
+  streamProperties.streamType = AE_STREAM_MOVIE;
+
   AEAudioFormat format = audioframe.format;
   m_pAudioStream = CServiceBroker::GetActiveAE().MakeStream(
     format,
     options,
-    this
+    this,
+    &streamProperties
   );
   if (!m_pAudioStream)
     return false;
@@ -79,9 +87,6 @@ bool CAudioSinkAE::Create(const DVDAudioFrame &audioframe, AVCodecID codec, bool
   m_iBitsPerSample = audioframe.bits_per_sample;
   m_bPassthrough = audioframe.passthrough;
   m_channelLayout = audioframe.format.m_channelLayout;
-
-  if (m_pAudioStream->HasDSP())
-    m_pAudioStream->SetFFmpegInfo(audioframe.profile, audioframe.matrix_encoding, audioframe.audio_service_type);
 
   SetDynamicRangeCompression((long)(CMediaSettings::GetInstance().GetCurrentVideoSettings().m_VolumeAmplification * 100));
 
