@@ -5,55 +5,55 @@ using namespace DSP;
 using namespace DSP::AUDIO;
 using namespace ActiveAE;
 
-AE_DSP_CHANNEL TranslateAEChannel(AEChannel Channel);
+AUDIODSP_ADDON_CHANNEL TranslateAEChannel(AEChannel Channel);
 unsigned long GetPresentChannels(const CAEChannelInfo &ChannelLayout);
 
-AE_DSP_CHANNEL TranslateAEChannel(AEChannel Channel)
+AUDIODSP_ADDON_CHANNEL TranslateAEChannel(AEChannel Channel)
 {
   switch (Channel)
   {
   case AE_CH_FL:
-    return AE_DSP_CH_FL;
+    return AUDIODSP_ADDON_CH_FL;
   case AE_CH_FR:
-    return AE_DSP_CH_FR;
+    return AUDIODSP_ADDON_CH_FR;
   case AE_CH_FC:
-    return AE_DSP_CH_FC;
+    return AUDIODSP_ADDON_CH_FC;
   case AE_CH_LFE:
-    return AE_DSP_CH_LFE;
+    return AUDIODSP_ADDON_CH_LFE;
   case AE_CH_BL:
-    return AE_DSP_CH_BL;
+    return AUDIODSP_ADDON_CH_BL;
   case AE_CH_BR:
-    return AE_DSP_CH_BR;
+    return AUDIODSP_ADDON_CH_BR;
   case AE_CH_FLOC:
-    return AE_DSP_CH_FLOC;
+    return AUDIODSP_ADDON_CH_FLOC;
   case AE_CH_FROC:
-    return AE_DSP_CH_FROC;
+    return AUDIODSP_ADDON_CH_FROC;
   case AE_CH_BC:
-    return AE_DSP_CH_BC;
+    return AUDIODSP_ADDON_CH_BC;
   case AE_CH_SL:
-    return AE_DSP_CH_SL;
+    return AUDIODSP_ADDON_CH_SL;
   case AE_CH_SR:
-    return AE_DSP_CH_SR;
+    return AUDIODSP_ADDON_CH_SR;
   case AE_CH_TFL:
-    return AE_DSP_CH_TFL;
+    return AUDIODSP_ADDON_CH_TFL;
   case AE_CH_TFR:
-    return AE_DSP_CH_TFR;
+    return AUDIODSP_ADDON_CH_TFR;
   case AE_CH_TFC:
-    return AE_DSP_CH_TFC;
+    return AUDIODSP_ADDON_CH_TFC;
   case AE_CH_TC:
-    return AE_DSP_CH_TC;
+    return AUDIODSP_ADDON_CH_TC;
   case AE_CH_TBL:
-    return AE_DSP_CH_TBL;
+    return AUDIODSP_ADDON_CH_TBL;
   case AE_CH_TBR:
-    return AE_DSP_CH_TBR;
+    return AUDIODSP_ADDON_CH_TBR;
   case AE_CH_TBC:
-    return AE_DSP_CH_TBC;
+    return AUDIODSP_ADDON_CH_TBC;
   case AE_CH_BLOC:
-    return AE_DSP_CH_BLOC;
+    return AUDIODSP_ADDON_CH_BLOC;
   case AE_CH_BROC:
-    return AE_DSP_CH_BROC;
+    return AUDIODSP_ADDON_CH_BROC;
   default:
-    return AE_DSP_CH_INVALID;
+    return AUDIODSP_ADDON_CH_INVALID;
   }
 }
 
@@ -62,8 +62,8 @@ unsigned long GetPresentChannels(const CAEChannelInfo &ChannelLayout)
   unsigned long channelFlags = 0x0;
   for (int ch = 0; ch < ChannelLayout.Count(); ch++)
   {
-    AE_DSP_CHANNEL addonChannel = TranslateAEChannel(ChannelLayout[ch]);
-    if (addonChannel != AE_DSP_CH_INVALID && addonChannel != AE_DSP_CH_MAX)
+    AUDIODSP_ADDON_CHANNEL addonChannel = TranslateAEChannel(ChannelLayout[ch]);
+    if (addonChannel != AUDIODSP_ADDON_CH_INVALID && addonChannel != AUDIODSP_ADDON_CH_MAX)
     {
       channelFlags |= 1 << addonChannel;
     }
@@ -87,42 +87,42 @@ DSPErrorCode_t CAudioDSPAddonModeNode::CreateInstance(AEAudioFormat &InputFormat
   OutputFormat.m_dataFormat = AE_FMT_FLOATP;
 
   //! @todo AudioDSP V2 simplify add-on mode creation API
-  AE_DSP_SETTINGS addonSettings;
-  addonSettings.iStreamID = m_streamID;                /*!< @brief id of the audio stream packets */
-  addonSettings.iStreamType = AE_DSP_ASTREAM_AUTO; //! @todo AudioDSP V2 this should be set during mode creation              /*!< @brief the input stream type source eg, Movie or Music */
-  addonSettings.iInChannels = InputFormat.m_channelLayout.Count();              /*!< @brief the amount of input channels */
-  addonSettings.lInChannelPresentFlags = GetPresentChannels(InputFormat.m_channelLayout);
-  addonSettings.iInFrames = InputFormat.m_frames;                /*!< @brief the input frame size from KODI */
-  addonSettings.iInSamplerate = InputFormat.m_sampleRate;            /*!< @brief the basic sample rate of the audio packet */
-  addonSettings.iProcessFrames = InputFormat.m_frames;           /*!< @brief the processing frame size inside add-on's */
-  addonSettings.iProcessSamplerate = InputFormat.m_sampleRate;       /*!< @brief the sample rate after input resample present in master processing */
-  addonSettings.iOutChannels = OutputFormat.m_channelLayout.Count();             /*!< @brief the amount of output channels */
-  addonSettings.lOutChannelPresentFlags = GetPresentChannels(OutputFormat.m_channelLayout);
-  addonSettings.iOutFrames= OutputFormat.m_frames;               /*!< @brief the final out frame size for KODI */
-  addonSettings.iOutSamplerate = OutputFormat.m_sampleRate;           /*!< @brief the final sample rate of the audio packet */
-  addonSettings.iQualityLevel = AE_DSP_QUALITY_REALLYHIGH;            /*!< @brief the from KODI selected quality level for signal processing */
+  AUDIODSP_ADDON_SETTINGS addonSettings;
+  addonSettings.StreamID = m_streamID;                /*!< @brief id of the audio stream packets */
+  addonSettings.StreamType = AUDIODSP_ADDON_ASTREAM_AUTO; //! @todo AudioDSP V2 this should be set during mode creation              /*!< @brief the input stream type source eg, Movie or Music */
+  //addonSettings.iInChannels = InputFormat.m_channelLayout.Count();              /*!< @brief the amount of input channels */
+  //addonSettings.lInChannelPresentFlags = GetPresentChannels(InputFormat.m_channelLayout);
+  //addonSettings.iInFrames = InputFormat.m_frames;                /*!< @brief the input frame size from KODI */
+  //addonSettings.iInSamplerate = InputFormat.m_sampleRate;            /*!< @brief the basic sample rate of the audio packet */
+  //addonSettings.iProcessFrames = InputFormat.m_frames;           /*!< @brief the processing frame size inside add-on's */
+  //addonSettings.iProcessSamplerate = InputFormat.m_sampleRate;       /*!< @brief the sample rate after input resample present in master processing */
+  //addonSettings.iOutChannels = OutputFormat.m_channelLayout.Count();             /*!< @brief the amount of output channels */
+  //addonSettings.lOutChannelPresentFlags = GetPresentChannels(OutputFormat.m_channelLayout);
+  //addonSettings.iOutFrames= OutputFormat.m_frames;               /*!< @brief the final out frame size for KODI */
+  //addonSettings.iOutSamplerate = OutputFormat.m_sampleRate;           /*!< @brief the final sample rate of the audio packet */
+  addonSettings.QualityLevel = AUDIODSP_ADDON_QUALITY_REALLYHIGH;            /*!< @brief the from KODI selected quality level for signal processing */
 
-  addonSettings.lInChannelPresentFlags;   /*!< @brief the exact channel mapping flags of input */
-  addonSettings.lOutChannelPresentFlags;  /*!< @brief the exact channel mapping flags for output */
+  //addonSettings.lInChannelPresentFlags;   /*!< @brief the exact channel mapping flags of input */
+  //addonSettings.lOutChannelPresentFlags;  /*!< @brief the exact channel mapping flags for output */
 
-  if (m_addon->StreamInitialize(&m_handle, &addonSettings) != AE_DSP_ERROR_NO_ERROR)
+  if (m_addon->StreamInitialize(&m_handle, &addonSettings) != AUDIODSP_ADDON_ERROR_NO_ERROR)
   {
     return DSP_ERR_FATAL_ERROR;
   }
 
-  AE_DSP_STREAMTYPE addonStreamType = AE_DSP_ASTREAM_BASIC;// StreamProperties.streamType; //! @todo AudioDSP V2 add translation method
+  AUDIODSP_ADDON_STREAMTYPE addonStreamType = AUDIODSP_ADDON_ASTREAM_AUTO;// StreamProperties.streamType; //! @todo AudioDSP V2 add translation method
   unsigned int addonModeID = 0; //! @todo AudioDSP V2 set correct addonModeID
-  AE_DSP_ERROR dspErr = m_addon->MasterProcessSetMode(&m_handle, addonStreamType, addonModeID, ID);
-  if (dspErr != AE_DSP_ERROR_NO_ERROR && dspErr != AE_DSP_ERROR_NOT_IMPLEMENTED)
+  AUDIODSP_ADDON_ERROR dspErr = AUDIODSP_ADDON_ERROR_NO_ERROR;// m_addon->MasterProcessSetMode(&m_handle, addonStreamType, addonModeID, ID);
+  if (dspErr != AUDIODSP_ADDON_ERROR_NO_ERROR && dspErr != AUDIODSP_ADDON_ERROR_NOT_IMPLEMENTED)
   {
     return DSP_ERR_FATAL_ERROR;
   }
 
   unsigned long outChannelFlags = 0x0;
   int outputChannelAmount = 0;
-  outputChannelAmount = m_addon->MasterProcessGetOutChannels(&m_handle, outChannelFlags);
+  outputChannelAmount = 0;// m_addon->MasterProcessGetOutChannels(&m_handle, outChannelFlags);
   OutputFormat.m_channelLayout.Reset();
-  for (unsigned int ch = 0; ch < AE_DSP_CH_MAX; ch++)
+  for (unsigned int ch = 0; ch < AUDIODSP_ADDON_CH_MAX; ch++)
   {
     if (outChannelFlags & 1 << ch)
     {
@@ -135,7 +135,7 @@ DSPErrorCode_t CAudioDSPAddonModeNode::CreateInstance(AEAudioFormat &InputFormat
 
 int CAudioDSPAddonModeNode::ProcessInstance(const uint8_t **In, uint8_t **Out)
 {
-  return m_addon->MasterProcess(&m_handle, reinterpret_cast<const float**>(In), reinterpret_cast<float**>(Out), m_InputFormat.m_frames);
+  return 0;// m_addon->MasterProcess(&m_handle, reinterpret_cast<const float**>(In), reinterpret_cast<float**>(Out), m_InputFormat.m_frames);
 }
 
 DSPErrorCode_t CAudioDSPAddonModeNode::DestroyInstance()

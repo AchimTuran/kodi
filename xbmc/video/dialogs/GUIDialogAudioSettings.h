@@ -81,15 +81,15 @@ protected:
   std::string GetSettingsLabel(CSetting *pSetting);
 
   void OpenMenu(const std::string &id);
-  bool HasActiveMenuHooks(AE_DSP_MENUHOOK_CAT category);
-  void GetAudioDSPMenus(std::shared_ptr<CSettingGroup> group, AE_DSP_MENUHOOK_CAT category);
+  bool HasActiveMenuHooks(AUDIODSP_MENU_HOOK_CAT category);
+  void GetAudioDSPMenus(std::shared_ptr<CSettingGroup> group, AUDIODSP_MENU_HOOK_CAT category);
   bool OpenAudioDSPMenu(unsigned int setupEntry);
   int FindCategoryIndex(const std::string &catId);
 
   typedef struct
   {
     int              addonId;
-    AE_DSP_MENUHOOK  hook;
+    AUDIODSP_MENU_HOOK  hook;
   } MenuHookMember;
   typedef struct
   {
@@ -98,13 +98,12 @@ protected:
     std::string      CPUUsage;
   } ActiveModeData;
 
-  AE_DSP_STREAM_ID                            m_ActiveStreamId;                         /*!< The on dialog selectable stream identifier */
-  AE_DSP_STREAMTYPE                           m_streamTypeUsed;                         /*!< The currently available stream type */
-  AE_DSP_BASETYPE                             m_baseTypeUsed;                           /*!< The currently detected and used base type */
+  unsigned int                                m_ActiveStreamId;                         /*!< The on dialog selectable stream identifier */
+  AUDIODSP_ADDON_STREAMTYPE                   m_streamTypeUsed;                         /*!< The currently available stream type */
+  AUDIODSP_ADDON_BASETYPE                     m_baseTypeUsed;                           /*!< The currently detected and used base type */
   int                                         m_modeTypeUsed;                           /*!< The currently selected mode type */
   std::vector<std::string>                    m_ActiveModes;                            /*!< The process modes currently active on dsp processing stream */
   std::vector<ActiveModeData>                 m_ActiveModesData;                        /*!< The process modes currently active on dsp processing stream info*/
-  std::vector<std::string>                    m_MasterModes[AE_DSP_ASTREAM_MAX];        /*!< table about selectable and usable master processing modes */
   std::map<std::string, int>                  m_MenuPositions;                          /*!< The differnet menu selection positions */
   std::vector<int>                            m_MenuHierarchy;                          /*!< Menu selection flow hierachy */
   std::vector<MenuHookMember>                 m_Menus;                                  /*!< storage about present addon menus on currently selected submenu */
