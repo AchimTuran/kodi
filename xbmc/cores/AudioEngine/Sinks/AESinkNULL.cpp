@@ -104,7 +104,7 @@ void CAESinkNULL::Drain()
   m_wake.Set();
 }
 
-void CAESinkNULL::EnumerateDevices (AEDeviceList &devices, bool passthrough)
+void CAESinkNULL::EnumerateDevices(AEDeviceList &devices, bool passthrough)
 {
   // we never return any devices
 }
