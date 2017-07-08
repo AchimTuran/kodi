@@ -60,6 +60,7 @@ public:
   Protocol(std::string name, CEvent* inEvent, CEvent *outEvent)
     : portName(name), inDefered(false), outDefered(false) {containerInEvent = inEvent; containerOutEvent = outEvent;};
   virtual ~Protocol();
+  //! @todo AudioDSP V2 change methods signature, because Windows has a macro definition for GetMessage
   Message *GetMessage();
   void ReturnMessage(Message *msg);
   bool SendOutMessage(int signal, void *data = NULL, int size = 0, Message *outMsg = NULL);
