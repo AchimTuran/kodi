@@ -364,7 +364,7 @@ extern "C" {
     AUDIODSP_ADDON_MENUHOOK_ADDON_SETTINGS,   /*!< @brief for settings */
 
     AUDIODSP_ADDON_MENUHOOK_MAX,
-  } AUDIODSP_MENUHOOK_CAT;
+  } AUDIODSP_MENU_HOOK_CAT;
 
   /*!
    * @brief Menu hooks that are available in the menus while playing a stream via this add-on.
@@ -373,9 +373,9 @@ extern "C" {
   {
     unsigned int          iHookId;                /*!< @brief (required) this hook's identifier */
     unsigned int          iLocalizedStringId;     /*!< @brief (required) the id of the label for this hook in g_localizeStrings */
-    AUDIODSP_MENUHOOK_CAT category;               /*!< @brief (required) category of menu hook */
+    AUDIODSP_MENU_HOOK_CAT category;               /*!< @brief (required) category of menu hook */
     unsigned int          iRelevantModeId;        /*!< @brief (required) except category AUDIODSP_ADDON_MENUHOOK_SETTING and AUDIODSP_ADDON_MENUHOOK_ALL must be the related mode id present here */
-  } ATTRIBUTE_PACKED AUDIODSP_MENUHOOK;
+  } ATTRIBUTE_PACKED AUDIODSP_MENU_HOOK;
 
   /*!
    * @brief Audio processing settings for in and out arrays
@@ -520,17 +520,6 @@ extern "C" {
   } ATTRIBUTE_PACKED AUDIODSP_ADDON_MODE_DATA;
 
   /*!
-   * @brief Audio DSP menu hook data
-   */
-  typedef struct
-  {
-    AUDIODSP_MENUHOOK_CAT category;                                         /*!< @brief (required) related menuhook data category */
-    union data {
-      unsigned int  uiStreamID;                                        /*!< @brief currently only stream id is used, is used as union to have extension possibility */
-    } data;                                                               /*!< @brief related category related data */
-  } ATTRIBUTE_PACKED AUDIODSP_ADDON_MENUHOOK_DATA;
-
-  /*!
    * @brief Properties passed to the Create() method of an add-on.
    */
   typedef struct AddonProps_AudioDSP
@@ -542,8 +531,8 @@ extern "C" {
   typedef struct AddonToKodiFuncTable_AudioDSP
   {
     void* kodiInstance;
-    void (*add_menu_hook)(void* kodiInstance, AUDIODSP_ADDON_MENUHOOK_DATA* hook);
-    void (*remove_menu_hook)(void* kodiInstance, AUDIODSP_ADDON_MENUHOOK_DATA* hook);
+    void (*add_menu_hook)(void* kodiInstance, AUDIODSP_MENU_HOOK* hook);
+    void (*remove_menu_hook)(void* kodiInstance, AUDIODSP_MENU_HOOK* hook);
     void (*register_mode)(void* kodiInstance, AUDIODSP_ADDON_MODE_DATA* mode);
     void (*unregister_mode)(void* kodiInstance, AUDIODSP_ADDON_MODE_DATA* mode);
   } AddonToKodiFuncTable_AudioDSP;
@@ -554,22 +543,14 @@ extern "C" {
     kodi::addon::CInstanceAudioDSP* addonInstance;
     const char* (__cdecl* get_dsp_name)(AddonInstance_AudioDSP const* addonInstance);
     const char* (__cdecl* get_dsp_version)(AddonInstance_AudioDSP const* addonInstance);
-    AUDIODSP_ADDON_ERROR (__cdecl* menu_hook)(AddonInstance_AudioDSP const* addonInstance, const AUDIODSP_ADDON_MENUHOOK_DATA*, const AUDIODSP_ADDON_MENUHOOK_DATA*);
-
-    AUDIODSP_ADDON_ERROR (__cdecl* stream_create)(AddonInstance_AudioDSP const* addonInstance, const AUDIODSP_ADDON_SETTINGS*, const AUDIODSP_ADDON_STREAM_PROPERTIES*, ADDON_HANDLE);
-    AUDIODSP_ADDON_ERROR (__cdecl* stream_destroy)(AddonInstance_AudioDSP const* addonInstance, const ADDON_HANDLE);
-    AUDIODSP_ADDON_ERROR (__cdecl* stream_initialize)(AddonInstance_AudioDSP const* addonInstance, const ADDON_HANDLE, const AUDIODSP_ADDON_SETTINGS*);
-
-    bool (__cdecl* input_process)(AddonInstance_AudioDSP const* addonInstance, const ADDON_HANDLE, const float**, unsigned int);
-
-    unsigned int (__cdecl* input_resample_process_needed_samplesize)(AddonInstance_AudioDSP const* addonInstance, const ADDON_HANDLE);
-    unsigned int (__cdecl* input_resample_process)(AddonInstance_AudioDSP const* addonInstance, const ADDON_HANDLE, const float**, float**, unsigned int);
-    float (__cdecl* input_resample_get_delay)(AddonInstance_AudioDSP const* addonInstance, const ADDON_HANDLE);
-    int (__cdecl* input_resample_samplerate)(AddonInstance_AudioDSP const* addonInstance, const ADDON_HANDLE);
-
-    unsigned int (__cdecl* pre_process_needed_samplesize)(AddonInstance_AudioDSP const* addonInstance, const ADDON_HANDLE, unsigned int);
-    float (__cdecl* pre_process_get_delay)(AddonInstance_AudioDSP const* addonInstance, const ADDON_HANDLE, unsigned int);
-    unsigned int (__cdecl* pre_process)(AddonInstance_AudioDSP const* addonInstance, const ADDON_HANDLE, unsigned int, const float**, float**, unsigned int);
+    AUDIODSP_ADDON_ERROR (__cdecl* menu_hook)(AddonInstance_AudioDSP const* addonInstance, const AUDIODSP_MENU_HOOK*);
+    AUDIODSP_ADDON_ERROR(__cdecl* create_mode)(AddonInstance_AudioDSP const* instance, const AUDIODSP_ADDON_SETTINGS *addonSettings, const AUDIODSP_ADDON_STREAM_PROPERTIES* properties, ADDON_HANDLE handle);
+    AUDIODSP_ADDON_ERROR(__cdecl* destroy_mode)(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE handle);
+    int (__cdecl* get_mode_input_format)(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE mode);
+    int (__cdecl* get_mode_out_format)(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE mode);
+    unsigned int(__cdecl* needed_mode_frame_size)(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE mode);
+    float (__cdecl* get_mode_delay)(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE mode);
+    unsigned int(__cdecl* process_mode)(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE mode, const float** array_in, float** array_out, unsigned int samples);
   } KodiToAddonFuncTable_AudioDSP;
 
   typedef struct AddonInstance_AudioDSP
@@ -643,217 +624,36 @@ namespace addon {
     /// @brief Call one of the menu hooks (if supported).
     /// Supported AUDIODSP_ADDON_MENUHOOK instances have to be added in ADDON_Create(),
     /// by calling AddMenuHook() on the callback.
-    /// @param menuhook The hook to call.
+    /// @param menuHook The hook to call.
     /// @param item The selected item for which the hook was called.
     /// @return AUDIODSP_ADDON_ERROR_NO_ERROR if the hook was called successfully.
     /// @remarks Optional. Return AUDIODSP_ADDON_ERROR_NOT_IMPLEMENTED if this add-on
     /// won't provide this function.
     ///
-    virtual AUDIODSP_ADDON_ERROR MenuHook(const AUDIODSP_ADDON_MENUHOOK_DATA& menuhook) { return AUDIODSP_ADDON_ERROR_NOT_IMPLEMENTED; }
+    virtual AUDIODSP_ADDON_ERROR MenuHook(const AUDIODSP_MENU_HOOK& menuHook) { return AUDIODSP_ADDON_ERROR_NOT_IMPLEMENTED; }
     //--------------------------------------------------------------------------
     //@}
 
-    //==========================================================================
-    /// @name DSP processing control, used to open and close a stream
-    ///  @remarks Valid implementation required.
-    ///
-    //@{
-    ///
-    /// @brief Set up Audio DSP with selected audio settings (use the basic
-    /// present audio stream data format).
-    /// Used to detect available add-ons for present stream, as example stereo
-    /// surround upmix not needed on 5.1 audio stream.
-    /// @param addonSettings The add-ons audio settings.
-    /// @param properties The properties of the currently playing stream.
-    /// @param handle On this becomes addon informated about stream id and can set function addresses which need on calls
-    /// @return AUDIODSP_ADDON_ERROR_NO_ERROR if the properties were fetched successfully
-    /// and data can be performed. AUDIODSP_ADDON_ERROR_IGNORE_ME if format is not
-    /// supported, but without fault.
-    /// @remarks Valid implementation required.
-    ///
-    virtual AUDIODSP_ADDON_ERROR StreamCreate(const AUDIODSP_ADDON_SETTINGS& addonSettings, const AUDIODSP_ADDON_STREAM_PROPERTIES& properties, ADDON_HANDLE handle) = 0;
-    //--------------------------------------------------------------------------
+    virtual AUDIODSP_ADDON_ERROR CreateMode(const AUDIODSP_ADDON_SETTINGS& addonSettings, const AUDIODSP_ADDON_STREAM_PROPERTIES& properties, ADDON_HANDLE handle) = 0;
 
-    //==========================================================================
-    ///
-    /// Remove the selected id from currently used DSP processes
-    /// @param handle identification data for stream
-    /// @return AUDIODSP_ADDON_ERROR_NO_ERROR if the becomes found and removed
-    /// @remarks Valid implementation required.
-    ///
-    virtual AUDIODSP_ADDON_ERROR StreamDestroy(const ADDON_HANDLE handle) = 0;
-    //--------------------------------------------------------------------------
+    virtual AUDIODSP_ADDON_ERROR DestroyMode(const ADDON_HANDLE handle) = 0;
 
-    //==========================================================================
-    ///
-    /// @brief Set up Audio DSP with selected audio settings (detected on data of
-    /// first present audio packet)
-    /// @param addonSettings The add-ons audio settings.
-    /// @return AUDIODSP_ADDON_ERROR_NO_ERROR if the properties were fetched successfully.
-    /// @remarks Valid implementation required.
-    ///
-    virtual AUDIODSP_ADDON_ERROR StreamInitialize(const ADDON_HANDLE handle, const AUDIODSP_ADDON_SETTINGS& addonSettings) = 0;
-    //--------------------------------------------------------------------------
+    virtual AUDIODSP_ADDON_ERROR GetModeInputFormat(const ADDON_HANDLE mode) = 0;
 
-    //@}
+    virtual AUDIODSP_ADDON_ERROR GetModeOutFormat(const ADDON_HANDLE mode) = 0;
 
-    /** @name DSP Master processing
-    *  @remarks Only used by KODI if bSupportsMasterProcess is set to true.
-    */
-    //@{
+    virtual unsigned int NeededModeFrameSize(const ADDON_HANDLE mode) { return 0; }
 
-    //==========================================================================
-    ///
-    /// @brief If the add-on operate with buffered arrays and the output size can
-    /// be higher as the input it becomes asked about needed size before any
-    /// MasterProcess call.
-    /// @param handle identification data for stream
-    /// @return The needed size of output array or 0 if no changes within it
-    /// @remarks Optional. Is set by AUDIODSP_ADDON_ADDON_CAPABILITIES and asked with
-    /// GetCapabilities
-    ///
-    virtual unsigned int MasterProcessNeededSamplesize(const ADDON_HANDLE handle) { return 0; }
-    //--------------------------------------------------------------------------
+    virtual float GetModeDelay(const ADDON_HANDLE mode) { return 0.0f; }
 
-    //==========================================================================
-    ///
-    /// @brief Returns the time in seconds that it will take
-    /// for the next added packet to be returned to KODI.
-    /// @param handle identification data for stream
-    /// @return the delay in seconds
-    /// @remarks Optional. Is set by AUDIODSP_ADDON_ADDON_CAPABILITIES and asked with
-    /// GetCapabilities
-    ///
-    virtual float MasterProcessGetDelay(const ADDON_HANDLE handle) { return 0.0f; }
-    //--------------------------------------------------------------------------
-    //@}
-
-    /** @name DSP Post processing
-    *  @remarks Only used by KODI if bSupportsPostProcess is set to true.
-    */
-    //@{
-    //==========================================================================
-    ///
-    /// If the add-on operate with buffered arrays and the output size can be
-    /// higher as the input it becomes asked about needed size before any
-    /// PostProcess call.
-    /// @param handle identification data for stream
-    /// @param mode_id The mode inside add-on which must be performed on call. Id
-    /// is set from add-on by iModeNumber on AUDIODSP_ADDON_MODE structure during
-    /// RegisterMode callback, and can be defined from add-on as a structure
-    /// pointer or anything else what is needed to find it.
-    /// @return The needed size of output array or 0 if no changes within it
-    /// @remarks Optional. Is set by AUDIODSP_ADDON_ADDON_CAPABILITIES and asked with
-    /// GetCapabilities
-    ///
-    virtual unsigned int PostProcessNeededSamplesize(const ADDON_HANDLE handle, unsigned int mode_id) { return 0; }
-    //--------------------------------------------------------------------------
-
-    //==========================================================================
-    ///
-    /// Returns the time in seconds that it will take
-    /// for the next added packet to be returned to KODI.
-    /// @param handle identification data for stream
-    /// @param mode_id The mode inside add-on which must be performed on call. Id
-    /// is set from add-on by iModeNumber on AUDIODSP_ADDON_MODE structure during
-    /// RegisterMode callback, and can be defined from add-on as a structure
-    /// pointer or anything else what is needed to find it.
-    /// @return the delay in seconds
-    /// @remarks Optional. Is set by AUDIODSP_ADDON_ADDON_CAPABILITIES and asked with
-    /// GetCapabilities
-    ///
-    virtual float PostProcessGetDelay(const ADDON_HANDLE handle, unsigned int mode_id) { return 0.0f; }
-    //--------------------------------------------------------------------------
-
-    //==========================================================================
-
-    ///
-    /// @brief DSP post processing
-    /// On the post processing can be things performed with additional channel
-    /// upmix like 6.1 to 7.1
-    /// or frequency/volume corrections, speaker distance handling, equalizer... .
-    /// All DSP add-ons allowed to-do this.
-    /// @param handle identification data for stream
-    /// @param mode_id The mode inside add-on which must be performed on call. Id
-    /// is set from add-on by iModeNumber on AUDIODSP_ADDON_MODE structure during
-    /// RegisterMode callback, and can be defined from add-on as a structure
-    /// pointer or anything else what is needed to find it.
-    /// @param array_in Pointer to input data memory
-    /// @param array_out Pointer to output data memory
-    /// @param samples Amount of samples inside array_in
-    /// @return Amount of samples processed
-    /// @remarks Optional. Is set by AUDIODSP_ADDON_ADDON_CAPABILITIES and asked with
-    /// GetCapabilities
-    ///
-    virtual unsigned int PostProcess(const ADDON_HANDLE handle, unsigned int mode_id, const float** array_in, float** array_out, unsigned int samples) { return 0; }
-
-    //--------------------------------------------------------------------------
-    //@}
-
-    /** @name DSP Post re-sampling
-    *  @remarks Only used by KODI if bSupportsOutputResample is set to true.
-    */
-    //@{
-    //==========================================================================
-    ///
-    /// @brief If the add-on operate with buffered arrays and the output size
-    /// can be higher as the input
-    /// it becomes asked about needed size before any OutputResampleProcess call.
-    /// @param handle identification data for stream
-    /// @return The needed size of output array or 0 if no changes within it
-    /// @remarks Optional. Is set by AUDIODSP_ADDON_ADDON_CAPABILITIES and asked with
-    /// GetCapabilities
-    ///
-    virtual unsigned int OutputResampleProcessNeededSamplesize(const ADDON_HANDLE handle) { return 0; }
-    //--------------------------------------------------------------------------
-
-    //==========================================================================
-    ///
-    /// @brief Re-sampling after master processing becomes performed with it if
-    /// needed, only
-    /// one add-on can perform it.
-    /// @param handle identification data for stream
-    /// @param array_in Pointer to input data memory
-    /// @param array_out Pointer to output data memory
-    /// @param samples Amount of samples inside array_in
-    /// @return Amount of samples processed
-    /// @remarks Optional. Is set by AUDIODSP_ADDON_ADDON_CAPABILITIES and asked with
-    /// GetCapabilities
-    ///
-    virtual unsigned int OutputResampleProcess(const ADDON_HANDLE handle, const float** array_in, float** array_out, unsigned int samples) { return 0; }
-    //--------------------------------------------------------------------------
-
-    //==========================================================================
-    ///
-    /// @brief Returns the re-sampling generated new sample rate used after the
-    /// master process.
-    /// @param handle identification data for stream
-    /// @return The new sample rate
-    /// @remarks Optional. Is set by AUDIODSP_ADDON_ADDON_CAPABILITIES and asked with
-    /// GetCapabilities
-    ///
-    virtual int OutputResampleSampleRate(const ADDON_HANDLE handle) { return 0; }
-    //--------------------------------------------------------------------------
-
-    //==========================================================================
-    ///
-    /// @brief Returns the time in seconds that it will take for the next added
-    /// packet to be returned to KODI.
-    /// @param handle identification data for stream
-    /// @return the delay in seconds
-    /// @remarks Optional. Is set by AUDIODSP_ADDON_ADDON_CAPABILITIES and asked with
-    /// GetCapabilities
-    ///
-    virtual float OutputResampleGetDelay(const ADDON_HANDLE handle) { return 0.0f; }
-    //--------------------------------------------------------------------------
-    //@}
+    virtual unsigned int ProcessMode(const ADDON_HANDLE mode, const float** array_in, float** array_out, unsigned int samples) = 0;
 
     //==========================================================================
     ///
     /// @brief Add or replace a menu hook for the context menu for this add-on
     /// @param hook The hook to add
     ///
-    void AddMenuHook(AUDIODSP_ADDON_MENUHOOK_DATA* hook)
+    void AddMenuHook(AUDIODSP_MENU_HOOK* hook)
     {
       return m_instanceData->toKodi.add_menu_hook(m_instanceData->toKodi.kodiInstance, hook);
     }
@@ -864,7 +664,7 @@ namespace addon {
     /// @brief Remove a menu hook for the context menu for this add-on
     /// @param hook The hook to remove
     ///
-    void RemoveMenuHook(AUDIODSP_ADDON_MENUHOOK_DATA* hook)
+    void RemoveMenuHook(AUDIODSP_MENU_HOOK* hook)
     {
       return m_instanceData->toKodi.remove_menu_hook(m_instanceData->toKodi.kodiInstance, hook);
     }
@@ -906,6 +706,13 @@ namespace addon {
       m_instanceData->toAddon.get_dsp_name = ADDON_GetDSPName;
       m_instanceData->toAddon.get_dsp_version = ADDON_GetDSPVersion;
       m_instanceData->toAddon.menu_hook = ADDON_MenuHook;
+      m_instanceData->toAddon.create_mode = ADDON_CreateMode;
+      m_instanceData->toAddon.destroy_mode = ADDON_DestroyMode;
+      m_instanceData->toAddon.get_mode_input_format = ADDON_GetModeInputFormat;
+      m_instanceData->toAddon.get_mode_out_format = ADDON_GetModeOutFormat;
+      m_instanceData->toAddon.needed_mode_frame_size = ADDON_NeededModeFrameSize;
+      m_instanceData->toAddon.get_mode_delay = ADDON_GetModeDelay;
+      m_instanceData->toAddon.process_mode = ADDON_ProcessMode;
     }
 
     static inline const char* ADDON_GetDSPName(AddonInstance_AudioDSP const* instance)
@@ -920,9 +727,9 @@ namespace addon {
       return instance->toAddon.addonInstance->m_dspVersion.c_str();
     }
 
-    static inline AUDIODSP_ADDON_ERROR ADDON_MenuHook(AddonInstance_AudioDSP const* instance, const AUDIODSP_ADDON_MENUHOOK_DATA* menuhook, const AUDIODSP_ADDON_MENUHOOK_DATA* item)
+    static inline AUDIODSP_ADDON_ERROR ADDON_MenuHook(AddonInstance_AudioDSP const* instance, const AUDIODSP_MENU_HOOK* menuHook)
     {
-      return instance->toAddon.addonInstance->MenuHook(*menuhook, *item);
+      return instance->toAddon.addonInstance->MenuHook(*menuHook);
     }
 
     static inline AUDIODSP_ADDON_ERROR ADDON_CreateMode(AddonInstance_AudioDSP const* instance, const AUDIODSP_ADDON_SETTINGS *addonSettings, const AUDIODSP_ADDON_STREAM_PROPERTIES* properties, ADDON_HANDLE handle)

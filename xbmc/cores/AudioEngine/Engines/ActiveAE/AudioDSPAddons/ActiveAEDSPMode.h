@@ -58,14 +58,14 @@ namespace ActiveAE
      * @param baseType the used base of this internal mode
      * @note this creation is only used to get a internal bypass mode (no addon call process mode)
      */
-    CActiveAEDSPMode(unsigned int modeId, const AE_DSP_BASETYPE baseType);
+    CActiveAEDSPMode(unsigned int modeId, const AUDIODSP_ADDON_BASETYPE baseType);
 
     /*!
      * @brief Create the class about from addon given values
      * @param mode the from addon set identification structure
      * @param iAddonId the addon identification of the given data
      */
-    CActiveAEDSPMode(const AE_DSP_MODES::AE_DSP_MODE &mode, unsigned int iAddonId);
+    CActiveAEDSPMode(const AUDIODSP_ADDON_MODE_DATA &mode, unsigned int iAddonId);
 
     /*!
      * @brief Create a new class about given class
@@ -131,14 +131,14 @@ namespace ActiveAE
      * @param flags the stream types flags to check in accordance with AE_DSP_ASTREAM_PRESENT
      * @return true if the mode is set as enabled under the flags
      */
-    static bool SupportStreamType(AE_DSP_STREAMTYPE streamType, unsigned int flags);
+    static bool SupportStreamType(AUDIODSP_ADDON_STREAMTYPE streamType, unsigned int flags);
 
     /*!
      * @brief Ask this mode about stream type
      * @param streamType the type to ask
      * @return true if the mode is set as enabled of this mode
      */
-    bool SupportStreamType(AE_DSP_STREAMTYPE streamType) const;
+    bool SupportStreamType(AUDIODSP_ADDON_STREAMTYPE streamType) const;
     //@}
 
     /*! @name Mode user interface related data functions
@@ -188,14 +188,14 @@ namespace ActiveAE
      * @brief Get the used base type of this mode
      * @return the base type
      */
-    AE_DSP_BASETYPE BaseType(void) const;
+    AUDIODSP_ADDON_BASETYPE BaseType(void) const;
 
     /*!
      * @brief Set the used base type of this mode
      * @return baseType the base type to set
      * @return true if the position becomes set and a database update becomes required
      */
-    bool SetBaseType(AE_DSP_BASETYPE baseType);
+    bool SetBaseType(AUDIODSP_ADDON_BASETYPE baseType);
     //@}
 
     /*! @name Audio DSP database related functions
@@ -260,12 +260,6 @@ namespace ActiveAE
     unsigned int AddonModeNumber(void) const;
 
     /*!
-     * @brief The processing mode type identifier of this mode
-     * @return returns the mode type, it should be never AE_DSP_MODE_TYPE_UNDEFINED
-     */
-    AE_DSP_MODE_TYPE ModeType(void) const;
-
-    /*!
      * @brief Get the addon mode name
      * @return returns the from addon set name of this mode, used for log messages
      */
@@ -291,10 +285,9 @@ namespace ActiveAE
     /*! @name KODI related mode data
      */
     //@{
-    AE_DSP_MODE_TYPE  m_iModeType;               /*!< the processing mode type */
     int               m_iModePosition;           /*!< the processing mode position */
     unsigned int      m_uiModeId;                /*!< the identifier given to this mode by the DSP database */
-    AE_DSP_BASETYPE   m_iBaseType;               /*!< The stream source coding format */
+    AUDIODSP_ADDON_BASETYPE   m_iBaseType;               /*!< The stream source coding format */
     bool              m_bIsEnabled;              /*!< true if this mode is enabled, false if not */
     std::string       m_strOwnIconPath;          /*!< the path to the icon for this mode */
     std::string       m_strOverrideIconPath;     /*!< the path to the icon for this mode */
