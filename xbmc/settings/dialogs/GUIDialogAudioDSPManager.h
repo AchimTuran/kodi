@@ -74,19 +74,19 @@ private:
   //! helper function prototypes
   static void                 helper_LogError(const char *function);
   static int                  helper_TranslateModeType(std::string ModeString);
-  static CFileItem           *helper_CreateModeListItem(ActiveAE::CActiveAEDSPModePtr &ModePointer, AE_DSP_MENUHOOK_CAT &MenuHook, int *ContinuesNo);
-  static int                  helper_GetDialogId(ActiveAE::CActiveAEDSPModePtr &ModePointer, AE_DSP_MENUHOOK_CAT &MenuHook, ActiveAE::AE_DSP_ADDON &Addon, std::string AddonName);
-  static AE_DSP_MENUHOOK_CAT  helper_GetMenuHookCategory(int CurrentType);
+  static CFileItem           *helper_CreateModeListItem(ActiveAE::CActiveAEDSPModePtr &ModePointer, AUDIODSP_MENU_HOOK_CAT &MenuHook, int *ContinuesNo);
+  static int                  helper_GetDialogId(ActiveAE::CActiveAEDSPModePtr &ModePointer, AUDIODSP_MENU_HOOK_CAT &MenuHook, ActiveAE::AE_DSP_ADDON &Addon, std::string AddonName);
+  static AUDIODSP_MENU_HOOK_CAT  helper_GetMenuHookCategory(int CurrentType);
 
   bool m_bMovingMode;
   bool m_bContainsChanges;
   bool m_bContinousSaving;    // if true, all settings are directly saved
 
   int m_iCurrentType;
-  int m_iSelected[AE_DSP_MODE_TYPE_MAX];
+  int m_iSelected[20];
 
-  CFileItemList* m_activeItems[AE_DSP_MODE_TYPE_MAX];
-  CFileItemList* m_availableItems[AE_DSP_MODE_TYPE_MAX];
+  CFileItemList* m_activeItems[20];
+  CFileItemList* m_availableItems[20];
 
   CGUIViewControl m_availableViewControl;
   CGUIViewControl m_activeViewControl;

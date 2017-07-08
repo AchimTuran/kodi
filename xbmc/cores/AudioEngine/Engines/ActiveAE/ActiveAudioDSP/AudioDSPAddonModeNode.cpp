@@ -105,10 +105,10 @@ DSPErrorCode_t CAudioDSPAddonModeNode::CreateInstance(AEAudioFormat &InputFormat
   //addonSettings.lInChannelPresentFlags;   /*!< @brief the exact channel mapping flags of input */
   //addonSettings.lOutChannelPresentFlags;  /*!< @brief the exact channel mapping flags for output */
 
-  if (m_addon->StreamInitialize(&m_handle, &addonSettings) != AUDIODSP_ADDON_ERROR_NO_ERROR)
-  {
-    return DSP_ERR_FATAL_ERROR;
-  }
+  //if (m_addon->StreamInitialize(&m_handle, &addonSettings) != AUDIODSP_ADDON_ERROR_NO_ERROR)
+  //{
+  //  return DSP_ERR_FATAL_ERROR;
+  //}
 
   AUDIODSP_ADDON_STREAMTYPE addonStreamType = AUDIODSP_ADDON_ASTREAM_AUTO;// StreamProperties.streamType; //! @todo AudioDSP V2 add translation method
   unsigned int addonModeID = 0; //! @todo AudioDSP V2 set correct addonModeID

@@ -303,11 +303,6 @@ void CGUIDialogSubtitleSettings::AddSubtitleStreams(std::shared_ptr<CSettingGrou
   AddList(group, settingId, 462, SettingLevel::Basic, m_subtitleStream, SubtitleStreamsOptionFiller, 462);
 }
 
-bool CGUIDialogSubtitleSettings::IsPlayingPassthrough(const std::string &condition, const std::string &value, const CSetting *setting, void *data)
-{
-  return g_application.m_pPlayer->IsPassthrough();
-}
-
 void CGUIDialogSubtitleSettings::SubtitleStreamsOptionFiller(std::shared_ptr<const CSetting> setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data)
 {
   int subtitleStreamCount = g_application.m_pPlayer->GetSubtitleCount();

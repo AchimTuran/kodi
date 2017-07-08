@@ -187,13 +187,6 @@ namespace ActiveAE
      */
     void CallMenuHook(const AUDIODSP_MENU_HOOK &hook);
 
-    /*!
-     * Set up Audio DSP with selected audio settings (detected on data of first present audio packet)
-     * @param addonSettings The add-on's audio settings.
-     * @return AUDIODSP_ADDON_ERROR_NO_ERROR if the properties were fetched successfully.
-     */
-    AUDIODSP_ADDON_ERROR StreamInitialize(const ADDON_HANDLE handle, const AUDIODSP_ADDON_SETTINGS *addonSettings);
-
     static const char *ErrorCodeToString(const AUDIODSP_ADDON_ERROR error);
 
   private:
