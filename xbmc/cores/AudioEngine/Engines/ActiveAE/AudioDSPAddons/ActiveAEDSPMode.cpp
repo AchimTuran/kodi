@@ -29,10 +29,9 @@ using namespace ActiveAE;
 
 bool CActiveAEDSPMode::operator==(const CActiveAEDSPMode &right) const
 {
-  return (m_iModeId           == right.m_iModeId &&
+  return (m_uiModeId          == right.m_uiModeId &&
           m_iAddonId          == right.m_iAddonId &&
           m_iAddonModeNumber  == right.m_iAddonModeNumber &&
-          m_iModeType         == right.m_iModeType &&
           m_iModePosition     == right.m_iModePosition);
 }
 
@@ -43,14 +42,13 @@ bool CActiveAEDSPMode::operator!=(const CActiveAEDSPMode &right) const
 
 CActiveAEDSPMode::CActiveAEDSPMode()
 {
-  m_iModeType               = AE_DSP_MODE_TYPE_UNDEFINED;
-  m_iModeId                 = -1;
+  m_uiModeId                = AE_DSP_INVALID_ADDON_ID;
   m_iModePosition           = -1;
   m_bIsEnabled              = false;
   m_strOwnIconPath          = "";
   m_strOverrideIconPath     = "";
   m_iStreamTypeFlags        = 0;
-  m_iBaseType               = AE_DSP_ABASE_INVALID;
+  m_iBaseType               = AUDIODSP_ADDON_ABASE_UNKNOWN;
   m_iModeName               = -1;
   m_iModeSetupName          = -1;
   m_iModeDescription        = -1;
@@ -66,17 +64,17 @@ CActiveAEDSPMode::CActiveAEDSPMode()
   m_strModeName             = "";
 }
 
-CActiveAEDSPMode::CActiveAEDSPMode(int modeId, const AE_DSP_BASETYPE baseType)
+CActiveAEDSPMode::CActiveAEDSPMode(unsigned int modeId, const AUDIODSP_ADDON_BASETYPE baseType)
 {
-  m_iModeType               = AE_DSP_MODE_TYPE_MASTER_PROCESS;
-  m_iModeId                 = modeId;
+  m_uiModeId                = modeId;
   m_iModePosition           = 0;
   m_bIsEnabled              = true;
   m_strOwnIconPath          = "";
   m_strOverrideIconPath     = "";
-  m_iStreamTypeFlags        = AE_DSP_PRSNT_ASTREAM_BASIC |
+  m_iStreamTypeFlags        = 0x0;/*AE_DSP_PRSNT_ASTREAM_BASIC |
                               AE_DSP_PRSNT_ASTREAM_MUSIC |
-                              AE_DSP_PRSNT_ASTREAM_MOVIE/* |
+                              AE_DSP_PRSNT_ASTREAM_MOVIE*/
+                              /* |
                               AE_DSP_PRSNT_ASTREAM_GAME |
                               AE_DSP_PRSNT_ASTREAM_APP |
                               AE_DSP_PRSNT_ASTREAM_PHONE |
@@ -118,22 +116,19 @@ CActiveAEDSPMode::CActiveAEDSPMode(int modeId, const AE_DSP_BASETYPE baseType)
   m_iAddonModeNumber        = -1;
 }
 
-CActiveAEDSPMode::CActiveAEDSPMode(const AE_DSP_MODES::AE_DSP_MODE &mode, int iAddonId)
+CActiveAEDSPMode::CActiveAEDSPMode(const AUDIODSP_ADDON_MODE_DATA &mode, unsigned int iAddonId)
 {
-  m_iModeType               = mode.iModeType;
   m_iModePosition           = -1;
-  m_iModeId                 = mode.iUniqueDBModeId;
+  m_uiModeId                = mode.uiUniqueDBModeId;
   m_iAddonId                = iAddonId;
-  m_iBaseType               = AE_DSP_ABASE_INVALID;
-  m_bIsEnabled              = m_iModeType == AE_DSP_MODE_TYPE_MASTER_PROCESS ? !mode.bIsDisabled : false;
+  m_iBaseType               = AUDIODSP_ADDON_ABASE_UNKNOWN;
   m_strOwnIconPath          = mode.strOwnModeImage;
   m_strOverrideIconPath     = mode.strOverrideModeImage;
-  m_iStreamTypeFlags        = mode.iModeSupportTypeFlags;
   m_iModeName               = mode.iModeName;
   m_iModeSetupName          = mode.iModeSetupName;
   m_iModeDescription        = mode.iModeDescription;
   m_iModeHelp               = mode.iModeHelp;
-  m_iAddonModeNumber        = mode.iModeNumber;
+  m_iAddonModeNumber        = mode.uiModeNumber;
   m_strModeName             = mode.strModeName;
   m_bHasSettingsDialog      = mode.bHasSettingsDialog;
   m_bChanged                = false;
@@ -142,7 +137,7 @@ CActiveAEDSPMode::CActiveAEDSPMode(const AE_DSP_MODES::AE_DSP_MODE &mode, int iA
   m_fCPUUsage               = 0.0f;
 
   if (m_strModeName.empty())
-    m_strModeName = StringUtils::Format("%s %d", g_localizeStrings.Get(15023).c_str(), m_iModeId);
+    m_strModeName = StringUtils::Format("%s %d", g_localizeStrings.Get(15023).c_str(), m_uiModeId);
 }
 
 CActiveAEDSPMode::CActiveAEDSPMode(const CActiveAEDSPMode &mode)
@@ -152,8 +147,7 @@ CActiveAEDSPMode::CActiveAEDSPMode(const CActiveAEDSPMode &mode)
 
 CActiveAEDSPMode &CActiveAEDSPMode::operator=(const CActiveAEDSPMode &mode)
 {
-  m_iModeId                 = mode.m_iModeId;
-  m_iModeType               = mode.m_iModeType;
+  m_uiModeId                = mode.m_uiModeId;
   m_iModePosition           = mode.m_iModePosition;
   m_bIsEnabled              = mode.m_bIsEnabled;
   m_strOwnIconPath          = mode.m_strOwnIconPath;
@@ -180,7 +174,7 @@ CActiveAEDSPMode &CActiveAEDSPMode::operator=(const CActiveAEDSPMode &mode)
 bool CActiveAEDSPMode::IsNew(void) const
 {
   CSingleLock lock(m_critSection);
-  return m_iModeId <= 0;
+  return m_uiModeId == AE_DSP_INVALID_ADDON_ID;
 }
 
 bool CActiveAEDSPMode::IsChanged(void) const
@@ -241,19 +235,20 @@ bool CActiveAEDSPMode::SetModePosition(int iModePosition)
   return false;
 }
 
-bool CActiveAEDSPMode::SupportStreamType(AE_DSP_STREAMTYPE streamType, unsigned int flags)
+bool CActiveAEDSPMode::SupportStreamType(AUDIODSP_ADDON_STREAMTYPE streamType, unsigned int flags)
 {
-       if (streamType == AE_DSP_ASTREAM_BASIC   && (flags & AE_DSP_PRSNT_ASTREAM_BASIC))   return true;
-  else if (streamType == AE_DSP_ASTREAM_MUSIC   && (flags & AE_DSP_PRSNT_ASTREAM_MUSIC))   return true;
-  else if (streamType == AE_DSP_ASTREAM_MOVIE   && (flags & AE_DSP_PRSNT_ASTREAM_MOVIE))   return true;
-  else if (streamType == AE_DSP_ASTREAM_GAME    && (flags & AE_DSP_PRSNT_ASTREAM_GAME))    return true;
-  else if (streamType == AE_DSP_ASTREAM_APP     && (flags & AE_DSP_PRSNT_ASTREAM_APP))     return true;
-  else if (streamType == AE_DSP_ASTREAM_PHONE   && (flags & AE_DSP_PRSNT_ASTREAM_PHONE))   return true;
-  else if (streamType == AE_DSP_ASTREAM_MESSAGE && (flags & AE_DSP_PRSNT_ASTREAM_MESSAGE)) return true;
+  //! @todo AudioDSP V2 readd present stream flags
+  //     if (streamType == AUDIODSP_ADDON_ASTREAM_BASIC   && (flags & AUDIODSP_ADDON_PRSNT_ASTREAM_BASIC))   return true;
+  //else if (streamType == AUDIODSP_ADDON_ASTREAM_MUSIC   && (flags & AUDIODSP_ADDON_PRSNT_ASTREAM_MUSIC))   return true;
+  //else if (streamType == AUDIODSP_ADDON_ASTREAM_MOVIE   && (flags & AUDIODSP_ADDON_PRSNT_ASTREAM_MOVIE))   return true;
+  //else if (streamType == AUDIODSP_ADDON_ASTREAM_GAME    && (flags & AUDIODSP_ADDON_PRSNT_ASTREAM_GAME))    return true;
+  //else if (streamType == AUDIODSP_ADDON_ASTREAM_APP     && (flags & AUDIODSP_ADDON_PRSNT_ASTREAM_APP))     return true;
+  //else if (streamType == AUDIODSP_ADDON_ASTREAM_PHONE   && (flags & AUDIODSP_ADDON_PRSNT_ASTREAM_PHONE))   return true;
+  //else if (streamType == AUDIODSP_ADDON_ASTREAM_MESSAGE && (flags & AUDIODSP_ADDON_PRSNT_ASTREAM_MESSAGE)) return true;
   return false;
 }
 
-bool CActiveAEDSPMode::SupportStreamType(AE_DSP_STREAMTYPE streamType) const
+bool CActiveAEDSPMode::SupportStreamType(AUDIODSP_ADDON_STREAMTYPE streamType) const
 {
   return SupportStreamType(streamType, m_iStreamTypeFlags);
 }
@@ -299,7 +294,7 @@ const std::string &CActiveAEDSPMode::IconOverrideModePath(void) const
 
 /********** Master mode type related functions **********/
 
-bool CActiveAEDSPMode::SetBaseType(AE_DSP_BASETYPE baseType)
+bool CActiveAEDSPMode::SetBaseType(AUDIODSP_ADDON_BASETYPE baseType)
 {
   CSingleLock lock(m_critSection);
   if (m_iBaseType != baseType)
@@ -315,7 +310,7 @@ bool CActiveAEDSPMode::SetBaseType(AE_DSP_BASETYPE baseType)
   return false;
 }
 
-AE_DSP_BASETYPE CActiveAEDSPMode::BaseType(void) const
+AUDIODSP_ADDON_BASETYPE CActiveAEDSPMode::BaseType(void) const
 {
   CSingleLock lock(m_critSection);
   return m_iBaseType;
@@ -324,33 +319,33 @@ AE_DSP_BASETYPE CActiveAEDSPMode::BaseType(void) const
 
 /********** Audio DSP database related functions **********/
 
-int CActiveAEDSPMode::ModeID(void) const
+unsigned int CActiveAEDSPMode::ModeID(void) const
 {
   CSingleLock lock(m_critSection);
-  return m_iModeId;
+  return m_uiModeId;
 }
 
-int CActiveAEDSPMode::AddUpdate(bool force)
+unsigned int CActiveAEDSPMode::AddUpdate(bool force)
 {
   if (!force)
   {
     // not changed
     CSingleLock lock(m_critSection);
-    if (!m_bChanged && m_iModeId > 0)
-      return m_iModeId;
+    if (!m_bChanged && m_uiModeId > AE_DSP_MASTER_MODE_ID_INVALID)
+      return m_uiModeId;
   }
 
   CActiveAEDSPDatabase *database = nullptr;
   if (!database || !database->IsOpen())
   {
     CLog::Log(LOGERROR, "ActiveAE DSP - failed to open the database");
-    return -1;
+    return AE_DSP_MASTER_MODE_ID_INVALID;
   }
 
   database->AddUpdateMode(*this);
-  m_iModeId = database->GetModeId(*this);
+  m_uiModeId = database->GetModeId(*this);
 
-  return m_iModeId;
+  return m_uiModeId;
 }
 
 bool CActiveAEDSPMode::Delete(void)
@@ -405,12 +400,6 @@ unsigned int CActiveAEDSPMode::AddonModeNumber(void) const
 {
   CSingleLock lock(m_critSection);
   return m_iAddonModeNumber;
-}
-
-AE_DSP_MODE_TYPE CActiveAEDSPMode::ModeType(void) const
-{
-  CSingleLock lock(m_critSection);
-  return m_iModeType;
 }
 
 const std::string &CActiveAEDSPMode::AddonModeName(void) const
