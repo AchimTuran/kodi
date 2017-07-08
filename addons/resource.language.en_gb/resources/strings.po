@@ -6512,11 +6512,11 @@ msgctxt "#13395"
 msgid "Video settings"
 msgstr ""
 
-#: xbmc/video/dialogs/GUIDialogAudioSubtitleSettings.cpp
+#: xbmc/video/dialogs/GUIDialogAudioSettings.cpp
 #: addons/skin.estuary/xml/Custom_1106_VideoOSDSettings.xml
 #: addons/skin.estuary/xml/Variables.xml
 msgctxt "#13396"
-msgid "Audio and subtitle settings"
+msgid "Audio settings"
 msgstr ""
 
 msgctxt "#13397"
@@ -7239,7 +7239,7 @@ msgctxt "#14060"
 msgid "Unknown type cache - Internet"
 msgstr ""
 
-#. Name of a class/preset for audio DSP
+#. Name of a class/preset for AudioDSP
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
 msgctxt "#14061"
 msgid "Auto"
@@ -7328,11 +7328,7 @@ msgctxt "#14081"
 msgid "File lists"
 msgstr ""
 
-#. Label of button in Settings -> Audio output to clear the audio DSP database.
-#: system/settings/settings.xml
-msgctxt "#14082"
-msgid "Reset the Audio DSP database..."
-msgstr ""
+#empty string with id 14082
 
 #: system/settings/settings.xml
 msgctxt "#14083"
@@ -7791,7 +7787,7 @@ msgstr ""
 
 #: system/settings/settings.xml
 msgctxt "#14251"
-msgid "Audio DSP"
+msgid "Audio Signal Processing"
 msgstr ""
 
 #: system/settings/settings.xml
@@ -7941,6 +7937,7 @@ msgstr ""
 
 #empty strings from id 15017 to 15018
 
+#: addons/skin.estuary/xml/DialogAudioDSPManager.xml
 msgctxt "#15019"
 msgid "Add"
 msgstr ""
@@ -7948,7 +7945,7 @@ msgstr ""
 #: addons/skin.estuary/xml/Custom_1106_VideoOSDSettings.xml
 #: addons/skin.estuary/xml/Custom_1105_MusicOSDSettings.xml
 msgctxt "#15020"
-msgid "Audio DSP manager"
+msgid "Audio signal processing manager"
 msgstr ""
 
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
@@ -7966,30 +7963,24 @@ msgctxt "#15023"
 msgid "Master mode"
 msgstr ""
 
-#: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
-msgctxt "#15024"
-msgid "Pre-process setup..."
-msgstr ""
+#empty string with id 15024
 
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
 msgctxt "#15025"
-msgid "Listening mode setup..."
+msgid "Show listening processing options"
 msgstr ""
 
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
 msgctxt "#15026"
-msgid "Speaker / Output setup..."
+msgid "Show speaker processing options"
 msgstr ""
 
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
 msgctxt "#15027"
-msgid "Audio information..."
+msgid "Show audio processing informations"
 msgstr ""
 
-#: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
-msgctxt "#15028"
-msgid "Audio DSP settings - Main"
-msgstr ""
+#empty string with id 15028
 
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
 msgctxt "#15029"
@@ -8001,16 +7992,16 @@ msgctxt "#15030"
 msgid "Audio DSP settings - Speaker / Output"
 msgstr ""
 
-#: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
+#: xbmc/settings/dialogs/GUIDialogAudioSettings.cpp
 msgctxt "#15031"
-msgid "Audio DSP settings - Audio information"
+msgid "Audio processing informations"
 msgstr ""
 
 #empty string with id 15032
 
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
 msgctxt "#15033"
-msgid "Resampler setup..."
+msgid "Show audio conversion options"
 msgstr ""
 
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
@@ -8037,7 +8028,7 @@ msgstr ""
 
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
 msgctxt "#15039"
-msgid "Pre-processing setup..."
+msgid "Show media processing options"
 msgstr ""
 
 #: xbmc/settings/dialogs/GUIDialogAudioDSPManager.cpp
@@ -8057,19 +8048,20 @@ msgstr ""
 
 #empty strings from id 15043 to 15046
 
-#. Label for a context menu entry and dialog button to open audio DSP settings dialog
+#. Label for a context menu entry and dialog button to open AudioDSP settings dialog
 #: xbmc/pvr/PVRContextMenus.cpp
 #: xbmc/music/windows/GUIWindowMusicBase.cpp
 #: addons/skin.estuary/xml/Custom_1105_MusicOSDSettings.xml
 msgctxt "#15047"
-msgid "Audio DSP settings"
+msgid "Audio signal processing settings"
 msgstr ""
 
 #empty strings from id 15048 to 15049
 
-#. Name of a list with amount of entries behind on GUI
+#. Heading for selected mode informations
+#: addons/skin.estuary/xml/DialogAudioDSPManager.xml
 msgctxt "#15050"
-msgid "Available modes"
+msgid "Selected mode informations"
 msgstr ""
 
 #. Name of a list with amount of entries behind on GUI
@@ -8132,18 +8124,9 @@ msgctxt "#15064"
 msgid "Apply changes directly"
 msgstr ""
 
-#. Warning if no dsp modes are present
-#: xbmc/settings/dialogs/GUIDialogAudioDSPManager.cpp
-msgctxt "#15065"
-msgid "No audio DSP modes available"
-msgstr ""
+#empty strings from id 15065 to 15066
 
-#. Button to disable all enabled modes on current selected type
-msgctxt "#15066"
-msgid "Clear active modes"
-msgstr ""
-
-#. Close the DSP manager window
+#. Close the AudioDSP manager window
 msgctxt "#15067"
 msgid "Close"
 msgstr ""
@@ -8156,10 +8139,10 @@ msgctxt "#15078"
 msgid "Mode settings"
 msgstr ""
 
-#. DSP manager yes/no dialog text
+#. AudioDSP manager yes/no dialog text
 #: xbmc/settings/dialogs/GUIDialogAudioDSPManager.cpp
 msgctxt "#15079"
-msgid "You have changed some audio DSP settings.\nWould you like to keep the new settings?"
+msgid "You have changed some audio signal processing settings.\nWould you like to keep the new settings?"
 msgstr ""
 
 #. DSP manager dialog context menu entry
@@ -8171,7 +8154,7 @@ msgstr ""
 #. Audio DSP process chain indication
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
 msgctxt "#15081"
-msgid "Process chain (with CPU usage)"
+msgid "Audio processing workload"
 msgstr ""
 
 #. Audio DSP process chain indication
@@ -8235,10 +8218,10 @@ msgctxt "#15091"
 msgid "Positions"
 msgstr ""
 
-#. Audio DSP process chain indication
+#. AudioDSP process chain workload
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
 msgctxt "#15092"
-msgid "CPU usage for DSP"
+msgid "Audio signal processing workload"
 msgstr ""
 
 #empty strings from id 15093 to 15099
@@ -15023,13 +15006,13 @@ msgstr ""
 #. Folder name in addon settings window
 #: xbmc/addons/addon.cpp
 msgctxt "#24135"
-msgid "Audio DSP"
+msgid "Audio Signal Processing"
 msgstr ""
 
-#. To open dsp submenu
+#. To open AudioDSP manager from audio OSD
 #: xbmc/video/dialogs/GUIDialogAudioSubtitleSettings.cpp
 msgctxt "#24136"
-msgid "Audio DSP..."
+msgid "Open audio signal processing manager"
 msgstr ""
 
 #: xbmc/cores/AudioEngine/DSPAddons/ActiveAEDSP.cpp
@@ -19182,38 +19165,16 @@ msgstr ""
 #. Button on settings to opend DSP manager dialog
 #: system/settings/settings.xml
 msgctxt "#36436"
-msgid "Audio DSP manager..."
+msgid "Open audio signal processing manager"
 msgstr ""
 
-#. Description of setting with label 36436 "Audio DSP manager..."
+#. Description of setting with label 36436 "Open audio signal processing manager"
 #: system/settings/settings.xml
 msgctxt "#36437"
 msgid "Allows to configure available modes for different stages in audio processing and to arrange the steps within the processing chain of each selected mode."
 msgstr ""
 
-#. Description of setting with label 36441 "Enable Audio DSP processing"
-#: system/settings/settings.xml
-msgctxt "#36438"
-msgid "Enables digital signal processing (DSP) of audio channels specified by the speaker configuration."
-msgstr ""
-
-#. Description of setting with label 14082 "Reset the Audio DSP database..."
-#: system/settings/settings.xml
-msgctxt "#36439"
-msgid "All data (add-on settings and audio DSP manager settings) in the audio DSP database will be erased."
-msgstr ""
-
-#. Used in confirm on dialog to erase database
-#: xbmc/cores/AudioEngine/DSPAddons/ActiveAEDSP.cpp
-msgctxt "#36440"
-msgid "Erasing all DSP add-on and audio DSP manager settings in the audio DSP database."
-msgstr ""
-
-#. Settings boolean value name
-#: system/settings/settings.xml
-msgctxt "#36441"
-msgid "Enable audio DSP processing"
-msgstr ""
+#empty string with id 36438 to 36441
 
 #. Description of setting "System -> Audio output -> Volume control steps" with label #1302
 #: system/settings/settings.xml

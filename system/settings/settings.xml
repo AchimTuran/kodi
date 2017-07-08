@@ -2570,6 +2570,12 @@
           </control>
         </setting>
       </group>
+      <group id="4" label="14251">
+        <setting id="audiooutput.dspsettings" type="action" label="36436" help="36437">
+          <level>3</level>
+          <control type="button" format="action" />
+        </setting>
+      </group>
       <group id="3" label="14252">
         <setting id="audiooutput.passthrough" type="boolean" label="348" help="36368">
           <level>1</level>

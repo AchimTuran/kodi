@@ -85,7 +85,8 @@
 #include "video/dialogs/GUIDialogCMSSettings.h"
 #endif
 #include "video/dialogs/GUIDialogVideoSettings.h"
-#include "video/dialogs/GUIDialogAudioSubtitleSettings.h"
+#include "video/dialogs/GUIDialogAudioSettings.h"
+#include "video/dialogs/GUIDialogSubtitleSettings.h"
 #include "video/dialogs/GUIDialogVideoBookmarks.h"
 #include "profiles/dialogs/GUIDialogProfileSettings.h"
 #include "profiles/dialogs/GUIDialogLockSettings.h"
@@ -138,6 +139,10 @@
 #include "pvr/dialogs/GUIDialogPVRTimerSettings.h"
 
 #include "video/dialogs/GUIDialogTeletext.h"
+
+/* AudioDSP related include files */
+#include "settings/dialogs/GUIDialogAudioDSPManager.h"
+
 #include "dialogs/GUIDialogSlider.h"
 #include "dialogs/GUIDialogPlayEject.h"
 #include "dialogs/GUIDialogMediaFilter.h"
@@ -224,7 +229,8 @@ void CGUIWindowManager::CreateWindows()
   Add(new CGUIDialogCMSSettings);
 #endif
   Add(new CGUIDialogVideoSettings);
-  Add(new CGUIDialogAudioSubtitleSettings);
+  Add(new CGUIDialogAudioSettings);
+  Add(new CGUIDialogSubtitleSettings);
   Add(new CGUIDialogVideoBookmarks);
   // Don't add the filebrowser dialog - it's created and added when it's needed
   Add(new CGUIDialogNetworkSetup);
@@ -281,6 +287,9 @@ void CGUIWindowManager::CreateWindows()
   Add(new CGUIDialogPVRChannelsOSD);
   Add(new CGUIDialogPVRChannelGuide);
   Add(new CGUIDialogPVRRecordingSettings);
+
+  /* Load AudioDSP related Windows and Dialogs */
+  Add(new CGUIDialogAudioDSPManager);
 
   Add(new CGUIDialogSelect);
   Add(new CGUIDialogMusicInfo);
@@ -341,6 +350,7 @@ bool CGUIWindowManager::DestroyWindows()
     DestroyWindow(WINDOW_DIALOG_CMS_OSD_SETTINGS);
     DestroyWindow(WINDOW_DIALOG_VIDEO_OSD_SETTINGS);
     DestroyWindow(WINDOW_DIALOG_AUDIO_OSD_SETTINGS);
+    DestroyWindow(WINDOW_DIALOG_SUBTITLE_OSD_SETTINGS);
     DestroyWindow(WINDOW_DIALOG_VIDEO_BOOKMARKS);
     DestroyWindow(WINDOW_DIALOG_CONTENT_SETTINGS);
     DestroyWindow(WINDOW_DIALOG_FAVOURITES);
@@ -403,6 +413,9 @@ bool CGUIWindowManager::DestroyWindows()
     DestroyWindow(WINDOW_PROGRAMS);
     DestroyWindow(WINDOW_PICTURES);
     DestroyWindow(WINDOW_WEATHER);
+
+    DestroyWindow(WINDOW_DIALOG_AUDIO_DSP_MANAGER);
+
     DestroyWindow(WINDOW_DIALOG_GAME_CONTROLLERS);
     DestroyWindow(WINDOW_GAMES);
     DestroyWindow(WINDOW_DIALOG_GAME_OSD);
