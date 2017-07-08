@@ -135,7 +135,6 @@ void CGUIDialogMusicOSD::FrameMove()
     if (CServiceBroker::GetInputManager().IsMouseActive() ||
         g_windowManager.IsWindowActive(WINDOW_DIALOG_VIS_SETTINGS) ||
         g_windowManager.IsWindowActive(WINDOW_DIALOG_VIS_PRESET_LIST) ||
-        g_windowManager.IsWindowActive(WINDOW_DIALOG_AUDIO_DSP_OSD_SETTINGS) ||
         g_windowManager.IsWindowActive(WINDOW_DIALOG_PVR_RADIO_RDS_INFO))
       // extend show time by original value
       SetAutoClose(m_showDuration);
