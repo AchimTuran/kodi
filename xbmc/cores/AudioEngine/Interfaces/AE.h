@@ -27,6 +27,7 @@
 #include "system.h"
 
 #include "cores/AudioEngine/Utils/AEAudioFormat.h"
+#include "cores/AudioEngine/Utils/AEStreamProperties.h"
 
 typedef std::pair<std::string, std::string> AEDevice;
 typedef std::vector<AEDevice> AEDeviceList;
@@ -38,6 +39,8 @@ class IAEPacketizer;
 class IAudioCallback;
 class IAEClockCallback;
 class CAEStreamInfo;
+class CServiceManager;
+class IAEAudioDSP;
 
 /* sound options */
 #define AE_SOUND_OFF    0 /* disable sounds */
@@ -156,7 +159,7 @@ public:
    * @param options A bit field of stream options (see: enum AEStreamOptions)
    * @return a new IAEStream that will accept data in the requested format
    */
-  virtual IAEStream *MakeStream(AEAudioFormat &audioFormat, unsigned int options = 0, IAEClockCallback *clock = NULL) = 0;
+  virtual IAEStream *MakeStream(AEAudioFormat &audioFormat, unsigned int options = 0, IAEClockCallback *clock = nullptr, AEStreamProperties *streamProperties = nullptr) = 0;
 
   /**
    * This method will remove the specifyed stream from the engine.
@@ -237,23 +240,18 @@ public:
    * AE decides whether this settings should be displayed
    * @return true if AudioEngine wants to display this setting
    */
-  virtual bool IsSettingVisible(const std::string &settingId) {return false; }
+  virtual bool IsSettingVisible(const std::string &settingId) { return false; }
 
   /**
    * Instruct AE to keep configuration for a specified time
    * @param millis time for which old configuration should be kept
    */
-  virtual void KeepConfiguration(unsigned int millis) {return; }
+  virtual void KeepConfiguration(unsigned int millis) { return; }
 
   /**
    * Instruct AE to re-initialize, e.g. after ELD change event
    */
-  virtual void DeviceChange() {return; }
-
-  /**
-   * Indicates if dsp addon system is active.
-   */
-  virtual bool HasDSP() { return false; };
+  virtual void DeviceChange() { return; }
 
   /**
    * Get the current sink data format
@@ -262,4 +260,6 @@ public:
    * @return Returns true on success, else false.
    */
   virtual bool GetCurrentSinkFormat(AEAudioFormat &SinkFormat) { return false; }
+
+  virtual IAEAudioDSP& GetAudioDSP() = 0;
 };
