@@ -20,11 +20,13 @@
  */
 
 #include "AEAudioFormat.h"
+#include "AEStreamData.h"
 #include "PlatformDefs.h"
 #include <math.h>
 
 extern "C" {
 #include "libavutil/samplefmt.h"
+#include "libavcodec/avcodec.h"
 }
 
 #if defined(HAVE_SSE) && defined(__SSE__)
@@ -215,4 +217,9 @@ public:
   static AVSampleFormat GetAVSampleFormat(AEDataFormat format);
   static uint64_t GetAVChannel(enum AEChannel aechannel);
   static int GetAVChannelIndex(enum AEChannel aechannel, uint64_t layout);
+
+  static AEMatrixEncoding GetAEMatrixEncoding(AVMatrixEncoding AVEncoding);
+  static AEAudioServiceType GetAEAudioServiceType(AVAudioServiceType AVServiceType);
+  static AESourceFormat GetAESourceFormat(AVCodecID AVCodec);
+  static AEProfile GetAEProfile(int Profile);
 };
