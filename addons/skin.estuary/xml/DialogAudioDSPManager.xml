@@ -67,40 +67,91 @@
 					</control>
 				</focusedlayout>
 			</control>
-			<control type="group" id="200">
-				<top>90</top>
-				<control type="group">
-					<left>320</left>
-					<description>available modes</description>
-					<include content="AudioDSPModeList">
-						<param name="sublabel" value="$LOCALIZE[15050]: $INFO[Container(20).NumItems]" />
-						<param name="scrollbar_id" value="60" />
-						<param name="list_id" value="20" />
-						<param name="onright" value="21" />
-						<param name="onleft" value="9000" />
-					</include>
-				</control>
+			<control type="grouplist" id="9100">
+				<left>10</left>
+				<width>200</width>
+				<top>105</top>
+				<itemgap>dialogbuttons_itemgap</itemgap>
+				<onleft>9100</onleft>
+				<onright>9200</onright>
+				<include content="DefaultDialogButton">
+					<description>add mode button</description>
+					<param name="id" value="9101" />
+					<param name="label" value="$LOCALIZE[15019]" />
+					<param name="width" value="200" />
+				</include>
+				<include content="DefaultDialogButton">
+					<description>remove mode button</description>
+					<param name="id" value="9102" />
+					<param name="label" value="$LOCALIZE[15015]" />
+					<param name="width" value="200" />
+				</include>
+				<include content="DefaultDialogButton">
+					<description>remove mode button</description>
+					<param name="id" value="9103" />
+					<param name="label" value="$LOCALIZE[386]" />
+					<param name="width" value="200" />
+				</include>
+			</control>
+			<control type="group" id="9200">
+				<top>85</top>
 				<control type="group">
 					<description>active modes</description>
-					<left>810</left>
-					<top>0</top>
+					<left>195</left>
 					<include content="AudioDSPModeList">
-						<param name="sublabel" value="$LOCALIZE[15051]: $INFO[Container(21).NumItems]" />
-						<param name="scrollbar_id" value="61" />
-						<param name="list_id" value="21" />
-						<param name="onright" value="9001" />
-						<param name="onleft" value="60" />
+						<param name="sublabel" value="$LOCALIZE[15051]: $INFO[Container(9201).NumItems]" />
+						<param name="scrollbar_id" value="9201" />
+						<param name="list_id" value="9202" />
+						<param name="onright" value="9400" />
+						<param name="onleft" value="9100" />
 					</include>
 				</control>
 			</control>
-			<control type="grouplist" id="9001">
+      <control type="group" id="9300">
+        <description>selected mode description</description>
+        <top>85</top>
+        <left>675</left>
+        <control type="label">
+          <left>0</left>
+          <top>2</top>
+          <width>640</width>
+          <height>30</height>
+          <font>font25_title</font>
+          <label>$LOCALIZE[15050]</label>
+          <align>center</align>
+          <aligny>center</aligny>
+          <textcolor>button_focus</textcolor>
+          <shadowcolor>black</shadowcolor>
+        </control>
+        <control type="image">
+          <left>-5</left>
+          <top>20</top>
+          <width>640</width>
+          <height>570</height>
+          <texture border="40">buttons/dialogbutton-nofo.png</texture>
+        </control>
+      </control>
+			<control type="grouplist" id="9400">
 				<left>1300</left>
 				<width>470</width>
 				<top>105</top>
 				<itemgap>dialogbuttons_itemgap</itemgap>
-				<onleft>61</onleft>
-				<onright>9000</onright>
-				<control type="radiobutton" id="22">
+				<onleft>9200</onleft>
+				<onright>9300</onright>
+				<include content="DefaultDialogButton">
+					<description>Close button</description>
+					<param name="id" value="9401" />
+					<param name="label" value="$LOCALIZE[15067]" />
+					<param name="width" value="470" />
+				</include>
+				<include content="DefaultDialogButton">
+					<description>Cancel button</description>
+					<param name="id" value="9402" />
+					<param name="label" value="$LOCALIZE[222]" />
+					<param name="width" value="470" />
+				</include>
+				<control type="radiobutton" id="9403">
+					<description>Apply changes directly radiobutton</description>
 					<width>470</width>
 					<height>90</height>
 					<label>$LOCALIZE[15064]</label>
@@ -110,13 +161,9 @@
 					<texturenofocus border="40">buttons/dialogbutton-nofo.png</texturenofocus>
 				</control>
 				<include content="DefaultDialogButton">
-					<param name="id" value="23" />
+					<description>Apply changes now button</description>
+					<param name="id" value="9404" />
 					<param name="label" value="$LOCALIZE[14070]" />
-					<param name="width" value="470" />
-				</include>
-				<include content="DefaultDialogButton">
-					<param name="id" value="24" />
-					<param name="label" value="$LOCALIZE[15066]" />
 					<param name="width" value="470" />
 				</include>
 			</control>
