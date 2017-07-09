@@ -95,16 +95,16 @@ extern "C" {
    */
   typedef enum
   {
-    AUDIODSP_ADDON_ERROR_NO_ERROR             = 0,      /*!< @brief no error occurred */
+    AUDIODSP_ADDON_ERROR_FAILED               = -8,     /*!< @brief the command failed */
+    AUDIODSP_ADDON_ERROR_INVALID_OUT_CHANNELS = -7,     /*!< @brief the processed output channel format is not supported */
+    AUDIODSP_ADDON_ERROR_INVALID_IN_CHANNELS  = -6,     /*!< @brief the processed input channel format is not supported */
+    AUDIODSP_ADDON_ERROR_INVALID_SAMPLERATE   = -5,     /*!< @brief the processed samplerate is not supported */
+    AUDIODSP_ADDON_ERROR_INVALID_PARAMETERS   = -4,     /*!< @brief the parameters of the method that was called are invalid for this operation */
+    AUDIODSP_ADDON_ERROR_REJECTED             = -3,     /*!< @brief the command was rejected by the DSP */
+    AUDIODSP_ADDON_ERROR_NOT_IMPLEMENTED      = -2,     /*!< @brief the method that KODI called is not implemented by the add-on */
     AUDIODSP_ADDON_ERROR_UNKNOWN              = -1,     /*!< @brief an unknown error occurred */
-    AUDIODSP_ADDON_ERROR_IGNORE_ME            = -2,     /*!< @brief the used input stream can not processed and add-on want to ignore */
-    AUDIODSP_ADDON_ERROR_NOT_IMPLEMENTED      = -3,     /*!< @brief the method that KODI called is not implemented by the add-on */
-    AUDIODSP_ADDON_ERROR_REJECTED             = -4,     /*!< @brief the command was rejected by the DSP */
-    AUDIODSP_ADDON_ERROR_INVALID_PARAMETERS   = -5,     /*!< @brief the parameters of the method that was called are invalid for this operation */
-    AUDIODSP_ADDON_ERROR_INVALID_SAMPLERATE   = -6,     /*!< @brief the processed samplerate is not supported */
-    AUDIODSP_ADDON_ERROR_INVALID_IN_CHANNELS  = -7,     /*!< @brief the processed input channel format is not supported */
-    AUDIODSP_ADDON_ERROR_INVALID_OUT_CHANNELS = -8,     /*!< @brief the processed output channel format is not supported */
-    AUDIODSP_ADDON_ERROR_FAILED               = -9,     /*!< @brief the command failed */
+    AUDIODSP_ADDON_ERROR_NO_ERROR             = 0,      /*!< @brief no error occurred */
+    AUDIODSP_ADDON_ERROR_IGNORE_ME            = 1,      /*!< @brief the used input stream can not processed and add-on want to ignore */
   } AUDIODSP_ADDON_ERROR;
 
   /*!
