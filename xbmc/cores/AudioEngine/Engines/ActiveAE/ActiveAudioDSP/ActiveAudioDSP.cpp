@@ -613,10 +613,10 @@ void CActiveAudioDSP::PrepareAddonModes()
       m_DSPChainModelObject.EnableNode(it.ID, 0);
     }
 
-    if (it.Name == "adsp.freesurround::Free Surround")
-    {
-      m_DSPChainModelObject.EnableNode(it.ID, 1);
-    }
+    //if (it.Name == "adsp.freesurround::Free Surround")
+    //{
+    //  m_DSPChainModelObject.EnableNode(it.ID, 1);
+    //}
   }
 }
 
