@@ -25,6 +25,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <stdint.h>
 
 #ifndef TARGET_WINDOWS
 #ifndef __cdecl
