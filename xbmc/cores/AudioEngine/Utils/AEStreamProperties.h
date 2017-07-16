@@ -28,6 +28,7 @@ struct AEStreamProperties
   AEMatrixEncoding    matrixEncoding;
   AESourceFormat      sourceFormat;
   AEProfile           profile;
+  unsigned int        streamID;
 
   AEStreamProperties()
   {
