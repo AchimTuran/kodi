@@ -42,7 +42,7 @@ class CAudioDSPCopyMode : public DSP::AUDIO::IADSPBufferNode
 {
   CAudioDSPCopyMode() : IADSPBufferNode("CAudioDSPCopyMode", 0) {} // hide default constructor to prevent creation without a valid ID
 public:
-  CAudioDSPCopyMode(uint64_t ID);
+  CAudioDSPCopyMode(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat, uint64_t ID);
 
   virtual DSPErrorCode_t CreateInstance(AEAudioFormat &InputFormat, AEAudioFormat &OutputFormat) override;
   virtual int ProcessInstance(const uint8_t **In, uint8_t **Out) override;

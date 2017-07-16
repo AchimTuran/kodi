@@ -27,7 +27,7 @@ using namespace DSP::AUDIO;
 
 CDSPNodeModel::~CDSPNodeModel()
 {
-  CSingleLock lock(m_Mutex);
+  CSingleLock lock(m_mutex);
   for (NodeInfoVector_t::iterator iter = m_Nodes.begin(); iter != m_Nodes.end(); ++iter)
   {
     if (iter->NodeCreator)
@@ -42,7 +42,7 @@ CDSPNodeModel::~CDSPNodeModel()
 
 DSPErrorCode_t CDSPNodeModel::RegisterNode(const CDSPNodeInfoQuery &Node, IDSPNodeCreatorFactory &Factory)
 {
-  CSingleLock lock(m_Mutex);
+  CSingleLock lock(m_mutex);
 
   if (Node.NameVector.size() < 2)
   {
@@ -83,7 +83,7 @@ DSPErrorCode_t CDSPNodeModel::RegisterNode(const CDSPNodeInfoQuery &Node, IDSPNo
 
 DSPErrorCode_t CDSPNodeModel::DeregisterNode(uint64_t ID)
 {
-  CSingleLock lock(m_Mutex);
+  CSingleLock lock(m_mutex);
 
   NodeInfoVector_t::iterator iter = GetNodeData(ID);
   if (iter == m_Nodes.end())
@@ -103,7 +103,7 @@ DSPErrorCode_t CDSPNodeModel::DeregisterNode(uint64_t ID)
 
 IDSPNodeModel::CDSPNodeInfo CDSPNodeModel::GetNodeInfo(const CDSPNodeInfoQuery &Node)
 {
-  CSingleLock lock(m_Mutex);
+  CSingleLock lock(m_mutex);
 
   string nodeStr = GenerateNodeString(Node.NameVector);
   if (Node.NameVector.size() < 2 || Node.NameVector.size() > 3)
@@ -150,7 +150,7 @@ DSPErrorCode_t CDSPNodeModel::GetNodeInfos(DSPNodeInfoVector_t &NodeInfos)
 
 DSPErrorCode_t CDSPNodeModel::GetActiveNodes(DSPNodeInfoVector_t &ActiveNodeInfos)
 {
-  CSingleLock lock(m_Mutex);
+  CSingleLock lock(m_mutex);
 
   ActiveNodeInfos.clear();
   string nodeStr;
@@ -179,7 +179,7 @@ DSPErrorCode_t CDSPNodeModel::GetActiveNodes(DSPNodeInfoVector_t &ActiveNodeInfo
 
 DSPErrorCode_t CDSPNodeModel::EnableNode(uint64_t ID, uint32_t Position)
 {
-  CSingleLock lock(m_Mutex);
+  CSingleLock lock(m_mutex);
 
   NodeInfoVector_t::iterator nodeIter = GetNodeData(ID);
   if (nodeIter == m_Nodes.end())
@@ -200,7 +200,7 @@ DSPErrorCode_t CDSPNodeModel::EnableNode(uint64_t ID, uint32_t Position)
 
 DSPErrorCode_t CDSPNodeModel::DisableNode(uint64_t ID)
 {
-  CSingleLock lock(m_Mutex);
+  CSingleLock lock(m_mutex);
 
   NodeInfoVector_t::iterator nodeIter = GetNodeData(ID);
   if (nodeIter == m_Nodes.end())
@@ -219,7 +219,7 @@ DSPErrorCode_t CDSPNodeModel::DisableNode(uint64_t ID)
 // factory interface
 IADSPNode* CDSPNodeModel::InstantiateNode(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat, const AEStreamProperties &StreamProperties, unsigned int StreamID, uint64_t ID)
 {
-  CSingleLock lock(m_Mutex);
+  CSingleLock lock(m_mutex);
 
   NodeInfoVector_t::iterator iter = GetNodeData(ID);
   if (iter == m_Nodes.end())
@@ -232,7 +232,7 @@ IADSPNode* CDSPNodeModel::InstantiateNode(const AEAudioFormat &InputFormat, cons
 
 DSPErrorCode_t CDSPNodeModel::DestroyNode(IADSPNode *&Node)
 {
-  CSingleLock lock(m_Mutex);
+  CSingleLock lock(m_mutex);
 
   NodeInfoVector_t::iterator iter = GetNodeData(Node->ID);
   if (iter == m_Nodes.end())

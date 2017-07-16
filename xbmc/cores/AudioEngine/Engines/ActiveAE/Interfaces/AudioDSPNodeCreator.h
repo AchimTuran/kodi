@@ -29,7 +29,6 @@ class IDSPNodeCreator
 {
 public:
   virtual ~IDSPNodeCreator() {}
-  typedef IDSPNodeCreator*(*NodeCreatorCallback)(void);
 
   virtual AUDIO::IADSPNode* InstantiateNode(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat, const AEStreamProperties &StreamProperties, unsigned int StreamID, uint64_t ID) = 0;
   virtual DSPErrorCode_t DestroyNode(AUDIO::IADSPNode *&Node) = 0;
