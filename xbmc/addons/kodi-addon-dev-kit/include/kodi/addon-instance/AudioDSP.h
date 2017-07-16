@@ -544,13 +544,13 @@ extern "C" {
     const char* (__cdecl* get_dsp_name)(AddonInstance_AudioDSP const* addonInstance);
     const char* (__cdecl* get_dsp_version)(AddonInstance_AudioDSP const* addonInstance);
     AUDIODSP_ADDON_ERROR (__cdecl* menu_hook)(AddonInstance_AudioDSP const* addonInstance, const AUDIODSP_MENU_HOOK*);
-    AUDIODSP_ADDON_ERROR(__cdecl* create_mode)(AddonInstance_AudioDSP const* instance, const AUDIODSP_ADDON_SETTINGS *addonSettings, const AUDIODSP_ADDON_STREAM_PROPERTIES* properties, ADDON_HANDLE handle);
-    AUDIODSP_ADDON_ERROR(__cdecl* destroy_mode)(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE handle);
-    int (__cdecl* get_mode_input_format)(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE mode);
-    int (__cdecl* get_mode_out_format)(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE mode);
-    unsigned int(__cdecl* needed_mode_frame_size)(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE mode);
-    float (__cdecl* get_mode_delay)(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE mode);
-    unsigned int(__cdecl* process_mode)(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE mode, const float** array_in, float** array_out, unsigned int samples);
+    AUDIODSP_ADDON_ERROR(__cdecl* create_mode)(AddonInstance_AudioDSP const* instance, const AUDIODSP_ADDON_SETTINGS *addonSettings, const AUDIODSP_ADDON_STREAM_PROPERTIES* properties, ADDON_HANDLE modeHandle);
+    AUDIODSP_ADDON_ERROR(__cdecl* destroy_mode)(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE modeHandle);
+    int (__cdecl* get_mode_input_format)(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE modeHandle);
+    int (__cdecl* get_mode_out_format)(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE modeHandle);
+    unsigned int(__cdecl* needed_mode_frame_size)(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE modeHandle);
+    float (__cdecl* get_mode_delay)(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE modeHandle);
+    unsigned int(__cdecl* process_mode)(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE modeHandle, const uint8_t** array_in, uint8_t** array_out);
   } KodiToAddonFuncTable_AudioDSP;
 
   typedef struct AddonInstance_AudioDSP
@@ -575,7 +575,7 @@ namespace addon {
       : IAddonInstance(ADDON_INSTANCE_ADSP)
     {
       if (CAddonBase::m_interface->globalSingleInstance != nullptr)
-        throw std::logic_error("kodi::addon::CInstanceAudioDSP: Creation of more as one in single instance way is not allowed!");
+        throw std::logic_error("kodi::addon::CInstanceAudioDSP: Creation of more than one instance is not supported!");
 
       SetAddonStruct(CAddonBase::m_interface->firstKodiInstance);
       CAddonBase::m_interface->globalSingleInstance = this;
@@ -593,7 +593,7 @@ namespace addon {
       : IAddonInstance(ADDON_INSTANCE_ADSP)
     {
       if (CAddonBase::m_interface->globalSingleInstance != nullptr)
-        throw std::logic_error("kodi::addon::CInstanceAudioDSP: Creation of multiple together with single instance way is not allowed!");
+        throw std::logic_error("kodi::addon::CInstanceAudioDSP: Creation of multiple instances is currently not supported!");
 
       SetAddonStruct(instance);
     }
@@ -634,19 +634,19 @@ namespace addon {
     //--------------------------------------------------------------------------
     //@}
 
-    virtual AUDIODSP_ADDON_ERROR CreateMode(const AUDIODSP_ADDON_SETTINGS& addonSettings, const AUDIODSP_ADDON_STREAM_PROPERTIES& properties, ADDON_HANDLE handle) = 0;
+    virtual AUDIODSP_ADDON_ERROR CreateMode(const AUDIODSP_ADDON_SETTINGS& addonSettings, const AUDIODSP_ADDON_STREAM_PROPERTIES& properties, ADDON_HANDLE modeHandle) = 0;
 
-    virtual AUDIODSP_ADDON_ERROR DestroyMode(const ADDON_HANDLE handle) = 0;
+    virtual AUDIODSP_ADDON_ERROR DestroyMode(const ADDON_HANDLE modeHandle) = 0;
 
-    virtual AUDIODSP_ADDON_ERROR GetModeInputFormat(const ADDON_HANDLE mode) = 0;
+    virtual AUDIODSP_ADDON_ERROR GetModeInputFormat(const ADDON_HANDLE modeHandle) = 0;
 
-    virtual AUDIODSP_ADDON_ERROR GetModeOutFormat(const ADDON_HANDLE mode) = 0;
+    virtual AUDIODSP_ADDON_ERROR GetModeOutFormat(const ADDON_HANDLE modeHandle) = 0;
 
-    virtual unsigned int NeededModeFrameSize(const ADDON_HANDLE mode) { return 0; }
+    virtual unsigned int NeededModeFrameSize(const ADDON_HANDLE modeHandle) { return 0; }
 
-    virtual float GetModeDelay(const ADDON_HANDLE mode) { return 0.0f; }
+    virtual float GetModeDelay(const ADDON_HANDLE modeHandle) { return 0.0f; }
 
-    virtual unsigned int ProcessMode(const ADDON_HANDLE mode, const float** array_in, float** array_out, unsigned int samples) = 0;
+    virtual unsigned int ProcessMode(const ADDON_HANDLE modeHandle, const uint8_t** array_in, uint8_t** array_out) = 0;
 
     //==========================================================================
     ///
@@ -697,7 +697,7 @@ namespace addon {
     void SetAddonStruct(KODI_HANDLE instance)
     {
       if (instance == nullptr)
-        throw std::logic_error("kodi::addon::CInstanceAudioDSP: Null pointer instance passed.");
+        throw std::logic_error("kodi::addon::CInstanceAudioDSP: instance was a null pointer!");
 
       m_instanceData = reinterpret_cast<AddonInstance_AudioDSP*>(instance);
 
@@ -732,39 +732,39 @@ namespace addon {
       return instance->toAddon.addonInstance->MenuHook(*menuHook);
     }
 
-    static inline AUDIODSP_ADDON_ERROR ADDON_CreateMode(AddonInstance_AudioDSP const* instance, const AUDIODSP_ADDON_SETTINGS *addonSettings, const AUDIODSP_ADDON_STREAM_PROPERTIES* properties, ADDON_HANDLE handle)
+    static inline AUDIODSP_ADDON_ERROR ADDON_CreateMode(AddonInstance_AudioDSP const* instance, const AUDIODSP_ADDON_SETTINGS *addonSettings, const AUDIODSP_ADDON_STREAM_PROPERTIES* properties, ADDON_HANDLE modeHandle)
     {
-      return instance->toAddon.addonInstance->CreateMode(*addonSettings, *properties, handle);
+      return instance->toAddon.addonInstance->CreateMode(*addonSettings, *properties, modeHandle);
     }
 
-    static inline AUDIODSP_ADDON_ERROR ADDON_DestroyMode(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE handle)
+    static inline AUDIODSP_ADDON_ERROR ADDON_DestroyMode(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE modeHandle)
     {
-      return instance->toAddon.addonInstance->DestroyMode(handle);
+      return instance->toAddon.addonInstance->DestroyMode(modeHandle);
     }
 
-    static inline int ADDON_GetModeInputFormat(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE mode)
+    static inline int ADDON_GetModeInputFormat(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE modeHandle)
     {
-      return instance->toAddon.addonInstance->GetModeInputFormat(mode);
+      return instance->toAddon.addonInstance->GetModeInputFormat(modeHandle);
     }
 
-    static inline int ADDON_GetModeOutFormat(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE mode)
+    static inline int ADDON_GetModeOutFormat(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE modeHandle)
     {
-      return instance->toAddon.addonInstance->GetModeOutFormat(mode);
+      return instance->toAddon.addonInstance->GetModeOutFormat(modeHandle);
     }
 
-    static inline unsigned int ADDON_NeededModeFrameSize(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE mode)
+    static inline unsigned int ADDON_NeededModeFrameSize(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE modeHandle)
     {
-      return instance->toAddon.addonInstance->NeededModeFrameSize(mode);
+      return instance->toAddon.addonInstance->NeededModeFrameSize(modeHandle);
     }
 
-    static inline float ADDON_GetModeDelay(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE mode)
+    static inline float ADDON_GetModeDelay(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE modeHandle)
     {
-      return instance->toAddon.addonInstance->GetModeDelay(mode);
+      return instance->toAddon.addonInstance->GetModeDelay(modeHandle);
     }
 
-    static inline unsigned int ADDON_ProcessMode(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE mode, const float** array_in, float** array_out, unsigned int samples)
+    static inline unsigned int ADDON_ProcessMode(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE modeHandle, const uint8_t** array_in, uint8_t** array_out)
     {
-      return instance->toAddon.addonInstance->ProcessMode(mode, array_in, array_out, samples);
+      return instance->toAddon.addonInstance->ProcessMode(modeHandle, array_in, array_out);
     }
 
     std::string m_dspName;
