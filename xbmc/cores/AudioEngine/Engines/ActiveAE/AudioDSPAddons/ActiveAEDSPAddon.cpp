@@ -181,7 +181,7 @@ AE_DSP_MENUHOOKS *CActiveAEDSPAddon::GetMenuHooks(void)
   return &m_menuhooks;
 }
 
-void ActiveAE::CActiveAEDSPAddon::GetAudioDSPModes(CAudioDSPModeVector_t &Modes)
+void CActiveAEDSPAddon::GetAudioDSPModes(CAudioDSPModeVector_t &Modes)
 {
   Modes.clear();
 
@@ -199,6 +199,21 @@ void CActiveAEDSPAddon::CallMenuHook(const AUDIODSP_MENU_HOOK &hook)
     return;
 
   m_struct.toAddon.menu_hook(&m_struct, &hook);
+}
+
+int CActiveAEDSPAddon::CreateModeInstance(AEAudioFormat &InputFormat, AEAudioFormat &OutputFormat, ADDON_HANDLE ModeHandle)
+{
+  return m_struct.toAddon.create_mode(&m_struct, nullptr, nullptr, ModeHandle);
+}
+
+int CActiveAEDSPAddon::ProcessModeInstance(const ADDON_HANDLE ModeHandle, const uint8_t **In, uint8_t **Out)
+{
+  return m_struct.toAddon.process_mode(&m_struct, ModeHandle, In, Out);
+}
+
+int CActiveAEDSPAddon::DestroyModeInstance(const ADDON_HANDLE ModeHandle)
+{
+  return m_struct.toAddon.destroy_mode(&m_struct, ModeHandle);
 }
 
 //AUDIODSP_ADDON_ERROR CActiveAEDSPAddon::StreamCreate(const AUDIODSP_ADDON_SETTINGS *addonSettings, const AUDIODSP_ADDON_STREAM_PROPERTIES* pProperties, ADDON_HANDLE handle)

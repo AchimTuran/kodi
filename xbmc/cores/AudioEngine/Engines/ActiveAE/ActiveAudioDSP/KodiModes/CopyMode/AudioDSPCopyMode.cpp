@@ -34,8 +34,7 @@ CAudioDSPCopyModeCreator::CAudioDSPCopyModeCreator()
 
 IADSPNode *CAudioDSPCopyModeCreator::InstantiateNode(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat, const AEStreamProperties &StreamProperties, unsigned int StreamID, uint64_t ID)
 {
-  CAudioDSPCopyMode *copyMode = new CAudioDSPCopyMode(ID);
-  copyMode->Initialize(InputFormat, OutputFormat); //! @todo AudioDSP V2 error check
+  CAudioDSPCopyMode *copyMode = new CAudioDSPCopyMode(InputFormat, OutputFormat, ID);
   IADSPNode *node = dynamic_cast<IADSPNode*>(copyMode);
 
   if (!node)
@@ -61,9 +60,11 @@ DSPErrorCode_t CAudioDSPCopyModeCreator::DestroyNode(IADSPNode *&Node)
 }
 
 
-CAudioDSPCopyMode::CAudioDSPCopyMode(uint64_t ID) :
-  IADSPBufferNode("CAudioDSPCopyMode", ID) //! @todo set format flags with |
+CAudioDSPCopyMode::CAudioDSPCopyMode(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat, uint64_t ID) :
+  IADSPBufferNode("CAudioDSPCopyMode", ID)
 {
+  m_InputFormat = InputFormat;
+  m_OutputFormat = OutputFormat;
 }
 
 DSPErrorCode_t CAudioDSPCopyMode::CreateInstance(AEAudioFormat &InputFormat, AEAudioFormat &OutputFormat)

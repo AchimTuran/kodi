@@ -25,6 +25,7 @@
 
 #include "addons/binary-addons/AddonInstanceHandler.h"
 #include "addons/kodi-addon-dev-kit/include/kodi/addon-instance/AudioDSP.h"
+#include "cores/AudioEngine/Utils/AEAudioFormat.h"
 
 namespace ActiveAE
 {
@@ -186,6 +187,9 @@ namespace ActiveAE
      * @param item The selected file item for which the hook was called.
      */
     void CallMenuHook(const AUDIODSP_MENU_HOOK &hook);
+    int CreateModeInstance(AEAudioFormat &InputFormat, AEAudioFormat &OutputFormat, const ADDON_HANDLE ModeHandle);
+    int ProcessModeInstance(const ADDON_HANDLE ModeHandle, const uint8_t **In, uint8_t **Out);
+    int DestroyModeInstance(const ADDON_HANDLE ModeHandle);
 
     static const char *ErrorCodeToString(const AUDIODSP_ADDON_ERROR error);
 

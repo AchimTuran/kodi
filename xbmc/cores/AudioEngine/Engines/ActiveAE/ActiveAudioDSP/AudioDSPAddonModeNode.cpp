@@ -72,13 +72,13 @@ unsigned long GetPresentChannels(const CAEChannelInfo &ChannelLayout)
   return channelFlags;
 }
 
-CAudioDSPAddonModeNode::CAudioDSPAddonModeNode(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat, ADDON_HANDLE_STRUCT &Handle, AE_DSP_ADDON Addon, uint64_t ID, int StreamID) :
-  m_addon(Addon),
-  IADSPBufferNode(Addon->ID(), ID),
+CAudioDSPAddonModeNode::CAudioDSPAddonModeNode(const AEAudioFormat & InputFormat, const AEAudioFormat & OutputFormat, ADDON_HANDLE_STRUCT & Handle, pAudioDSPAddon_t AddonInstance, uint64_t ID, int32_t AddonModeID) :
+  m_addon(AddonInstance),
+  IADSPBufferNode(AddonInstance->ID(), ID),
   m_handle(Handle)
 {
-  m_InputFormat = (InputFormat);
-  m_OutputFormat = (OutputFormat);
+  m_InputFormat = InputFormat;
+  m_OutputFormat = OutputFormat;
 }
 
 DSPErrorCode_t CAudioDSPAddonModeNode::CreateInstance(AEAudioFormat &InputFormat, AEAudioFormat &OutputFormat)
@@ -118,17 +118,19 @@ DSPErrorCode_t CAudioDSPAddonModeNode::CreateInstance(AEAudioFormat &InputFormat
     return DSP_ERR_FATAL_ERROR;
   }
 
-  unsigned long outChannelFlags = 0x0;
-  int outputChannelAmount = 0;
-  outputChannelAmount = 0;// m_addon->MasterProcessGetOutChannels(&m_handle, outChannelFlags);
-  OutputFormat.m_channelLayout.Reset();
-  for (unsigned int ch = 0; ch < AUDIODSP_ADDON_CH_MAX; ch++)
-  {
-    if (outChannelFlags & 1 << ch)
-    {
-      OutputFormat.m_channelLayout += static_cast<AEChannel>(ch + 1); //! @todo AudioDSP V2 add conversion method
-    }
-  }
+  //unsigned long outChannelFlags = 0x0;
+  //int outputChannelAmount = 0;
+  //outputChannelAmount = 0;// m_addon->MasterProcessGetOutChannels(&m_handle, outChannelFlags);
+  //OutputFormat.m_channelLayout.Reset();
+  //for (unsigned int ch = 0; ch < AUDIODSP_ADDON_CH_MAX; ch++)
+  //{
+  //  if (outChannelFlags & 1 << ch)
+  //  {
+  //    OutputFormat.m_channelLayout += static_cast<AEChannel>(ch + 1); //! @todo AudioDSP V2 add conversion method
+  //  }
+  //}
+
+  m_addon->CreateModeInstance(InputFormat, OutputFormat, nullptr);
 
   return DSP_ERR_NO_ERR;
 }

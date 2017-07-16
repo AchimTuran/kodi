@@ -187,6 +187,6 @@ private:
     return m_Nodes.end();
   }
 
-  CCriticalSection m_Mutex;
+  CCriticalSection m_mutex;
 };
 }

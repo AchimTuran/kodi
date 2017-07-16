@@ -44,14 +44,6 @@ public:
     m_processingBuffers = nullptr;
   }
 
-  virtual DSPErrorCode_t Initialize(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat)
-  { //! @todo AudioDSP V2 format checks if needed
-    m_InputFormat = InputFormat;
-    m_OutputFormat = OutputFormat;
-
-    return DSP_ERR_NO_ERR;
-  }
-
   virtual DSPErrorCode_t Create() = 0;
   virtual bool Process() = 0;
   virtual DSPErrorCode_t Destroy() = 0;
