@@ -32,7 +32,7 @@ CAudioDSPCopyModeCreator::CAudioDSPCopyModeCreator()
 {
 }
 
-IADSPNode *CAudioDSPCopyModeCreator::InstantiateNode(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat, const AEStreamProperties &StreamProperties, unsigned int StreamID, uint64_t ID)
+IADSPNode *CAudioDSPCopyModeCreator::InstantiateNode(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat, const AEStreamProperties &StreamProperties, uint64_t ID)
 {
   CAudioDSPCopyMode *copyMode = new CAudioDSPCopyMode(InputFormat, OutputFormat, ID);
   IADSPNode *node = dynamic_cast<IADSPNode*>(copyMode);

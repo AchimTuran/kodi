@@ -65,11 +65,11 @@ IDSPNodeCreator* CAudioDSPAddonNodeCreator::CreateCreator()
 
 IADSPNode* CAudioDSPAddonNodeCreator::InstantiateNode(const AEAudioFormat &InputFormat, 
                                                       const AEAudioFormat &OutputFormat, 
-                                                      const AEStreamProperties &StreamProperties, 
-                                                      unsigned int StreamID, 
+                                                      const AEStreamProperties &StreamProperties,
                                                       uint64_t ID)
 {
   AUDIODSP_ADDON_ERROR dspErr = AUDIODSP_ADDON_ERROR_NO_ERROR;
+  unsigned int StreamID = 0;//! @todo AudioDSP V2 rework this
   
 
   AudioDSPAddonStreamMap_t::iterator iter = m_addonModeMap.find(StreamID);
@@ -381,7 +381,7 @@ AUDIODSP_ADDON_CHANNEL TranslateAEChannel(AEChannel Channel)
 unsigned long GetPresentChannels(const CAEChannelInfo &ChannelLayout)
 {
   unsigned long channelFlags = 0x0;
-  for (int ch = 0; ch < ChannelLayout.Count(); ch++)
+  for (unsigned int ch = 0; ch < ChannelLayout.Count(); ch++)
   {
     AUDIODSP_ADDON_CHANNEL addonChannel = TranslateAEChannel(ChannelLayout[ch]);
     if (addonChannel != AUDIODSP_ADDON_CH_INVALID && addonChannel != AUDIODSP_ADDON_CH_MAX)
