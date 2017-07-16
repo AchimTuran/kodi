@@ -33,7 +33,7 @@ class CAudioDSPCopyModeCreator : public DSP::TDSPNodeCreator<CAudioDSPCopyModeCr
 public:
   CAudioDSPCopyModeCreator();
 
-  virtual DSP::AUDIO::IADSPNode* InstantiateNode(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat, const AEStreamProperties &StreamProperties, unsigned int StreamID, uint64_t ID) override;
+  virtual DSP::AUDIO::IADSPNode* InstantiateNode(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat, const AEStreamProperties &StreamProperties, uint64_t ID) override;
   virtual DSPErrorCode_t DestroyNode(DSP::AUDIO::IADSPNode *&Node) override;
 };
 

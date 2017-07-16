@@ -105,7 +105,7 @@ public:
   virtual DSPErrorCode_t DisableNode(uint64_t ID) override;
 
   // factory interface
-  virtual AUDIO::IADSPNode* InstantiateNode(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat, const AEStreamProperties &StreamProperties, unsigned int StreamID, uint64_t ID) override;
+  virtual AUDIO::IADSPNode* InstantiateNode(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat, const AEStreamProperties &StreamProperties, uint64_t ID) override;
   virtual DSPErrorCode_t DestroyNode(AUDIO::IADSPNode *&Node) override;
   
 private:

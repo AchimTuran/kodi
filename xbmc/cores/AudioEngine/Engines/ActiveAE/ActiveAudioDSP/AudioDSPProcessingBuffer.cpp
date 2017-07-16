@@ -65,7 +65,7 @@ bool CAudioDSPProcessingBuffer::Create(unsigned int totaltime, bool ForceOutputF
   // create node chain
   for (uint32_t ii = 0; ii < nodeInfos.size(); ii++)
   {
-    IADSPNode *node = m_nodeFactory.InstantiateNode(*configInParameters, *configOutParameters, m_streamProperties, m_streamID, nodeInfos.at(ii).ID);
+    IADSPNode *node = m_nodeFactory.InstantiateNode(*configInParameters, *configOutParameters, m_streamProperties, nodeInfos.at(ii).ID);
     
     //! @todo AudioDSP V2 improve error handling when an add-on returned ignore
     if (node)
@@ -96,7 +96,7 @@ bool CAudioDSPProcessingBuffer::Create(unsigned int totaltime, bool ForceOutputF
   {
     IDSPNodeModel::CDSPNodeInfoQuery query({ "Kodi", "AudioConverter" });
     IDSPNodeModel::CDSPNodeInfo audioConverterInfo = m_audioDSPController.GetNodeInfo(query);
-    IADSPNode *audioConverter = dynamic_cast<IADSPNode*>(m_nodeFactory.InstantiateNode(m_inputFormat, m_outputFormat, m_streamProperties, m_streamID, audioConverterInfo.ID));
+    IADSPNode *audioConverter = dynamic_cast<IADSPNode*>(m_nodeFactory.InstantiateNode(m_inputFormat, m_outputFormat, m_streamProperties, audioConverterInfo.ID));
     if (!audioConverter)
     {
       return DSP_ERR_INVALID_NODE_ID;
@@ -146,7 +146,7 @@ bool CAudioDSPProcessingBuffer::Create(unsigned int totaltime, bool ForceOutputF
     {
       IDSPNodeModel::CDSPNodeInfoQuery query({ "Kodi", "AudioConverter" });
       IDSPNodeModel::CDSPNodeInfo audioConverterInfo = m_audioDSPController.GetNodeInfo(query);
-      IADSPNode *audioConverter = dynamic_cast<IADSPNode*>(m_nodeFactory.InstantiateNode(m_inputFormat, firstModeInputFormat, m_streamProperties, m_streamID, audioConverterInfo.ID));
+      IADSPNode *audioConverter = dynamic_cast<IADSPNode*>(m_nodeFactory.InstantiateNode(m_inputFormat, firstModeInputFormat, m_streamProperties, audioConverterInfo.ID));
       if (!audioConverter)
       {
         return DSP_ERR_INVALID_NODE_ID;
@@ -168,7 +168,7 @@ bool CAudioDSPProcessingBuffer::Create(unsigned int totaltime, bool ForceOutputF
     {
       IDSPNodeModel::CDSPNodeInfoQuery query({ "Kodi", "AudioConverter" });
       IDSPNodeModel::CDSPNodeInfo audioConverterInfo = m_audioDSPController.GetNodeInfo(query);
-      IADSPNode *audioConverter = dynamic_cast<IADSPNode*>(m_nodeFactory.InstantiateNode(lastModeOutputFormat, m_outputFormat, m_streamProperties, m_streamID, audioConverterInfo.ID));
+      IADSPNode *audioConverter = dynamic_cast<IADSPNode*>(m_nodeFactory.InstantiateNode(lastModeOutputFormat, m_outputFormat, m_streamProperties, audioConverterInfo.ID));
       if (!audioConverter)
       {
         return DSP_ERR_INVALID_NODE_ID;
@@ -254,7 +254,6 @@ bool CAudioDSPProcessingBuffer::ProcessBuffer()
     startTime = CurrentHostCounter();
   }
   bool busy = false;
-  CSampleBuffer *buffer;
 
   static bool copyInput = false;
   if (m_DSPNodeChain.empty() || copyInput)
@@ -345,7 +344,7 @@ bool CAudioDSPProcessingBuffer::ProcessBuffer()
 
 bool CAudioDSPProcessingBuffer::HasInputLevel(int level)
 {
-  int packets = 0;
+  unsigned int packets = 0;
   packets += m_inputSamples.size();
 
   for (auto &it : m_DSPNodeChain)

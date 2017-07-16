@@ -203,7 +203,7 @@ void CActiveAEDSPAddon::CallMenuHook(const AUDIODSP_MENU_HOOK &hook)
 
 int CActiveAEDSPAddon::CreateModeInstance(AEAudioFormat &InputFormat, AEAudioFormat &OutputFormat, ADDON_HANDLE ModeHandle)
 {
-  return m_struct.toAddon.create_mode(&m_struct, nullptr, nullptr, ModeHandle);
+  return m_struct.toAddon.create_mode(&m_struct, ModeHandle);
 }
 
 int CActiveAEDSPAddon::ProcessModeInstance(const ADDON_HANDLE ModeHandle, const uint8_t **In, uint8_t **Out)

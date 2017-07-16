@@ -25,7 +25,7 @@ class CAudioDSPAddonNodeCreator : public DSP::IDSPNodeCreator, public DSP::IDSPN
 public:
   CAudioDSPAddonNodeCreator(const AE_DSP_ADDON &Addon);
 
-  virtual DSP::AUDIO::IADSPNode* InstantiateNode(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat, const AEStreamProperties &StreamProperties, unsigned int StreamID, uint64_t ID) override;
+  virtual DSP::AUDIO::IADSPNode* InstantiateNode(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat, const AEStreamProperties &StreamProperties, uint64_t ID) override;
   virtual DSPErrorCode_t DestroyNode(DSP::AUDIO::IADSPNode *&Node) override;
 
 private:

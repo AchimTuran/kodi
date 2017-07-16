@@ -32,7 +32,7 @@ CAudioDSPAudioConverterCreator::CAudioDSPAudioConverterCreator(CAudioConverterMo
 {
 }
 
-IADSPNode *CAudioDSPAudioConverterCreator::InstantiateNode(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat, const AEStreamProperties &StreamProperties, unsigned int StreamID, uint64_t ID)
+IADSPNode *CAudioDSPAudioConverterCreator::InstantiateNode(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat, const AEStreamProperties &StreamProperties, uint64_t ID)
 {
   //! @todo add Raspberry PI resampler implementation
   CAudioDSPConverter *converter = new CAudioDSPConverter(InputFormat, OutputFormat, ID, m_model);
