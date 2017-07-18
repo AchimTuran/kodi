@@ -208,7 +208,7 @@ IADSPNode* CDSPNodeModel::InstantiateNode(const AEAudioFormat &InputFormat, cons
     return nullptr;
   }
 
-  return iter->NodeCreator.InstantiateNode(InputFormat, OutputFormat, StreamProperties, StreamID, ID);
+  return iter->NodeCreator.InstantiateNode(InputFormat, OutputFormat, StreamProperties, ID);
 }
 
 DSPErrorCode_t CDSPNodeModel::DestroyNode(IADSPNode *&Node)
