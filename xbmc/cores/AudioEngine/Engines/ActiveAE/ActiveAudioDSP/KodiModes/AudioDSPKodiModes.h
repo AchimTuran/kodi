@@ -23,6 +23,10 @@
 #include "cores/AudioEngine/Engines/ActiveAE/ActiveAudioDSP/AudioDSPNodeModel.h"
 #include "cores/AudioEngine/Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioConverter/AudioConverterModel.h"
 
+ // mode includes
+#include "cores/AudioEngine/Engines/ActiveAE/ActiveAudioDSP/KodiModes/CopyMode/AudioDSPCopyMode.h"
+#include "cores/AudioEngine/Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioConverter/AudioConverterCreator.h"
+
 #include <vector>
 
 namespace ActiveAE
@@ -36,5 +40,9 @@ public:
   void ReleaseAllModes(DSP::CDSPNodeModel &Model);
 
   CAudioConverterModel m_audioConverterModel;
+
+private:
+  CAudioDSPCopyModeCreator m_copyModeCreator;
+  CAudioDSPAudioConverterCreator m_audioConverterCreator;
 };
 }

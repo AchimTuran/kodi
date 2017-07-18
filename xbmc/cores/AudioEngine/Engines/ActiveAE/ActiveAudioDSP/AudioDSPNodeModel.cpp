@@ -28,19 +28,11 @@ using namespace DSP::AUDIO;
 CDSPNodeModel::~CDSPNodeModel()
 {
   CSingleLock lock(m_mutex);
-  for (NodeInfoVector_t::iterator iter = m_Nodes.begin(); iter != m_Nodes.end(); ++iter)
-  {
-    if (iter->NodeCreator)
-    {
-      delete iter->NodeCreator;
-      iter->NodeCreator = nullptr;
-    }
-  }
 
   m_Nodes.clear();
 }
 
-DSPErrorCode_t CDSPNodeModel::RegisterNode(const CDSPNodeInfoQuery &Node, IDSPNodeCreatorFactory &Factory)
+DSPErrorCode_t CDSPNodeModel::RegisterNode(const CDSPNodeInfoQuery &Node, IDSPNodeCreator &NodeCreator)
 {
   CSingleLock lock(m_mutex);
 
@@ -69,13 +61,7 @@ DSPErrorCode_t CDSPNodeModel::RegisterNode(const CDSPNodeInfoQuery &Node, IDSPNo
     return DSP_ERR_INVALID_INPUT;
   }
 
-  IDSPNodeCreator *creator = Factory.CreateCreator();
-  if (!creator)
-  {
-    return DSP_ERR_INVALID_INPUT;
-  }
-
-  m_Nodes.push_back(NodeInfo_t(id, false, creator, addonName, modeName, instanceModeName));
+  m_Nodes.push_back(NodeInfo_t(id, false, NodeCreator, addonName, modeName, instanceModeName));
   CLog::Log(LOGDEBUG, "%s - successful registered signal processing node creator for mode %s from add-on %s with ModeID %i, ModeInstanceID %i and UniqueAddonID &i", __FUNCTION__, modeName.c_str(), addonName.c_str(), id.ModeID, id.ModeInstanceID, id.UniqueAddonID);
 
   return DSP_ERR_NO_ERR;
@@ -91,11 +77,6 @@ DSPErrorCode_t CDSPNodeModel::DeregisterNode(uint64_t ID)
     return DSP_ERR_NODE_NOT_FOUND;
   }
 
-  if (iter->NodeCreator)
-  {
-    delete iter->NodeCreator;
-    iter->NodeCreator = nullptr;
-  }
   m_Nodes.erase(iter);
 
   return DSP_ERR_NO_ERR;
@@ -210,7 +191,7 @@ DSPErrorCode_t CDSPNodeModel::DisableNode(uint64_t ID)
 
   nodeIter->Active = false;
   RemoveActiveNode(ID);
-  NotifyDisableNodeUpdate(ID); //! @todo how to handle error code?
+  NotifyDisableNodeUpdate(ID); //! @todo AudioDSP V2 how to handle error code?
 
   return DSP_ERR_NO_ERR;
 }
@@ -227,7 +208,7 @@ IADSPNode* CDSPNodeModel::InstantiateNode(const AEAudioFormat &InputFormat, cons
     return nullptr;
   }
 
-  return iter->NodeCreator->InstantiateNode(InputFormat, OutputFormat, StreamProperties, ID);
+  return iter->NodeCreator.InstantiateNode(InputFormat, OutputFormat, StreamProperties, StreamID, ID);
 }
 
 DSPErrorCode_t CDSPNodeModel::DestroyNode(IADSPNode *&Node)
@@ -240,7 +221,7 @@ DSPErrorCode_t CDSPNodeModel::DestroyNode(IADSPNode *&Node)
     return DSP_ERR_CREATOR_ID_NOT_FOUND;
   }
 
-  return iter->NodeCreator->DestroyNode(Node);
+  return iter->NodeCreator.DestroyNode(Node);
 }
 
 void CDSPNodeModel::NotifyEnableNodeUpdate(uint64_t ID, uint32_t Position)

@@ -58,11 +58,6 @@ DSPErrorCode_t CAudioDSPAddonNodeCreator::DestroyNode(IADSPNode *&Node)
   return err;
 }
 
-IDSPNodeCreator* CAudioDSPAddonNodeCreator::CreateCreator()
-{
-  return dynamic_cast<IDSPNodeCreator*>(new CAudioDSPAddonNodeCreator(m_addon));
-}
-
 IADSPNode* CAudioDSPAddonNodeCreator::InstantiateNode(const AEAudioFormat &InputFormat, 
                                                       const AEAudioFormat &OutputFormat, 
                                                       const AEStreamProperties &StreamProperties,

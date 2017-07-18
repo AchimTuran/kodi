@@ -61,8 +61,3 @@ DSPErrorCode_t CAudioDSPAudioConverterCreator::DestroyNode(IADSPNode *&Node)
 
   return err;
 }
-
-IDSPNodeCreator* CAudioDSPAudioConverterCreator::CreateCreator()
-{
-  return dynamic_cast<IDSPNodeCreator*>(new CAudioDSPAudioConverterCreator(m_model));
-}

@@ -20,10 +20,6 @@
 
 #include "cores/AudioEngine/Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioDSPKodiModes.h"
 
-// mode includes
-#include "cores/AudioEngine/Engines/ActiveAE/ActiveAudioDSP/KodiModes/CopyMode/AudioDSPCopyMode.h"
-#include "cores/AudioEngine/Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioConverter/AudioConverterCreator.h"
-
 #include "utils/log.h"
 
 using namespace DSP;
@@ -31,23 +27,21 @@ using namespace std;
 
 namespace ActiveAE
 {
-CAudioDSPKodiModes::CAudioDSPKodiModes()
+CAudioDSPKodiModes::CAudioDSPKodiModes() :
+  m_audioConverterCreator(m_audioConverterModel)
 {
 }
 
 void CAudioDSPKodiModes::PrepareModes(DSP::CDSPNodeModel &Model)
 {
-  CAudioDSPCopyModeCreator copyModeCreator;
-  DSPErrorCode_t err = Model.RegisterNode(IDSPNodeModel::CDSPNodeInfoQuery({ "Kodi", "AudioDSPCopyMode" }), copyModeCreator);
+  DSPErrorCode_t err = Model.RegisterNode(IDSPNodeModel::CDSPNodeInfoQuery({ "Kodi", "AudioDSPCopyMode" }), m_copyModeCreator);
   if (err != DSP_ERR_NO_ERR)
   {
     CLog::Log(LOGERROR, "%s failed to register Kodi::AudioDSPCopyMode!", __FUNCTION__);
   }
   IDSPNodeModel::CDSPNodeInfo copyModeNodeInfo = Model.GetNodeInfo(IDSPNodeModel::CDSPNodeInfoQuery({ "Kodi", "AudioDSPCopyMode" }));
-  //Model.EnableNode(copyModeNodeInfo.ID); //! @todo AudioDSP V2 fix this node, as it currently crashes Kodi
 
-  CAudioDSPAudioConverterCreator audioConverterCreator(m_audioConverterModel);
-  err = Model.RegisterNode(IDSPNodeModel::CDSPNodeInfoQuery({ "Kodi", "AudioConverter" }), audioConverterCreator);
+  err = Model.RegisterNode(IDSPNodeModel::CDSPNodeInfoQuery({ "Kodi", "AudioConverter" }), m_audioConverterCreator);
   if (err != DSP_ERR_NO_ERR)
   {
     CLog::Log(LOGERROR, "%s failed to register Kodi::AudioConverter!", __FUNCTION__);
