@@ -28,7 +28,7 @@
 
 namespace ActiveAE
 {
-class CAudioDSPCopyModeCreator : public DSP::TDSPNodeCreator<CAudioDSPCopyModeCreator>
+class CAudioDSPCopyModeCreator : public DSP::IDSPNodeCreator
 {
 public:
   CAudioDSPCopyModeCreator();

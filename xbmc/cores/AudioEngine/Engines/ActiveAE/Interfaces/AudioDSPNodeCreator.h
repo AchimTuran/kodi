@@ -33,16 +33,4 @@ public:
   virtual AUDIO::IADSPNode* InstantiateNode(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat, const AEStreamProperties &StreamProperties, uint64_t ID) = 0;
   virtual DSPErrorCode_t DestroyNode(AUDIO::IADSPNode *&Node) = 0;
 };
-
-class IDSPNodeCreatorFactory
-{
-public:
-  virtual IDSPNodeCreator* CreateCreator() = 0;
-};
-
-template<class T>
-class TDSPNodeCreator : public IDSPNodeCreator, public IDSPNodeCreatorFactory
-{
-  virtual IDSPNodeCreator* CreateCreator() override { return dynamic_cast<IDSPNodeCreator*>(new T); }
-};
 }

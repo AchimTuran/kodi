@@ -39,30 +39,37 @@ class CDSPNodeModel : public IDSPNodeModel, public IDSPNodeFactory
   {
     NodeID_t    ID;
     bool        Active;
-    IDSPNodeCreator *NodeCreator;
+    IDSPNodeCreator &NodeCreator;
     std::string AddonName;
     std::string ModeName;
     std::string InstanceModeName;
 
-    NodeInfo_t &operator=(CDSPNodeInfo &NodeInfo)
+    NodeInfo_t& operator=(const NodeInfo_t &NodeInfo)
     {
+      this->ID = NodeInfo.ID;
+      this->Active = NodeInfo.Active;
+      this->NodeCreator = NodeInfo.NodeCreator;
+      this->AddonName = NodeInfo.AddonName;
+      this->ModeName = NodeInfo.ModeName;
+      this->InstanceModeName = NodeInfo.InstanceModeName;
+
       return *this;
     }
 
-    NodeInfo_t() :
-      ID(0),
-      Active(false),
-      NodeCreator(nullptr),
-      AddonName(""),
-      ModeName(""),
-      InstanceModeName("")
+    NodeInfo_t(const NodeInfo_t &NodeInfo) :
+      ID(NodeInfo.ID),
+      Active(NodeInfo.Active),
+      NodeCreator(NodeInfo.NodeCreator),
+      AddonName(NodeInfo.AddonName),
+      ModeName(NodeInfo.ModeName),
+      InstanceModeName(NodeInfo.InstanceModeName)
     {
     }
 
-    NodeInfo_t(NodeID_t ID, bool Active, IDSPNodeCreator *Creator, std::string AddonName, std::string ModeName, std::string InstanceModeName = "") :
+    NodeInfo_t(NodeID_t ID, bool Active, IDSPNodeCreator &NodeCreator, std::string AddonName, std::string ModeName, std::string InstanceModeName = "") :
       ID(ID),
       Active(Active),
-      NodeCreator(Creator),
+      NodeCreator(NodeCreator),
       AddonName(AddonName),
       ModeName(ModeName),
       InstanceModeName(InstanceModeName)
@@ -96,7 +103,7 @@ public:
   virtual ~CDSPNodeModel();
 
   // model interface
-  virtual DSPErrorCode_t RegisterNode(const CDSPNodeInfoQuery &Node, IDSPNodeCreatorFactory &Factory) override;
+  virtual DSPErrorCode_t RegisterNode(const CDSPNodeInfoQuery &Node, IDSPNodeCreator &NodeCreator) override;
   virtual DSPErrorCode_t DeregisterNode(uint64_t ID) override;
   virtual CDSPNodeInfo GetNodeInfo(const CDSPNodeInfoQuery &Node) override;
   virtual DSPErrorCode_t GetNodeInfos(DSPNodeInfoVector_t &NodeInfos) override;

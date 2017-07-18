@@ -8,7 +8,7 @@
 
 namespace ActiveAE
 {
-class CAudioDSPAddonNodeCreator : public DSP::IDSPNodeCreator, public DSP::IDSPNodeCreatorFactory
+class CAudioDSPAddonNodeCreator : public DSP::IDSPNodeCreator
 {
   typedef struct AddonStreamHandle_t
   {
@@ -29,8 +29,6 @@ public:
   virtual DSPErrorCode_t DestroyNode(DSP::AUDIO::IADSPNode *&Node) override;
 
 private:
-  virtual IDSPNodeCreator* CreateCreator() override;
-
   AudioDSPAddonStreamMap_t m_addonModeMap;
   const AE_DSP_ADDON m_addon;
 };
