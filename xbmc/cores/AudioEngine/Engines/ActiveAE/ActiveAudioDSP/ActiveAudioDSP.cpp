@@ -31,9 +31,6 @@
 #include "cores/AudioEngine/Engines/ActiveAE/ActiveAEStream.h"
 #include "cores/AudioEngine/Engines/ActiveAE/ActiveAudioDSP/AudioDSPProcessingBuffer.h"
 
- // includes for AudioDSP add-on modes
-#include "cores/AudioEngine/Engines/ActiveAE/ActiveAudioDSP/AudioDSPAddonNodeCreator.h"
-
 using namespace Actor;
 using namespace ADDON;
 using namespace std;
@@ -578,8 +575,7 @@ void CActiveAudioDSP::PrepareAddonModes()
 
     for (unsigned int modeCount = 0; modeCount < modes.size(); modeCount++)
     {
-      CAudioDSPAddonNodeCreator addonNodeCreator(iter->second);
-      DSPErrorCode_t err = m_DSPChainModelObject.RegisterNode(IDSPNodeModel::CDSPNodeInfoQuery({ iter->second->ID(), modes[modeCount].strModeName }), addonNodeCreator);
+      DSPErrorCode_t err = m_DSPChainModelObject.RegisterNode(IDSPNodeModel::CDSPNodeInfoQuery({ iter->second->ID(), modes[modeCount].strModeName }), *(iter->second));
       if (err != DSP_ERR_NO_ERR)
       {
         CLog::Log(LOGERROR, "%s failed to register %s from add-on %s!", __FUNCTION__, modes[modeCount].strModeName.c_str(), iter->second->Name().c_str());

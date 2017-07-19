@@ -26,6 +26,7 @@
 #include "addons/binary-addons/AddonInstanceHandler.h"
 #include "addons/kodi-addon-dev-kit/include/kodi/addon-instance/AudioDSP.h"
 #include "cores/AudioEngine/Utils/AEAudioFormat.h"
+#include "cores/AudioEngine/Engines/ActiveAE/Interfaces/AudioDSPNodeCreator.h"
 
 namespace ActiveAE
 {
@@ -41,7 +42,7 @@ namespace ActiveAE
    *
    * Also translates KODI's C++ structures to the addon's C structures.
    */
-  class CActiveAEDSPAddon : public ADDON::IAddonInstanceHandler
+  class CActiveAEDSPAddon : public ADDON::IAddonInstanceHandler, public DSP::IDSPNodeCreator
   {
   public:
     class CAudioDSPMode
@@ -258,5 +259,9 @@ namespace ActiveAE
     CCriticalSection          m_critSection;
 
     AddonInstance_AudioDSP m_struct; /*!< Interface table who contains function addresses and fixed values */
+
+    // IDSPNodeCreator interface implementation
+    virtual DSP::AUDIO::IADSPNode* InstantiateNode(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat, const AEStreamProperties &StreamProperties, uint64_t ID) override;
+    virtual DSPErrorCode_t DestroyNode(DSP::AUDIO::IADSPNode *&Node) override;
   };
 }

@@ -30,6 +30,8 @@
 
 using namespace ADDON;
 using namespace ActiveAE;
+using namespace DSP;
+using namespace DSP::AUDIO;
 
 #define DEFAULT_INFO_STRING_VALUE "unknown"
 
@@ -399,4 +401,14 @@ void CActiveAEDSPAddon::cb_unregister_mode(void* kodiInstance, AUDIODSP_ADDON_MO
   }
 
   addon->DeregisterMode(mode);
+}
+
+IADSPNode* ActiveAE::CActiveAEDSPAddon::InstantiateNode(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat, const AEStreamProperties &StreamProperties, uint64_t ID)
+{
+  return nullptr;
+}
+
+DSPErrorCode_t ActiveAE::CActiveAEDSPAddon::DestroyNode(IADSPNode *&Node)
+{
+  return DSPErrorCode_t();
 }
