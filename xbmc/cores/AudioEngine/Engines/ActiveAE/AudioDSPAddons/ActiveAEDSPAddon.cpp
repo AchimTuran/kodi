@@ -27,6 +27,7 @@
 #include "settings/Settings.h"
 #include "utils/log.h"
 #include "utils/StringUtils.h"
+#include "cores/AudioEngine/Engines/ActiveAE/ActiveAudioDSP/AddOns/AudioDSPAddonMode.h"
 
 using namespace ADDON;
 using namespace ActiveAE;
@@ -83,7 +84,7 @@ bool CActiveAEDSPAddon::Create(unsigned int iClientId)
   ResetProperties(iClientId);
 
   /* initialise the add-on */
-  CLog::Log(LOGDEBUG, "ActiveAE DSP - %s - creating audio dsp add-on instance '%s'", __FUNCTION__, Name().c_str());
+  CLog::Log(LOGDEBUG, "ActiveAE DSP - %s - creating AudioDSP add-on instance '%s'", __FUNCTION__, Name().c_str());
   /* Open the class "kodi::addon::CInstanceAudioDSP" on add-on side */
   m_bReadyToUse = (CreateInstance(&m_struct) == ADDON_STATUS_OK);
   if (!m_bReadyToUse)
@@ -104,7 +105,7 @@ void CActiveAEDSPAddon::Destroy(void)
     return;
   m_bReadyToUse = false;
 
-  CLog::Log(LOGDEBUG, "ActiveAE DSP - %s - destroying audio dsp add-on '%s'", __FUNCTION__, GetFriendlyName().c_str());
+  CLog::Log(LOGDEBUG, "ActiveAE DSP - %s - destroying AudioDSP add-on '%s'", __FUNCTION__, GetFriendlyName().c_str());
 
   /* Destroy the class "kodi::addon::CInstanceAudioDSP" on add-on side */
   DestroyInstance();
@@ -327,7 +328,7 @@ void CActiveAEDSPAddon::cb_add_menu_hook(void *kodiInstance, AUDIODSP_MENU_HOOK 
   CActiveAEDSPAddon *addon = static_cast<CActiveAEDSPAddon*>(kodiInstance);
   if (!hook || !addon)
   {
-    CLog::Log(LOGERROR, "Audio DSP - %s - invalid handler data", __FUNCTION__);
+    CLog::Log(LOGERROR, "AudioDSP - %s - invalid handler data", __FUNCTION__);
     return;
   }
 
@@ -350,7 +351,7 @@ void CActiveAEDSPAddon::cb_remove_menu_hook(void *kodiInstance, AUDIODSP_MENU_HO
   CActiveAEDSPAddon *addon = static_cast<CActiveAEDSPAddon*>(kodiInstance);
   if (!hook || !addon)
   {
-    CLog::Log(LOGERROR, "Audio DSP - %s - invalid handler data", __FUNCTION__);
+    CLog::Log(LOGERROR, "AudioDSP - %s - invalid handler data", __FUNCTION__);
     return;
   }
 
@@ -383,11 +384,11 @@ void CActiveAEDSPAddon::cb_register_mode(void* kodiInstance, AUDIODSP_ADDON_MODE
 
   if (mode->uiUniqueDBModeId > AE_DSP_INVALID_ADDON_ID)
   {
-    CLog::Log(LOGDEBUG, "Audio DSP - %s - successfully registered mode %s of %s adsp-addon", __FUNCTION__, mode->strModeName, addon->Name().c_str());
+    CLog::Log(LOGDEBUG, "AudioDSP - %s - successfully registered mode %s of %s adsp-addon", __FUNCTION__, mode->strModeName, addon->Name().c_str());
   }
   else
   {
-    CLog::Log(LOGERROR, "Audio DSP - %s - failed to register mode %s of %s adsp-addon", __FUNCTION__, mode->strModeName, addon->Name().c_str());
+    CLog::Log(LOGERROR, "AudioDSP - %s - failed to register mode %s of %s adsp-addon", __FUNCTION__, mode->strModeName, addon->Name().c_str());
   }
 }
 
@@ -396,7 +397,7 @@ void CActiveAEDSPAddon::cb_unregister_mode(void* kodiInstance, AUDIODSP_ADDON_MO
   CActiveAEDSPAddon *addon = static_cast<CActiveAEDSPAddon*>(kodiInstance);
   if (!mode || !addon)
   {
-    CLog::Log(LOGERROR, "Audio DSP - %s - invalid mode data", __FUNCTION__);
+    CLog::Log(LOGERROR, "AudioDSP - %s - invalid mode data", __FUNCTION__);
     return;
   }
 
@@ -405,10 +406,83 @@ void CActiveAEDSPAddon::cb_unregister_mode(void* kodiInstance, AUDIODSP_ADDON_MO
 
 IADSPNode* ActiveAE::CActiveAEDSPAddon::InstantiateNode(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat, const AEStreamProperties &StreamProperties, uint64_t ID)
 {
-  return nullptr;
+  m_registeredModes;
+
+  IADSPNode *node = nullptr;
+
+  for (auto it : m_registeredModes)
+  {
+    if (it.uiUniqueDBModeId == ID)
+    {
+      AUDIODSP_ADDON_AUDIO_FORMAT inputFormat;
+      AUDIODSP_ADDON_AUDIO_FORMAT outputFormat;
+      AUDIODSP_ADDON_STREAM_PROPERTIES streamProperties;
+      ADDON_HANDLE_STRUCT modeHandle;
+
+      AUDIODSP_ADDON_ERROR adspErr = m_struct.toAddon.create_mode_handle(&m_struct, &inputFormat, &outputFormat, &streamProperties, ID, &modeHandle);
+      if (adspErr != AUDIODSP_ADDON_ERROR_NO_ERROR)
+      {
+        return nullptr; //! @todo AudioDSP V2 translate add-on errors to core DSP errors
+      }
+
+      //! @todo AudioDSP V2 create a list from instantiated add-on modes
+      CAudioDSPAddonMode *mode = new CAudioDSPAddonMode(InputFormat, OutputFormat, StreamProperties, ID, m_struct, modeHandle);
+      node = dynamic_cast<IADSPNode*>(mode);
+      if (!node)
+      {
+        delete mode;
+        mode = nullptr;
+
+        CLog::Log(LOGERROR, "AudioDSP - %s - FATAL ERROR CAudioDSPAddonMode doesn't implement the IADSPNode interface!", __FUNCTION__);
+      }
+
+      break;
+    }
+  }
+
+  if (!node)
+  {
+    CLog::Log(LOGERROR, "AudioDSP - %s - the requested AudioDSP add-on ID %i wasn't registered from add-on %s", __FUNCTION__, ID, Name().c_str());
+  }
+
+  return node;
 }
 
 DSPErrorCode_t ActiveAE::CActiveAEDSPAddon::DestroyNode(IADSPNode *&Node)
 {
-  return DSPErrorCode_t();
+  DSPErrorCode_t dspErr = DSP_ERR_NO_ERR;
+  if (Node)
+  {
+    dspErr = Node->Destroy();
+
+    CAudioDSPAddonMode *mode = dynamic_cast<CAudioDSPAddonMode*>(Node);
+    if (!mode)
+    {
+      CLog::Log(LOGWARNING, "AudioDSP - %s - destroyed non AudioDSP add-on mode node %s", __FUNCTION__, Node->Name.c_str());
+    }
+    else
+    {
+      //! @todo AudioDSP V2 remove this node and check if it is a valid node from this add-on
+      for (auto it : m_registeredModes)
+      {
+        if (it.uiUniqueDBModeId == Node->ID)
+        {
+          AUDIODSP_ADDON_ERROR adspErr = m_struct.toAddon.destroy_mode_handle(&m_struct, &mode->m_modeHandle);
+          if (adspErr != AUDIODSP_ADDON_ERROR_NO_ERROR)
+          {
+            //! @todo AudioDSP V2 use error translation function
+            dspErr = DSP_ERR_FATAL_ERROR;
+          }
+
+          memset(&mode->m_modeHandle, 0, sizeof(ADDON_HANDLE_STRUCT));
+          break;
+        }
+      }
+    }
+
+    delete Node;
+    Node = nullptr;
+  }
+
+  return dspErr;
 }
