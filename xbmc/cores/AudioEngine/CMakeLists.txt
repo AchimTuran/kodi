@@ -16,6 +16,7 @@ set(SOURCES AEResampleFactory.cpp
             Engines/ActiveAE/ActiveAudioDSP/AudioDSPController.cpp
             Engines/ActiveAE/ActiveAudioDSP/AudioDSPNodeModel.cpp
             Engines/ActiveAE/ActiveAudioDSP/AudioDSPProcessingBuffer.cpp
+            Engines/ActiveAE/ActiveAudioDSP/AddOns/AudioDSPAddonMode.cpp
 
             Encoders/AEEncoderFFmpeg.cpp
             Engines/ActiveAE/ActiveAE.cpp
@@ -57,6 +58,7 @@ set(HEADERS AEResampleFactory.h
             Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioConverter/AudioConverterModel.h
             Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioConverter/AudioConverterNodeCallback.h
             Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioConverter/AudioDSPConverterFFMPEG.h
+            Engines/ActiveAE/ActiveAudioDSP/AddOns/AudioDSPAddonMode.h
 
             Encoders/AEEncoderFFmpeg.h
             Engines/ActiveAE/ActiveAE.h
