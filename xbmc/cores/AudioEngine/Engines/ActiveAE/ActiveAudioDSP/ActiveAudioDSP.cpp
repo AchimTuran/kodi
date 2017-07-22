@@ -43,7 +43,7 @@ namespace ActiveAE
 CActiveAudioDSP::CActiveAudioDSP(CEvent *inMsgEvent) :
   CThread("ActiveAudioDSP"),
   m_AddonControlPort("AudioDSPAddonControlPort", inMsgEvent, &m_outMsgEvent),
-  m_ControlPort("AudioDSPControlPort", inMsgEvent, &m_outMsgEvent),
+  m_controlPort("AudioDSPControlPort", inMsgEvent, &m_outMsgEvent),
   m_Controller(m_DSPChainModelObject)
 {
   m_inMsgEvent = inMsgEvent;
@@ -61,14 +61,12 @@ void CActiveAudioDSP::Start()
     Create(); // create thread for this object
     SetPriority(THREAD_PRIORITY_NORMAL);
   }
-  
-  m_ControlPort.SendOutMessage(CAudioDSPControlProtocol::INIT);
 }
 
 void CActiveAudioDSP::Stop()
 {
   Message *replyMsg;
-  if (m_ControlPort.SendOutMessageSync(CAudioDSPControlProtocol::DEINIT, &replyMsg, 0))
+  if (m_controlPort.SendOutMessageSync(CAudioDSPControlProtocol::DEINIT, &replyMsg, 1000))
   {
     if (replyMsg->signal != CAudioDSPControlProtocol::ACC)
     {
@@ -85,7 +83,7 @@ void CActiveAudioDSP::Stop()
   m_KodiModes.ReleaseAllModes(m_DSPChainModelObject);
 
   m_AddonControlPort.Purge();
-  m_ControlPort.Purge();
+  m_controlPort.Purge();
 
   CServiceBroker::GetBinaryAddonManager().UnregisterCallback(ADDON_ADSPDLL);
 }
@@ -145,48 +143,6 @@ bool CActiveAudioDSP::ReleaseControllerHandle(void **Handle)
   return false;
 }
 
-IActiveAEProcessingBuffer* CActiveAudioDSP::GetProcessingBuffer(const CActiveAEStream *AudioStream, AEAudioFormat &OutputFormat)
-{
-  if (!AudioStream)
-  {
-    CLog::Log(LOGERROR, "%s - Invalid audio stream!", __FUNCTION__);
-    return nullptr;
-  }
-
-  Actor::Message *replyMsg = nullptr;
-  CAudioDSPControlProtocol::CCreateBuffer bufferMsg(AudioStream, OutputFormat);
-  if (!m_ControlPort.SendOutMessageSync(CAudioDSPControlProtocol::GET_PROCESSING_BUFFER, &replyMsg, 30000, &bufferMsg, sizeof(CAudioDSPControlProtocol::CCreateBuffer)))
-  {
-    if (replyMsg)
-    {
-      replyMsg->Release();
-    }
-    return nullptr;
-  }
-
-  if (replyMsg->signal != CAudioDSPControlProtocol::SUCCESS)
-  {
-    replyMsg->Release();
-    CLog::Log(LOGERROR, "%s an error occured during shutting down AudioDSP", __FUNCTION__);
-    return nullptr;
-  }
-
-  IActiveAEProcessingBuffer *buffer = *reinterpret_cast<IActiveAEProcessingBuffer**>(replyMsg->data);
-  replyMsg->Release();
-
-  return buffer;
-}
-
-DSPErrorCode_t CActiveAudioDSP::ReleaseProcessingBuffer(int StreamID)
-{
-  if (!m_ControlPort.SendOutMessage(CAudioDSPControlProtocol::RELEASE_PROCESSING_BUFFER, &StreamID, sizeof(int)))
-  {
-    return DSP_ERR_FATAL_ERROR;
-  }
-
-  return DSP_ERR_NO_ERR;
-}
-
 enum ACTIVEAUDIODSP_STATES
 {
   ADSP_TOP = 0,                             // 0
@@ -223,7 +179,7 @@ void CActiveAudioDSP::StateMachine(int signal, Protocol *port, Message *msg)
             break;
           }
         }
-        if (port == &m_ControlPort)
+        if (port == &m_controlPort)
         {
           switch (signal)
           {
@@ -260,7 +216,7 @@ void CActiveAudioDSP::StateMachine(int signal, Protocol *port, Message *msg)
         return;
 
       case ADSP_TOP_UNCONFIGURED:
-        if (port == &m_ControlPort)
+        if (port == &m_controlPort)
         {
           switch (signal)
           {
@@ -312,7 +268,7 @@ void CActiveAudioDSP::StateMachine(int signal, Protocol *port, Message *msg)
       break;
 
       case ADSP_TOP_CONFIGURED:
-        if (port == &m_ControlPort)
+        if (port == &m_controlPort)
         {
           switch (signal)
           {
@@ -402,7 +358,7 @@ void CActiveAudioDSP::StateMachine(int signal, Protocol *port, Message *msg)
       break;
 
       case ADSP_TOP_GET_PROCESSING_BUFFER:
-        if (port == &m_ControlPort)
+        if (port == &m_controlPort)
         {
           CAudioDSPControlProtocol::CCreateBuffer *bufferMsg = reinterpret_cast<CAudioDSPControlProtocol::CCreateBuffer*>(msg->data);
           IActiveAEProcessingBuffer *buffer = nullptr;
@@ -447,7 +403,7 @@ void CActiveAudioDSP::StateMachine(int signal, Protocol *port, Message *msg)
       break;
 
       case ADSP_TOP_RELEASE_PROCESSING_BUFFER:
-        if (port == &m_ControlPort)
+        if (port == &m_controlPort)
         {
           int streamID = *reinterpret_cast<int*>(msg->data);
           AudioDSPProcessingBufferMap_t::iterator iter = m_ProcessingBuffers.find(streamID);
@@ -673,10 +629,10 @@ void CActiveAudioDSP::Process()
       }
       continue;
     }
-    else if (m_ControlPort.ReceiveOutMessage(&msg))
+    else if (m_controlPort.ReceiveOutMessage(&msg))
     {
       gotMsg = true;
-      port = &m_ControlPort;
+      port = &m_controlPort;
     }
     // check control port
     else if (m_AddonControlPort.ReceiveOutMessage(&msg))

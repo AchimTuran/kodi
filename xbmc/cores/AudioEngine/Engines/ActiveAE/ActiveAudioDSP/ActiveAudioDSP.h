@@ -127,15 +127,12 @@ public:
   void* GetControllerHandle(void *ControllerCallback = nullptr);
   bool ReleaseControllerHandle(void **Handle);
 
-  IActiveAEProcessingBuffer* GetProcessingBuffer(const CActiveAEStream *AudioStream, AEAudioFormat &OutputFormat);
-  DSPErrorCode_t ReleaseProcessingBuffer(int StreamID);
-
   // internal Kodi AudioDSP modes
   CAudioDSPKodiModes m_KodiModes;
+  CAudioDSPControlProtocol m_controlPort;
 
 protected:
   // ports
-  CAudioDSPControlProtocol m_ControlPort;
   CAudioDSPAddonControlProtocol m_AddonControlPort;
 
   // state machine variables

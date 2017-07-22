@@ -457,6 +457,7 @@ void CActiveAE::StateMachine(int signal, Protocol *port, Message *msg)
           m_sink.EnumerateSinkList(false);
           LoadSettings();
           m_audioDSP.Start();
+          m_audioDSP.m_controlPort.SendOutMessage(CAudioDSPControlProtocol::INIT);
           Configure();
           msg->Reply(CActiveAEControlProtocol::ACC);
           if (!m_extError)
@@ -788,6 +789,7 @@ void CActiveAE::StateMachine(int signal, Protocol *port, Message *msg)
             m_audioDSP.m_KodiModes.m_audioConverterModel.NotifyNodes();
           }
           m_audioDSP.Start();
+          m_audioDSP.m_controlPort.SendOutMessage(CAudioDSPControlProtocol::INIT);
           Configure();
           if (!displayReset)
             msg->Reply(CActiveAEControlProtocol::ACC);
@@ -1147,25 +1149,36 @@ void CActiveAE::Configure(AEAudioFormat *desiredFmt)
         }
         if ((*it)->m_processingBuffers)
         {
-          DSPErrorCode_t dspErr = m_audioDSP.ReleaseProcessingBuffer((*it)->m_id);
-          if (dspErr != DSP_ERR_NO_ERR)
-          {
-            //! @todo AudioDSP log AudioDSP error
-          }
+          m_audioDSP.m_controlPort.SendOutMessage(CAudioDSPControlProtocol::RELEASE_PROCESSING_BUFFER, &(*it)->m_id, sizeof(unsigned int));
           (*it)->m_processingBuffers = nullptr;
         }
         if (!(*it)->m_processingBuffers)
         {
-          (*it)->m_processingBuffers = m_audioDSP.GetProcessingBuffer(*it, audioDSPOutputFormat);
+          Message *replyMsg = nullptr;
+          CAudioDSPControlProtocol::CCreateBuffer bufferMsg(*it, audioDSPOutputFormat);
+          if (!m_audioDSP.m_controlPort.SendOutMessageSync(CAudioDSPControlProtocol::GET_PROCESSING_BUFFER, &replyMsg, 5000, &bufferMsg, sizeof(CAudioDSPControlProtocol::CCreateBuffer)))
+          {
+            if (replyMsg)
+            {
+              replyMsg->Release();
+            }
+            CLog::Log(LOGERROR, "%s timeout to get AudioDSP processing buffer", __FUNCTION__);
+            return;
+          }
+
+          if (replyMsg->signal != CAudioDSPControlProtocol::SUCCESS)
+          {
+            replyMsg->Release();
+            CLog::Log(LOGERROR, "%s failed to get AudioDSP processing buffer", __FUNCTION__);
+            return;
+          }
+
+          (*it)->m_processingBuffers = *reinterpret_cast<IActiveAEProcessingBuffer**>(replyMsg->data);
+          replyMsg->Release();
 
           if (!(*it)->m_processingBuffers)
           {
             CLog::Log(LOGERROR, "ActiveAE::%s - failed to configure processing buffer", __FUNCTION__);
-            m_stats.SetSinkCacheTotal(0);
-            m_stats.SetSinkLatency(0);
-            AEAudioFormat invalidFormat;
-            invalidFormat.m_dataFormat = AE_FMT_INVALID;
-            m_stats.SetCurrentSinkFormat(invalidFormat);
             m_extError = true;
             return;
           }
@@ -1173,11 +1186,6 @@ void CActiveAE::Configure(AEAudioFormat *desiredFmt)
           if(!(*it)->m_processingBuffers->Create(static_cast<unsigned int>(MAX_CACHE_LEVEL * 1000), forceOutputFormat))
           {
             CLog::Log(LOGERROR, "ActiveAE::%s - failed to configure processing buffer", __FUNCTION__);
-            m_stats.SetSinkCacheTotal(0);
-            m_stats.SetSinkLatency(0);
-            AEAudioFormat invalidFormat;
-            invalidFormat.m_dataFormat = AE_FMT_INVALID;
-            m_stats.SetCurrentSinkFormat(invalidFormat);
             m_extError = true;
             return;
           }
@@ -1610,10 +1618,7 @@ void CActiveAE::DiscardStream(CActiveAEStream *stream)
         m_discardBufferPools.push_back((*it)->m_inputBuffers);
       if ((*it)->m_processingBuffers)
       {
-        if (m_audioDSP.ReleaseProcessingBuffer((*it)->m_id) != DSP_ERR_NO_ERR)
-        {
-          CLog::Log(LOGERROR, "%s - An error occured during releasing the processing buffer from stream %i", __FUNCTION__, (*it)->m_id);
-        }
+        m_audioDSP.m_controlPort.SendOutMessage(CAudioDSPControlProtocol::RELEASE_PROCESSING_BUFFER, &(*it)->m_id, sizeof(unsigned int));
         (*it)->m_processingBuffers = nullptr;
       }
       CLog::Log(LOGDEBUG, "CActiveAE::DiscardStream - audio stream deleted");
