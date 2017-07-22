@@ -21,6 +21,7 @@
 
 
 #include "cores/AudioEngine/Engines/ActiveAE/ActiveAudioDSP/AddOns/AudioDSPAddonMode.h"
+#include "cores/AudioEngine/Engines/ActiveAE/ActiveAudioDSP/AddOns/AudioDSPAddonUtils.h"
 
 using namespace DSP;
 using namespace DSP::AUDIO;
@@ -49,9 +50,6 @@ namespace ActiveAE
 
 DSPErrorCode_t CAudioDSPAddonMode::CreateInstance(AEAudioFormat &InputFormat, AEAudioFormat &OutputFormat)
 {
-  InputFormat.m_dataFormat = AE_FMT_FLOATP;
-  OutputFormat.m_dataFormat = AE_FMT_FLOATP;
-  
   AUDIODSP_ADDON_ERROR adspErr;
   
   adspErr = m_struct.toAddon.create_mode(&m_struct, &m_modeHandle);
@@ -60,9 +58,15 @@ DSPErrorCode_t CAudioDSPAddonMode::CreateInstance(AEAudioFormat &InputFormat, AE
     return DSP_ERR_FATAL_ERROR; //! @todo AudioDSP V2 translate add-on errors to core DSP errors
   }
 
-  AUDIODSP_ADDON_AUDIO_FORMAT modeInputFormat = m_struct.toAddon.get_mode_input_format(&m_struct, &m_modeHandle);
-  AUDIODSP_ADDON_AUDIO_FORMAT modeOutputFormat = m_struct.toAddon.get_mode_output_format(&m_struct, &m_modeHandle);
-  //! @todo AudioDSP V2 use conversion functions for input- and output-format
+  if (!CAudioDSPAddonUtil::AddonAudioFormat_TO_AEAudioFormat(m_struct.toAddon.get_mode_input_format(&m_struct, &m_modeHandle), InputFormat))
+  {
+    return DSP_ERR_FATAL_ERROR; //! @todo AudioDSP V2 translate add-on errors to core DSP errors
+  }
+  
+  if (!CAudioDSPAddonUtil::AddonAudioFormat_TO_AEAudioFormat(m_struct.toAddon.get_mode_output_format(&m_struct, &m_modeHandle), OutputFormat))
+  {
+    return DSP_ERR_FATAL_ERROR; //! @todo AudioDSP V2 translate add-on errors to core DSP errors
+  }
 
   return DSP_ERR_NO_ERR;
 }
@@ -85,9 +89,6 @@ DSPErrorCode_t CAudioDSPAddonMode::DestroyInstance()
 //! @todo AudioDSP V2 why int and not unsigned int?
 int CAudioDSPAddonMode::ProcessInstance(const uint8_t **In, uint8_t **Out)
 {
-  unsigned int processedSamples = 0;
-
-  processedSamples = m_struct.toAddon.process_mode(&m_struct, &m_modeHandle, In, Out);
-  return processedSamples;
+  return m_struct.toAddon.process_mode(&m_struct, &m_modeHandle, In, Out);
 }
 }

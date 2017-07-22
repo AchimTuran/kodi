@@ -366,9 +366,61 @@ extern "C" {
     AUDIODSP_ADDON_MENUHOOK_MAX,
   } AUDIODSP_MENU_HOOK_CAT;
 
+  typedef enum
+  {
+    AUDIODSP_ADDON_FMT_INVALID = -1,
+
+    AUDIODSP_ADDON_FMT_U8,
+
+    AUDIODSP_ADDON_FMT_S16BE,
+    AUDIODSP_ADDON_FMT_S16LE,
+    AUDIODSP_ADDON_FMT_S16NE,
+
+    AUDIODSP_ADDON_FMT_S32BE,
+    AUDIODSP_ADDON_FMT_S32LE,
+    AUDIODSP_ADDON_FMT_S32NE,
+
+    AUDIODSP_ADDON_FMT_S24BE4,
+    AUDIODSP_ADDON_FMT_S24LE4,
+    AUDIODSP_ADDON_FMT_S24NE4,    // 24 bits in lower 3 bytes
+    AUDIODSP_ADDON_FMT_S24NE4MSB, // S32 with bits_per_sample < 32
+
+    AUDIODSP_ADDON_FMT_S24BE3,
+    AUDIODSP_ADDON_FMT_S24LE3,
+    AUDIODSP_ADDON_FMT_S24NE3,   // S24 in 3 bytes
+
+    AUDIODSP_ADDON_FMT_DOUBLE,
+    AUDIODSP_ADDON_FMT_FLOAT,
+
+    // Bitstream
+    AUDIODSP_ADDON_FMT_RAW,
+
+    /* planar formats */
+    AUDIODSP_ADDON_FMT_U8P,
+    AUDIODSP_ADDON_FMT_S16NEP,
+    AUDIODSP_ADDON_FMT_S32NEP,
+    AUDIODSP_ADDON_FMT_S24NE4P,
+    AUDIODSP_ADDON_FMT_S24NE4MSBP,
+    AUDIODSP_ADDON_FMT_S24NE3P,
+    AUDIODSP_ADDON_FMT_DOUBLEP,
+    AUDIODSP_ADDON_FMT_FLOATP,
+
+    AUDIODSP_ADDON_FMT_MAX
+  } AUDIODSP_ADDON_AUDIO_DATA_FORMAT;
+
   typedef struct
   {
+    unsigned int   channelCount;                                /*!< @brief audio channel amount*/
+    AUDIODSP_ADDON_CHANNEL channels[AUDIODSP_ADDON_CH_MAX + 1]; /*!< @brief audio channel order*/
+  } AUDIODSP_ADDON_CHANNEL_INFO;
 
+  typedef struct
+  {
+    AUDIODSP_ADDON_AUDIO_DATA_FORMAT dataFormat;
+    unsigned int sampleRate;
+    AUDIODSP_ADDON_CHANNEL_INFO channelLayout;
+    unsigned int frames;
+    unsigned int frameSize;
   } AUDIODSP_ADDON_AUDIO_FORMAT;
 
   /*!
@@ -376,10 +428,10 @@ extern "C" {
    */
   typedef struct
   {
-    unsigned int          iHookId;                /*!< @brief (required) this hook's identifier */
-    unsigned int          iLocalizedStringId;     /*!< @brief (required) the id of the label for this hook in g_localizeStrings */
-    AUDIODSP_MENU_HOOK_CAT category;               /*!< @brief (required) category of menu hook */
-    unsigned int          iRelevantModeId;        /*!< @brief (required) except category AUDIODSP_ADDON_MENUHOOK_SETTING and AUDIODSP_ADDON_MENUHOOK_ALL must be the related mode id present here */
+    unsigned int            iHookId;               /*!< @brief (required) this hook's identifier */
+    unsigned int            iLocalizedStringId;    /*!< @brief (required) the id of the label for this hook in g_localizeStrings */
+    AUDIODSP_MENU_HOOK_CAT  category;              /*!< @brief (required) category of menu hook */
+    unsigned int            iRelevantModeId;       /*!< @brief (required) except category AUDIODSP_ADDON_MENUHOOK_SETTING and AUDIODSP_ADDON_MENUHOOK_ALL must be the related mode id present here */
   } ATTRIBUTE_PACKED AUDIODSP_MENU_HOOK;
 
   /*!
@@ -556,7 +608,7 @@ extern "C" {
     AUDIODSP_ADDON_AUDIO_FORMAT (__cdecl* get_mode_output_format)(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE modeHandle);
     unsigned int (__cdecl* needed_mode_frame_size)(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE modeHandle);
     float (__cdecl* get_mode_delay)(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE modeHandle);
-    unsigned int (__cdecl* process_mode)(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE modeHandle, const uint8_t** in, uint8_t** out);
+    int (__cdecl* process_mode)(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE modeHandle, const uint8_t** in, uint8_t** out);
     AUDIODSP_ADDON_ERROR (__cdecl* destroy_mode)(AddonInstance_AudioDSP const* instance, const ADDON_HANDLE modeHandle);
     AUDIODSP_ADDON_ERROR (__cdecl* destroy_mode_handle)(AddonInstance_AudioDSP const* instance, ADDON_HANDLE modeHandle);
   } KodiToAddonFuncTable_AudioDSP;
@@ -567,6 +619,50 @@ extern "C" {
     AddonToKodiFuncTable_AudioDSP toKodi;
     KodiToAddonFuncTable_AudioDSP toAddon;
   } AddonInstance_AudioDSP;
+
+  static const unsigned int AudioDSPAddonDataFormatToBits(const AUDIODSP_ADDON_AUDIO_DATA_FORMAT dataFormat)
+  {
+    if (dataFormat <= AUDIODSP_ADDON_FMT_INVALID || dataFormat >= AUDIODSP_ADDON_FMT_MAX)
+      return 0;
+
+    static const unsigned int formats[AUDIODSP_ADDON_FMT_MAX] =
+    {
+      8,                   /* U8     */
+
+      16,                  /* S16BE  */
+      16,                  /* S16LE  */
+      16,                  /* S16NE  */
+
+      32,                  /* S32BE  */
+      32,                  /* S32LE  */
+      32,                  /* S32NE  */
+
+      32,                  /* S24BE  */
+      32,                  /* S24LE  */
+      32,                  /* S24NE  */
+      32,                  /* S24NER */
+
+      24,                  /* S24BE3 */
+      24,                  /* S24LE3 */
+      24,                  /* S24NE3 */
+
+      sizeof(double) << 3, /* DOUBLE */
+      sizeof(float) << 3, /* FLOAT  */
+
+      8,                  /* RAW    */
+
+      8,                  /* U8P    */
+      16,                  /* S16NEP */
+      32,                  /* S32NEP */
+      32,                  /* S24NEP */
+      32,                  /* S24NERP*/
+      24,                  /* S24NE3P*/
+      sizeof(double) << 3, /* DOUBLEP */
+      sizeof(float) << 3  /* FLOATP  */
+    };
+
+    return formats[dataFormat];
+  }
 
 } /* extern "C" */
 
@@ -660,7 +756,7 @@ namespace addon {
 
     virtual float GetModeDelay(const ADDON_HANDLE modeHandle) { return 0.0f; }
 
-    virtual unsigned int ProcessMode(const ADDON_HANDLE modeHandle, const uint8_t** array_in, uint8_t** array_out) = 0;
+    virtual int ProcessMode(const ADDON_HANDLE modeHandle, const uint8_t** array_in, uint8_t** array_out) = 0;
 
     virtual AUDIODSP_ADDON_ERROR DestroyModeHandle(ADDON_HANDLE modeHandle) = 0;
 
@@ -790,7 +886,7 @@ namespace addon {
       return instance->toAddon.addonInstance->GetModeDelay(modeHandle);
     }
 
-    static inline unsigned int ADDON_ProcessMode(AddonInstance_AudioDSP const *instance, const ADDON_HANDLE modeHandle, const uint8_t** array_in, uint8_t** array_out)
+    static inline int ADDON_ProcessMode(AddonInstance_AudioDSP const *instance, const ADDON_HANDLE modeHandle, const uint8_t** array_in, uint8_t** array_out)
     {
       return instance->toAddon.addonInstance->ProcessMode(modeHandle, array_in, array_out);
     }

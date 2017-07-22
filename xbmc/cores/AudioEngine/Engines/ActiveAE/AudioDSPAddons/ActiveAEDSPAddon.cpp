@@ -404,6 +404,7 @@ void CActiveAEDSPAddon::cb_unregister_mode(void* kodiInstance, AUDIODSP_ADDON_MO
   addon->DeregisterMode(mode);
 }
 
+#include "cores/AudioEngine/Engines/ActiveAE/ActiveAudioDSP/AddOns/AudioDSPAddonUtils.h"
 IADSPNode* ActiveAE::CActiveAEDSPAddon::InstantiateNode(const AEAudioFormat &InputFormat, const AEAudioFormat &OutputFormat, const AEStreamProperties &StreamProperties, uint64_t ID)
 {
   m_registeredModes;
@@ -418,6 +419,10 @@ IADSPNode* ActiveAE::CActiveAEDSPAddon::InstantiateNode(const AEAudioFormat &Inp
       AUDIODSP_ADDON_AUDIO_FORMAT outputFormat;
       AUDIODSP_ADDON_STREAM_PROPERTIES streamProperties;
       ADDON_HANDLE_STRUCT modeHandle;
+
+      CAudioDSPAddonUtil::AEAudioFormat_TO_AddonAudioFormat(InputFormat, inputFormat);
+      CAudioDSPAddonUtil::AEAudioFormat_TO_AddonAudioFormat(OutputFormat, outputFormat);
+      CAudioDSPAddonUtil::AEStreamProperties_TO_AddonStreamProperties(StreamProperties, streamProperties);
 
       AUDIODSP_ADDON_ERROR adspErr = m_struct.toAddon.create_mode_handle(&m_struct, &inputFormat, &outputFormat, &streamProperties, ID, &modeHandle);
       if (adspErr != AUDIODSP_ADDON_ERROR_NO_ERROR)
