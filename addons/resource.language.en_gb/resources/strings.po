@@ -6415,7 +6415,12 @@ msgctxt "#13361"
 msgid "Enable voice"
 msgstr ""
 
-#empty strings from id 13362 to 13374
+#empty strings from id 13362 to 13373
+
+#: addons/skin.estuary/xml/Custom_1101_SettingsList.xml
+msgctxt "#13374"
+msgid "Subtitle settings"
+msgstr ""
 
 msgctxt "#13375"
 msgid "Enable device"
@@ -6506,14 +6511,14 @@ msgstr ""
 
 #: xbmc/video/dialogs/GUIDialogVideoSettings.cpp
 #: addons/skin.estuary/xml/Variables.xml
-#: addons/skin.estuary/xml/Custom_1106_VideoOSDSettings.xml
+#: addons/skin.estuary/xml/Custom_1101_SettingsList.xml
 #: addons/skin.estuary/xml/GameOSD.xml
 msgctxt "#13395"
 msgid "Video settings"
 msgstr ""
 
 #: xbmc/video/dialogs/GUIDialogAudioSettings.cpp
-#: addons/skin.estuary/xml/Custom_1106_VideoOSDSettings.xml
+#: addons/skin.estuary/xml/Custom_1101_SettingsList.xml
 #: addons/skin.estuary/xml/Variables.xml
 msgctxt "#13396"
 msgid "Audio settings"
@@ -7947,7 +7952,7 @@ msgctxt "#15019"
 msgid "Add"
 msgstr ""
 
-#: addons/skin.estuary/xml/Custom_1106_VideoOSDSettings.xml
+#: addons/skin.estuary/xml/Custom_1101_SettingsList.xml
 #: addons/skin.estuary/xml/Custom_1105_MusicOSDSettings.xml
 msgctxt "#15020"
 msgid "Audio signal processing manager"

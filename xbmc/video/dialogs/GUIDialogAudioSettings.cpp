@@ -765,7 +765,7 @@ void CGUIDialogAudioSettings::InitializeSettings()
       CLog::Log(LOGERROR, "CGUIDialogAudioDSPSettings: unable to setup settings group for '%s'", g_localizeStrings.Get(15081).c_str());
       return;
     }
-    m_CPUUsage = StringUtils::Format("%.02f %%", /*m_ActiveStreamProcess->GetCPUUsage()*/0);
+    m_CPUUsage = "";// StringUtils::Format("%.02f %%", /*m_ActiveStreamProcess->GetCPUUsage()*/0);
     AddInfoLabelButton(group, SETTING_STREAM_INFO_CPU_USAGE, 15092, SettingLevel::Expert, m_CPUUsage);
 
     bool foundPreProcess = false, foundPostProcess = false;
