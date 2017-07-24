@@ -45,6 +45,7 @@ option(ENABLE_UPNP        "Enable UPnP support?" ON)
 option(ENABLE_AIRTUNES    "Enable AirTunes support?" ON)
 option(ENABLE_OPTICAL     "Enable optical support?" ON)
 option(ENABLE_PYTHON      "Enable python support?" ON)
+option(EXPORT_FILES_BUILD "Enable copy files to build folder?" ON)
 # use ffmpeg from depends or system
 option(ENABLE_INTERNAL_FFMPEG "Enable internal ffmpeg?" OFF)
 if(UNIX)
@@ -261,8 +262,13 @@ foreach(skin ${SKINS})
   copy_skin_to_buildtree(${dir} ${relative})
 endforeach()
 
-add_custom_target(pack-skins ALL
-                  DEPENDS TexturePacker::TexturePacker export-files ${XBT_FILES})
+if(EXPORT_FILES_BUILD)
+  add_custom_target(pack-skins ALL
+                    DEPENDS TexturePacker::TexturePacker export-files ${XBT_FILES})
+else()
+  add_custom_target(pack-skins ALL
+                    DEPENDS TexturePacker::TexturePacker ${XBT_FILES})
+endif()
 set_target_properties(pack-skins PROPERTIES FOLDER "Build Utilities")
 
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/system/players/VideoPlayer)
@@ -306,7 +312,13 @@ else()
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
   add_library(${APP_NAME_LC} SHARED ${CORE_MAIN_SOURCE} "${RESOURCES}" ${OTHER_FILES})
 endif()
-add_dependencies(${APP_NAME_LC} ${APP_NAME_LC}-libraries export-files pack-skins)
+
+if(EXPORT_FILES_BUILD)
+  add_dependencies(${APP_NAME_LC} ${APP_NAME_LC}-libraries export-files pack-skins)
+else()
+  add_dependencies(${APP_NAME_LC} ${APP_NAME_LC}-libraries pack-skins)
+endif()
+
 whole_archive(_MAIN_LIBRARIES ${core_DEPENDS})
 target_link_libraries(${APP_NAME_LC} ${_MAIN_LIBRARIES} lib${APP_NAME_LC} ${DEPLIBS})
 unset(_MAIN_LIBRARIES)
@@ -330,7 +342,12 @@ add_executable(${APP_NAME_LC}-test EXCLUDE_FROM_ALL ${CMAKE_SOURCE_DIR}/xbmc/tes
 whole_archive(_TEST_LIBRARIES ${core_DEPENDS} gtest)
 target_link_libraries(${APP_NAME_LC}-test PRIVATE ${SYSTEM_LDFLAGS} ${_TEST_LIBRARIES} lib${APP_NAME_LC} ${DEPLIBS} ${CMAKE_DL_LIBS})
 unset(_TEST_LIBRARIES)
-add_dependencies(${APP_NAME_LC}-test ${APP_NAME_LC}-libraries export-files)
+
+if(EXPORT_FILES_BUILD)
+  add_dependencies(${APP_NAME_LC}-test ${APP_NAME_LC}-libraries export-files)
+else()
+  add_dependencies(${APP_NAME_LC}-test ${APP_NAME_LC}-libraries)
+endif()
 
 # Enable unit-test related targets
 if(CORE_HOST_IS_TARGET)
