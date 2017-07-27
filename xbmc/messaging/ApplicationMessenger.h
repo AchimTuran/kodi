@@ -387,6 +387,12 @@ public:
   void RegisterReceiver(IMessageTarget* target);
 
   /*!
+   * \brief This should be called any class implementing \sa IMessageTarget before it gets destructed
+   * to not receive any messages
+   */
+  void UnregisterReceiver(IMessageTarget* target);
+
+  /*!
    * \brief Set the UI thread id to avoid messenger being dependent on
    * CApplication to determine if marshaling is required
    * \param thread The UI thread ID

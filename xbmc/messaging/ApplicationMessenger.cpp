@@ -275,5 +275,15 @@ void CApplicationMessenger::RegisterReceiver(IMessageTarget* target)
   m_mapTargets.insert(std::make_pair(target->GetMessageMask(), target));
 }
 
+void CApplicationMessenger::UnregisterReceiver(IMessageTarget* target)
+{
+	CSingleLock lock(m_critSection);
+	auto iter = m_mapTargets.find(target->GetMessageMask());
+	if (iter != m_mapTargets.end())
+	{
+		m_mapTargets.erase(iter);
+	}
+}
+
 }
 }
