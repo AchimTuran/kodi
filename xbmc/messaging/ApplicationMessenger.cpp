@@ -27,6 +27,7 @@
 #include "guilib/GUIMessage.h"
 #include "messaging/IMessageTarget.h"
 #include "threads/SingleLock.h"
+#include "ServiceBroker.h"
 
 namespace KODI
 {
@@ -56,14 +57,7 @@ void CDelayedMessage::Process()
   Sleep(m_delay);
 
   if (!m_bStop)
-    CApplicationMessenger::GetInstance().PostMsg(m_msg.dwMessage, m_msg.param1, m_msg.param1, m_msg.lpVoid, m_msg.strParam, m_msg.params);
-}
-
-
-CApplicationMessenger& CApplicationMessenger::GetInstance()
-{
-  static CApplicationMessenger appMessenger;
-  return appMessenger;
+    CServiceBroker::GetApplicationMessenger().PostMsg(m_msg.dwMessage, m_msg.param1, m_msg.param1, m_msg.lpVoid, m_msg.strParam, m_msg.params);
 }
 
 CApplicationMessenger::CApplicationMessenger() = default;

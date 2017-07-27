@@ -36,6 +36,7 @@
 #define TMSG_MASK_GUIINFOMANAGER          (1<<28)
 #define TMSG_MASK_WINDOWMANAGER           (1<<27)
 #define TMSG_MASK_PERIPHERALS             (1<<26)
+#define TMSG_MASK_AUDIODSP                (1<<25)
 
 // defines here
 #define TMSG_PLAYLISTPLAYER_PLAY          TMSG_MASK_PLAYLISTPLAYER + 0
@@ -228,11 +229,8 @@ struct ThreadMessageCallback
 class CApplicationMessenger
 {
 public:
-  /*!
-   \brief The only way through which the global instance of the CApplicationMessenger should be accessed.
-   \return the global instance.
-   */
-  static CApplicationMessenger& GetInstance();
+  CApplicationMessenger();
+  ~CApplicationMessenger();
 
   void Cleanup();
   // if a message has to be send to the gui, use MSG_TYPE_WINDOW instead
@@ -402,10 +400,8 @@ public:
 
 private:
   // private construction, and no assignments; use the provided singleton methods
-  CApplicationMessenger();
   CApplicationMessenger(const CApplicationMessenger&) = delete;
   CApplicationMessenger const& operator=(CApplicationMessenger const&) = delete;
-  ~CApplicationMessenger();
 
   int SendMsg(ThreadMessage&& msg, bool wait);
   void ProcessMessage(ThreadMessage *pMsg);
