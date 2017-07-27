@@ -1679,7 +1679,7 @@ bool CGUIMediaWindow::OnPopupMenu(int itemIdx)
 
   if (InRange(idx, pluginMenuRange))
   {
-    CApplicationMessenger::GetInstance().SendMsg(TMSG_EXECUTE_BUILT_IN, -1, -1, nullptr,
+    CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_EXECUTE_BUILT_IN, -1, -1, nullptr,
         item->GetProperty(StringUtils::Format("contextmenuaction(%i)", idx - pluginMenuRange.first)).asString());
     return true;
   }

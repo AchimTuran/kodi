@@ -27,6 +27,7 @@
 #include "utils/log.h"
 #include "threads/SingleLock.h"
 #include "utils/Variant.h"
+#include "ServiceBroker.h"
 
 
 using namespace KODI::MESSAGING;
@@ -61,7 +62,7 @@ void CGUIDialogCache::Close(bool bForceClose)
   // we cannot wait for the app thread to process the close message
   // as this might happen during player startup which leads to a deadlock
   if (m_pDlg && m_pDlg->IsDialogRunning())
-    CApplicationMessenger::GetInstance().PostMsg(TMSG_GUI_WINDOW_CLOSE, -1, bForceClose ? 1 : 0, static_cast<void*>(m_pDlg));
+    CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_GUI_WINDOW_CLOSE, -1, bForceClose ? 1 : 0, static_cast<void*>(m_pDlg));
 
   //Set stop, this will kill this object, when thread stops  
   CThread::m_bStop = true;

@@ -134,7 +134,7 @@ void CAirTunesServer::RefreshMetadata()
   if (m_metadata[2].length())
     tag.SetArtist(m_metadata[2]);//artist
   
-  CApplicationMessenger::GetInstance().PostMsg(TMSG_UPDATE_CURRENT_ITEM, 1, -1, static_cast<void*>(new CFileItem(tag)));
+  CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_UPDATE_CURRENT_ITEM, 1, -1, static_cast<void*>(new CFileItem(tag)));
 }
 
 void CAirTunesServer::RefreshCoverArt(const char *outputFilename/* = NULL*/)
@@ -378,7 +378,7 @@ void* CAirTunesServer::AudioOutputFunctions::audio_init(void *cls, int bits, int
   if (pipe->Write(&header, sizeof(header)) == 0)
     return 0;
 
-  CApplicationMessenger::GetInstance().SendMsg(TMSG_MEDIA_STOP);
+  CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_MEDIA_STOP);
 
   CFileItem *item = new CFileItem();
   item->SetPath(pipe->GetName());
@@ -386,7 +386,7 @@ void* CAirTunesServer::AudioOutputFunctions::audio_init(void *cls, int bits, int
   m_streamStarted = true;
   m_sampleRate = samplerate;
 
-  CApplicationMessenger::GetInstance().PostMsg(TMSG_MEDIA_PLAY, 0, 0, static_cast<void*>(item));
+  CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_MEDIA_PLAY, 0, 0, static_cast<void*>(item));
 
   // Not all airplay streams will provide metadata (e.g. if using mirroring,
   // no metadata will be sent).  If there *is* metadata, it will be received
@@ -496,7 +496,7 @@ void  CAirTunesServer::AudioOutputFunctions::audio_destroy(void *cls, void *sess
   if (!CAirPlayServer::IsPlaying())
 #endif
   {
-    CApplicationMessenger::GetInstance().SendMsg(TMSG_MEDIA_STOP);
+    CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_MEDIA_STOP);
     CLog::Log(LOGDEBUG, "AIRTUNES: AirPlay not running - stopping player");
   }
   

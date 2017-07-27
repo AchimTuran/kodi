@@ -38,6 +38,7 @@
 #include "utils/StringUtils.h"
 #include "utils/URIUtils.h"
 #include "utils/Variant.h"
+#include "ServiceBroker.h"
 
 using namespace ADDON;
 using namespace KODI::MESSAGING;
@@ -1214,7 +1215,7 @@ CGUIAddonWindowDialog::CGUIAddonWindowDialog(int id, const std::string& strXML, 
 void CGUIAddonWindowDialog::Show(bool show /* = true */)
 {
   unsigned int count = g_graphicsContext.exit();
-  CApplicationMessenger::GetInstance().SendMsg(TMSG_GUI_ADDON_DIALOG, 0, show ? 1 : 0, static_cast<void*>(this));
+  CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_GUI_ADDON_DIALOG, 0, show ? 1 : 0, static_cast<void*>(this));
   g_graphicsContext.restore(count);
 }
 

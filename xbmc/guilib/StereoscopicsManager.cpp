@@ -562,7 +562,7 @@ void CStereoscopicsManager::OnPlaybackStarted(void)
   {
   case STEREOSCOPIC_PLAYBACK_MODE_ASK: // Ask
     {
-      CApplicationMessenger::GetInstance().SendMsg(TMSG_MEDIA_PAUSE);
+      CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_MEDIA_PAUSE);
 
       CGUIDialogSelect* pDlgSelect = g_windowManager.GetWindow<CGUIDialogSelect>(WINDOW_DIALOG_SELECT);
       pDlgSelect->Reset();
@@ -599,7 +599,7 @@ void CStereoscopicsManager::OnPlaybackStarted(void)
         SetStereoModeByUser( mode );
       }
 
-      CApplicationMessenger::GetInstance().SendMsg(TMSG_MEDIA_UNPAUSE);
+      CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_MEDIA_UNPAUSE);
     }
     break;
   case STEREOSCOPIC_PLAYBACK_MODE_PREFERRED: // Stereoscopic

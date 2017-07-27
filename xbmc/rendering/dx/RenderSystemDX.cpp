@@ -48,6 +48,7 @@
 #include <d3d10umddi.h>
 #pragma warning(default: 4091)
 #include <wrl.h>
+#include "ServiceBroker.h"
 
 #ifndef _M_X64
 #pragma comment(lib, "EasyHook32.lib")
@@ -1211,7 +1212,7 @@ bool CRenderSystemDX::BeginRender()
       OnDeviceLost();
       OnDeviceReset();
       if (m_bRenderCreated)
-        KODI::MESSAGING::CApplicationMessenger::GetInstance().PostMsg(TMSG_EXECUTE_BUILT_IN, -1, -1, nullptr, "ReloadSkin");
+        CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_EXECUTE_BUILT_IN, -1, -1, nullptr, "ReloadSkin");
     }
     return false;
   }

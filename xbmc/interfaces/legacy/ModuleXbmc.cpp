@@ -84,13 +84,13 @@ namespace XBMCAddon
     void shutdown()
     {
       XBMC_TRACE;
-      CApplicationMessenger::GetInstance().PostMsg(TMSG_SHUTDOWN);
+      CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_SHUTDOWN);
     }
 
     void restart()
     {
       XBMC_TRACE;
-      CApplicationMessenger::GetInstance().PostMsg(TMSG_RESTART);
+      CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_RESTART);
     }
 
     void executescript(const char* script)
@@ -99,7 +99,7 @@ namespace XBMCAddon
       if (! script)
         return;
 
-      CApplicationMessenger::GetInstance().PostMsg(TMSG_EXECUTE_SCRIPT, -1, -1, nullptr, script);
+      CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_EXECUTE_SCRIPT, -1, -1, nullptr, script);
     }
 
     void executebuiltin(const char* function, bool wait /* = false*/)
@@ -108,9 +108,9 @@ namespace XBMCAddon
       if (! function)
         return;
       if (wait)
-        CApplicationMessenger::GetInstance().SendMsg(TMSG_EXECUTE_BUILT_IN, -1, -1, nullptr, function);
+        CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_EXECUTE_BUILT_IN, -1, -1, nullptr, function);
       else
-        CApplicationMessenger::GetInstance().PostMsg(TMSG_EXECUTE_BUILT_IN, -1, -1, nullptr, function);
+        CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_EXECUTE_BUILT_IN, -1, -1, nullptr, function);
     }
 
     String executeJSONRPC(const char* jsonrpccommand)

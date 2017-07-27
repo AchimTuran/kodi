@@ -485,7 +485,7 @@ bool CPythonInvoker::stop(bool abort)
       // on TMSG_GUI_PYTHON_DIALOG messages, so pump the message loop.
       if (g_application.IsCurrentThread())
       {
-        CApplicationMessenger::GetInstance().ProcessMessages();
+        CServiceBroker::GetApplicationMessenger().ProcessMessages();
       }
     }
 

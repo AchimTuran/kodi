@@ -112,7 +112,7 @@ static int SetVolume(const std::vector<std::string>& params)
   {
     if(params.size() > 1 && StringUtils::EqualsNoCase(params[1], "showVolumeBar"))
     {
-      CApplicationMessenger::GetInstance().PostMsg(TMSG_VOLUME_SHOW, oldVolume < volume ? ACTION_VOLUME_UP : ACTION_VOLUME_DOWN);
+      CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_VOLUME_SHOW, oldVolume < volume ? ACTION_VOLUME_UP : ACTION_VOLUME_DOWN);
     }
   }
 

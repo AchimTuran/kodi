@@ -27,6 +27,7 @@
 #include "Application.h"
 #include "messaging/ApplicationMessenger.h"
 #include "input/Key.h"
+#include "ServiceBroker.h"
 
 using namespace KODI::MESSAGING;
 
@@ -219,7 +220,7 @@ void CGUIDialog::Open(const std::string &param /* = "" */)
   {
     // make sure graphics lock is not held
     CSingleExit leaveIt(g_graphicsContext);
-    CApplicationMessenger::GetInstance().SendMsg(TMSG_GUI_DIALOG_OPEN, -1, -1, static_cast<void*>(this), param);
+    CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_GUI_DIALOG_OPEN, -1, -1, static_cast<void*>(this), param);
   }
   else
     Open_Internal(param);

@@ -30,6 +30,7 @@
 #include "utils/md5.h"
 #include "utils/StringUtils.h"
 #include "utils/Variant.h"
+#include "ServiceBroker.h"
 
 #include "dialogs/GUIDialogKeyboardGeneric.h"
 #if defined(TARGET_DARWIN_IOS)
@@ -56,12 +57,12 @@ void CGUIKeyboardFactory::keyTypedCB(CGUIKeyboard *ref, const std::string &typed
       case FILTERING_SEARCH:
         message.SetParam1(GUI_MSG_SEARCH_UPDATE);
         message.SetStringParam(typedString);
-        CApplicationMessenger::GetInstance().SendGUIMessage(message, g_windowManager.GetActiveWindow());
+        CServiceBroker::GetApplicationMessenger().SendGUIMessage(message, g_windowManager.GetActiveWindow());
         break;
       case FILTERING_CURRENT:
         message.SetParam1(GUI_MSG_FILTER_ITEMS);
         message.SetStringParam(typedString);
-        CApplicationMessenger::GetInstance().SendGUIMessage(message);
+        CServiceBroker::GetApplicationMessenger().SendGUIMessage(message);
         break;
       case FILTERING_NONE:
         break;

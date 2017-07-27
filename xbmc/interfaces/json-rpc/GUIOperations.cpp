@@ -97,7 +97,7 @@ JSONRPC_STATUS CGUIOperations::SetFullscreen(const std::string &method, ITranspo
       (parameterObject["fullscreen"].isBoolean() &&
        parameterObject["fullscreen"].asBoolean() != g_application.IsFullScreen()))
   {
-    CApplicationMessenger::GetInstance().SendMsg(TMSG_GUI_ACTION, WINDOW_INVALID, -1, static_cast<void*>(new CAction(ACTION_SHOW_GUI)));
+    CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_GUI_ACTION, WINDOW_INVALID, -1, static_cast<void*>(new CAction(ACTION_SHOW_GUI)));
   }
   else if (!parameterObject["fullscreen"].isBoolean() && !parameterObject["fullscreen"].isString())
     return InvalidParams;
@@ -110,7 +110,7 @@ JSONRPC_STATUS CGUIOperations::SetStereoscopicMode(const std::string &method, IT
   CAction action = CStereoscopicsManager::GetInstance().ConvertActionCommandToAction("SetStereoMode", parameterObject["mode"].asString());
   if (action.GetID() != ACTION_NONE)
   {
-    CApplicationMessenger::GetInstance().SendMsg(TMSG_GUI_ACTION, WINDOW_INVALID, -1, static_cast<void*>(new CAction(action)));
+    CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_GUI_ACTION, WINDOW_INVALID, -1, static_cast<void*>(new CAction(action)));
     return ACK;
   }
 

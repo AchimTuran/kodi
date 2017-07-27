@@ -47,6 +47,7 @@
 #include "utils/URIUtils.h"
 #include "utils/XBMCTinyXML.h"
 #include "utils/XMLUtils.h"
+#include "ServiceBroker.h"
 
 static const std::string OldSettingValuesSeparator = "|";
 
@@ -187,7 +188,7 @@ void CAddonSettings::OnSettingAction(std::shared_ptr<const CSetting> setting)
   if (closeDialog)
     CGUIDialogAddonSettings::SaveAndClose();
 
-  KODI::MESSAGING::CApplicationMessenger::GetInstance().SendMsg(TMSG_EXECUTE_BUILT_IN, -1, -1, nullptr, actionData);
+  CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_EXECUTE_BUILT_IN, -1, -1, nullptr, actionData);
 }
 
 bool CAddonSettings::Initialize(const CXBMCTinyXML& doc, bool allowEmpty /* = false */)

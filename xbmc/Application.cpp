@@ -308,7 +308,7 @@ bool CApplication::OnEvent(XBMC_Event& newEvent)
   {
     case XBMC_QUIT:
       if (!g_application.m_bStop)
-        CApplicationMessenger::GetInstance().PostMsg(TMSG_QUIT);
+        CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_QUIT);
       break;
     case XBMC_VIDEORESIZE:
       if (g_windowManager.Initialized())
@@ -339,7 +339,7 @@ bool CApplication::OnEvent(XBMC_Event& newEvent)
       }
       break;
     case XBMC_USEREVENT:
-      CApplicationMessenger::GetInstance().PostMsg(static_cast<uint32_t>(newEvent.user.code));
+      CServiceBroker::GetApplicationMessenger().PostMsg(static_cast<uint32_t>(newEvent.user.code));
       break;
     case XBMC_APPCOMMAND:
       return g_application.OnAppCommand(newEvent.appcommand.action);
@@ -430,10 +430,10 @@ bool CApplication::Create(const CAppParamParser &params)
 
   // here we register all global classes for the CApplicationMessenger,
   // after that we can send messages to the corresponding modules
-  CApplicationMessenger::GetInstance().RegisterReceiver(this);
-  CApplicationMessenger::GetInstance().RegisterReceiver(&CServiceBroker::GetPlaylistPlayer());
-  CApplicationMessenger::GetInstance().RegisterReceiver(&g_infoManager);
-  CApplicationMessenger::GetInstance().SetGUIThread(m_threadID);
+  CServiceBroker::GetApplicationMessenger().RegisterReceiver(this);
+  CServiceBroker::GetApplicationMessenger().RegisterReceiver(&CServiceBroker::GetPlaylistPlayer());
+  CServiceBroker::GetApplicationMessenger().RegisterReceiver(&g_infoManager);
+  CServiceBroker::GetApplicationMessenger().SetGUIThread(m_threadID);
 
   for (int i = RES_HDTV_1080i; i <= RES_PAL60_16x9; i++)
   {
@@ -1370,7 +1370,7 @@ void CApplication::OnSettingChanged(std::shared_ptr<const CSetting> setting)
       std::string builtin("ReloadSkin");
       if (settingId == CSettings::SETTING_LOOKANDFEEL_SKIN && m_confirmSkinChange)
         builtin += "(confirm)";
-      CApplicationMessenger::GetInstance().PostMsg(TMSG_EXECUTE_BUILT_IN, -1, -1, nullptr, builtin);
+      CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_EXECUTE_BUILT_IN, -1, -1, nullptr, builtin);
     }
   }
   else if (settingId == CSettings::SETTING_LOOKANDFEEL_SKINZOOM)
@@ -1394,7 +1394,7 @@ void CApplication::OnSettingChanged(std::shared_ptr<const CSetting> setting)
     // if this is changed, audio stream has to be reopened
     else if (settingId == CSettings::SETTING_AUDIOOUTPUT_PASSTHROUGH)
     {
-      CApplicationMessenger::GetInstance().PostMsg(TMSG_MEDIA_RESTART);
+      CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_MEDIA_RESTART);
     }
   }
   else if (StringUtils::EqualsNoCase(settingId, CSettings::SETTING_MUSICPLAYER_REPLAYGAINTYPE))
@@ -2120,7 +2120,7 @@ bool CApplication::OnAction(const CAction &action)
     if ((action.GetID() == ACTION_MOUSE_MOVE && (action.GetAmount(2) || action.GetAmount(3)))  // filter "false" mouse move from touch
         || action.GetID() == ACTION_MOUSE_LEFT_CLICK)
     {
-      CApplicationMessenger::GetInstance().PostMsg(TMSG_GUI_ACTION, WINDOW_INVALID, -1, static_cast<void*>(new CAction(ACTION_TRIGGER_OSD)));
+      CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_GUI_ACTION, WINDOW_INVALID, -1, static_cast<void*>(new CAction(ACTION_TRIGGER_OSD)));
     }
   }
 
@@ -2597,23 +2597,23 @@ void CApplication::HandleShutdownMessage()
   switch (m_ServiceManager->GetSettings().GetInt(CSettings::SETTING_POWERMANAGEMENT_SHUTDOWNSTATE))
   {
   case POWERSTATE_SHUTDOWN:
-    CApplicationMessenger::GetInstance().PostMsg(TMSG_POWERDOWN);
+    CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_POWERDOWN);
     break;
 
   case POWERSTATE_SUSPEND:
-    CApplicationMessenger::GetInstance().PostMsg(TMSG_SUSPEND);
+    CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_SUSPEND);
     break;
 
   case POWERSTATE_HIBERNATE:
-    CApplicationMessenger::GetInstance().PostMsg(TMSG_HIBERNATE);
+    CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_HIBERNATE);
     break;
 
   case POWERSTATE_QUIT:
-    CApplicationMessenger::GetInstance().PostMsg(TMSG_QUIT);
+    CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_QUIT);
     break;
 
   case POWERSTATE_MINIMIZE:
-    CApplicationMessenger::GetInstance().PostMsg(TMSG_MINIMIZE);
+    CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_MINIMIZE);
     break;
 
   default:
@@ -2845,7 +2845,7 @@ void CApplication::Stop(int exitCode)
     m_bStop = true;
     // Add this here to keep the same ordering behaviour for now
     // Needs cleaning up
-    CApplicationMessenger::GetInstance().Stop();
+    CServiceBroker::GetApplicationMessenger().Stop();
     m_AppFocused = false;
     m_ExitCode = exitCode;
     CLog::Log(LOGNOTICE, "stop all");
@@ -2860,7 +2860,7 @@ void CApplication::Stop(int exitCode)
     if (CVideoLibraryQueue::GetInstance().IsRunning())
       CVideoLibraryQueue::GetInstance().CancelAllJobs();
 
-    CApplicationMessenger::GetInstance().Cleanup();
+    CServiceBroker::GetApplicationMessenger().Cleanup();
 
     CLog::Log(LOGNOTICE, "stop player");
     m_pPlayer->ClosePlayer();
@@ -3956,7 +3956,7 @@ bool CApplication::WakeUpScreenSaver(bool bPowerOffKeyPressed /* = false */)
       if (g_windowManager.GetActiveWindow() == WINDOW_SCREENSAVER)
         g_windowManager.PreviousWindow();  // show the previous window
       else if (g_windowManager.GetActiveWindow() == WINDOW_SLIDESHOW)
-        CApplicationMessenger::GetInstance().SendMsg(TMSG_GUI_ACTION, WINDOW_SLIDESHOW, -1, static_cast<void*>(new CAction(ACTION_STOP)));
+        CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_GUI_ACTION, WINDOW_SLIDESHOW, -1, static_cast<void*>(new CAction(ACTION_STOP)));
     }
     return true;
   }
@@ -4123,7 +4123,7 @@ void CApplication::CheckShutdown()
     m_shutdownTimer.Stop();
 
     // Sleep the box
-    CApplicationMessenger::GetInstance().PostMsg(TMSG_SHUTDOWN);
+    CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_SHUTDOWN);
   }
 }
 
@@ -4347,7 +4347,7 @@ bool CApplication::OnMessage(CGUIMessage& message)
       }
 
       if (IsEnableTestMode())
-        CApplicationMessenger::GetInstance().PostMsg(TMSG_QUIT);
+        CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_QUIT);
       return true;
     }
     break;
@@ -4452,7 +4452,7 @@ void CApplication::Process()
 
   // process messages which have to be send to the gui
   // (this can only be done after g_windowManager.Render())
-  CApplicationMessenger::GetInstance().ProcessWindowMessages();
+  CServiceBroker::GetApplicationMessenger().ProcessWindowMessages();
 
   if (m_autoExecScriptExecuted)
   {
@@ -4478,7 +4478,7 @@ void CApplication::Process()
   }
 
   // process messages, even if a movie is playing
-  CApplicationMessenger::GetInstance().ProcessMessages();
+  CServiceBroker::GetApplicationMessenger().ProcessMessages();
   if (g_application.m_bStop) return; //we're done, everything has been unloaded
 
   // update sound
@@ -4881,7 +4881,7 @@ void CApplication::SeekTime( double dTime )
             item->m_lStartOffset = static_cast<long>((dTime - startOfNewFile) * 75.0);
             // don't just call "PlayFile" here, as we are quite likely called from the
             // player thread, so we won't be able to delete ourselves.
-            CApplicationMessenger::GetInstance().PostMsg(TMSG_MEDIA_PLAY, 1, 0, static_cast<void*>(item));
+            CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_MEDIA_PLAY, 1, 0, static_cast<void*>(item));
           }
           return;
         }

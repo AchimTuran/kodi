@@ -34,6 +34,7 @@
 #include "Util.h"
 #include "utils/StringUtils.h"
 #include "video/VideoLibraryQueue.h"
+#include "ServiceBroker.h"
 
 using namespace KODI::MESSAGING;
 
@@ -51,7 +52,7 @@ static int LoadProfile(const std::vector<std::string>& params)
       && (CProfilesManager::GetInstance().GetMasterProfile().getLockMode() == LOCK_MODE_EVERYONE
         || g_passwordManager.IsProfileLockUnlocked(index,bCanceled,prompt)))
   {
-    CApplicationMessenger::GetInstance().PostMsg(TMSG_LOADPROFILE, index);
+    CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_LOADPROFILE, index);
   }
 
   return 0;

@@ -30,6 +30,7 @@
 #include "messaging/ApplicationMessenger.h"
 #include "threads/SingleLock.h"
 #include "utils/StringUtils.h"
+#include "ServiceBroker.h"
 
 using namespace KODI::MESSAGING;
 
@@ -123,7 +124,7 @@ void CAlarmClock::Stop(const std::string& strName, bool bSilent /* false */)
   }
   else
   {
-    CApplicationMessenger::GetInstance().PostMsg(TMSG_EXECUTE_BUILT_IN, -1, -1, nullptr, iter->second.m_strCommand);
+    CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_EXECUTE_BUILT_IN, -1, -1, nullptr, iter->second.m_strCommand);
     if (iter->second.m_loop)
     {
       iter->second.watch.Reset();

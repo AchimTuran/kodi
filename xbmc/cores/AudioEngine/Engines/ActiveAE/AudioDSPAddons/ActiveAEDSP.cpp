@@ -52,6 +52,7 @@ extern "C" {
 #include "utils/JobManager.h"
 #include "utils/log.h"
 #include "utils/StringUtils.h"
+#include "ServiceBroker.h"
 
 
 using namespace ADDON;
@@ -209,7 +210,7 @@ void CActiveAEDSP::ResetDatabase(void)
   if (IsProcessing())
   {
     CLog::Log(LOGNOTICE, "ActiveAE DSP - stopping playback");
-    CApplicationMessenger::GetInstance().PostMsg(TMSG_MEDIA_STOP);
+    CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_MEDIA_STOP);
   }
 
   /* stop the system */

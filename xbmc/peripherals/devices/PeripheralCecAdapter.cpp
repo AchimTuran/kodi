@@ -35,11 +35,12 @@
 #include "utils/JobManager.h"
 #include "utils/log.h"
 #include "utils/Variant.h"
+#include "ServiceBroker.h"
 
 #include <libcec/cec.h>
 
 using namespace KODI;
-using namespace MESSAGING;
+using namespace KODI::MESSAGING;
 using namespace PERIPHERALS;
 using namespace ANNOUNCEMENT;
 using namespace CEC;
@@ -617,7 +618,7 @@ void CPeripheralCecAdapter::SetMenuLanguage(const char *strLanguage)
   if (!strGuiLanguage.empty())
   {
     strGuiLanguage = "resource.language." + strGuiLanguage;
-    CApplicationMessenger::GetInstance().PostMsg(TMSG_SETLANGUAGE, -1, -1, nullptr, strGuiLanguage);
+    CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_SETLANGUAGE, -1, -1, nullptr, strGuiLanguage);
     CLog::Log(LOGDEBUG, "%s - language set to '%s'", __FUNCTION__, strGuiLanguage.c_str());
   }
   else
@@ -631,21 +632,21 @@ void CPeripheralCecAdapter::OnTvStandby(void)
   {
   case LOCALISED_ID_POWEROFF:
     m_bStarted = false;
-    KODI::MESSAGING::CApplicationMessenger::GetInstance().PostMsg(TMSG_SHUTDOWN);
+    CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_SHUTDOWN);
     break;
   case LOCALISED_ID_SUSPEND:
     m_bStarted = false;
-    KODI::MESSAGING::CApplicationMessenger::GetInstance().PostMsg(TMSG_SUSPEND);
+    CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_SUSPEND);
     break;
   case LOCALISED_ID_QUIT:
     m_bStarted = false;
-    KODI::MESSAGING::CApplicationMessenger::GetInstance().PostMsg(TMSG_QUIT);
+    CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_QUIT);
     break;
   case LOCALISED_ID_PAUSE:
-    KODI::MESSAGING::CApplicationMessenger::GetInstance().PostMsg(TMSG_MEDIA_PAUSE);
+    CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_MEDIA_PAUSE);
     break;
   case LOCALISED_ID_STOP:
-    KODI::MESSAGING::CApplicationMessenger::GetInstance().PostMsg(TMSG_MEDIA_STOP);
+    CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_MEDIA_STOP);
     break;
   default:
     CLog::Log(LOGERROR, "%s - Unexpected [standby_pc_on_tv_standby] setting value", __FUNCTION__);
@@ -1209,7 +1210,7 @@ void CPeripheralCecAdapter::CecSourceActivated(void *cbParam, const CEC::cec_log
         pSlideShow->OnAction(CAction(ACTION_PAUSE));
       else
         // pause/resume player
-        CApplicationMessenger::GetInstance().SendMsg(TMSG_MEDIA_PAUSE);
+        CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_MEDIA_PAUSE);
     }
     else if (bPlayingAndDeactivated
       && adapter->GetSettingInt("pause_or_stop_playback_on_deactivate") == LOCALISED_ID_STOP)
@@ -1217,7 +1218,7 @@ void CPeripheralCecAdapter::CecSourceActivated(void *cbParam, const CEC::cec_log
       if (pSlideShow)
         pSlideShow->OnAction(CAction(ACTION_STOP));
       else
-        CApplicationMessenger::GetInstance().SendMsg(TMSG_MEDIA_STOP);
+        CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_MEDIA_STOP);
     }
   }
 }

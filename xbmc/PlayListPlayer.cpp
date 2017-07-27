@@ -905,7 +905,7 @@ void PLAYLIST::CPlayListPlayer::OnApplicationMessage(KODI::MESSAGING::ThreadMess
       if (GetCurrentPlaylist() != pMsg->param1)
         SetCurrentPlaylist(pMsg->param1);
 
-      CApplicationMessenger::GetInstance().SendMsg(TMSG_PLAYLISTPLAYER_PLAY, pMsg->param2);
+      CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_PLAYLISTPLAYER_PLAY, pMsg->param2);
     }
   }
   break;

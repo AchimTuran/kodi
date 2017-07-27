@@ -40,6 +40,7 @@
 #include "pvr/epg/EpgContainer.h"
 #include "pvr/timers/PVRTimers.h"
 #include "pvr/windows/GUIEPGGridContainer.h"
+#include "ServiceBroker.h"
 
 using namespace PVR;
 
@@ -619,7 +620,7 @@ void CPVRRefreshTimelineItemsThread::Process()
     if (m_pGuideWindow->RefreshTimelineItems() && !m_bStop)
     {
       CGUIMessage m(GUI_MSG_REFRESH_LIST, m_pGuideWindow->GetID(), 0, ObservableMessageEpg);
-      KODI::MESSAGING::CApplicationMessenger::GetInstance().SendGUIMessage(m);
+      CServiceBroker::GetApplicationMessenger().SendGUIMessage(m);
     }
 
     if (m_bStop)

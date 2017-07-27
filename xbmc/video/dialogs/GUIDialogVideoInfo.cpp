@@ -945,10 +945,10 @@ void CGUIDialogVideoInfo::PlayTrailer()
   {
     CFileItemList *l = new CFileItemList; //don't delete,
     l->Add(std::make_shared<CFileItem>(item));
-    CApplicationMessenger::GetInstance().PostMsg(TMSG_MEDIA_PLAY, -1, -1, static_cast<void*>(l));
+    CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_MEDIA_PLAY, -1, -1, static_cast<void*>(l));
   }
   else
-    CApplicationMessenger::GetInstance().PostMsg(TMSG_MEDIA_PLAY, 0, 0, static_cast<void*>(new CFileItem(item)));
+    CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_MEDIA_PLAY, 0, 0, static_cast<void*>(new CFileItem(item)));
 }
 
 void CGUIDialogVideoInfo::SetLabel(int iControl, const std::string &strLabel)

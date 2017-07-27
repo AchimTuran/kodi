@@ -34,6 +34,7 @@
 #include "utils/CharsetConverter.h"
 #include "utils/SystemInfo.h"
 #include "VideoSyncD3D.h"
+#include "ServiceBroker.h"
 
 #include <tpcshrd.h>
 
@@ -866,7 +867,7 @@ void CWinSystemWin32::OnDisplayLost()
   CLog::Log(LOGDEBUG, "%s - notify display lost event", __FUNCTION__);
 
   // make sure renderer has no invalid references
-  KODI::MESSAGING::CApplicationMessenger::GetInstance().SendMsg(TMSG_RENDERER_FLUSH);
+  CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_RENDERER_FLUSH);
 
   {
     CSingleLock lock(m_resourceSection);

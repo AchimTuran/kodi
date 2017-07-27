@@ -487,21 +487,21 @@ bool CInputManager::OnEvent(XBMC_Event& newEvent)
         || (actionId >= ACTION_MOUSE_START && actionId <= ACTION_MOUSE_END))
     {
       auto action = new CAction(actionId, 0, newEvent.touch.x, newEvent.touch.y, newEvent.touch.x2, newEvent.touch.y2);
-      CApplicationMessenger::GetInstance().PostMsg(TMSG_GUI_ACTION, WINDOW_INVALID, -1, static_cast<void*>(action));
+      CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_GUI_ACTION, WINDOW_INVALID, -1, static_cast<void*>(action));
     }
     else
     {
       if (actionId == ACTION_BUILT_IN_FUNCTION && !actionString.empty())
-        CApplicationMessenger::GetInstance().PostMsg(TMSG_GUI_ACTION, WINDOW_INVALID, -1, static_cast<void*>(new CAction(actionId, actionString)));
+        CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_GUI_ACTION, WINDOW_INVALID, -1, static_cast<void*>(new CAction(actionId, actionString)));
       else
-        CApplicationMessenger::GetInstance().PostMsg(TMSG_GUI_ACTION, WINDOW_INVALID, -1, static_cast<void*>(new CAction(actionId)));
+        CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_GUI_ACTION, WINDOW_INVALID, -1, static_cast<void*>(new CAction(actionId)));
     }
 
     // Post an unfocus message for touch device after the action.
     if (newEvent.touch.action == ACTION_GESTURE_END || newEvent.touch.action == ACTION_TOUCH_TAP)
     {
       CGUIMessage msg(GUI_MSG_UNFOCUS_ALL, 0, 0, 0, 0);
-      CApplicationMessenger::GetInstance().SendGUIMessage(msg);
+      CServiceBroker::GetApplicationMessenger().SendGUIMessage(msg);
     }
     break;
   } //case
@@ -545,13 +545,13 @@ bool CInputManager::OnKey(const CKey& key)
     {
       CLog::LogF(LOGDEBUG, "action %s [%d], toggling state of playing device", action.GetName().c_str(), action.GetID());
       bool result;
-      CApplicationMessenger::GetInstance().SendMsg(TMSG_CECTOGGLESTATE, 0, 0, static_cast<void*>(&result));
+      CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_CECTOGGLESTATE, 0, 0, static_cast<void*>(&result));
       if (!result)
         return true;
     }
     else
     {
-      CApplicationMessenger::GetInstance().PostMsg(TMSG_CECSTANDBY);
+      CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_CECSTANDBY);
       return true;
     }
   }

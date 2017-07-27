@@ -31,6 +31,7 @@
 #include "input/XBMC_keyboard.h"
 #include "input/XBMC_vkeys.h"
 #include "threads/SingleLock.h"
+#include "ServiceBroker.h"
 
 using namespace JSONRPC;
 using namespace KODI::MESSAGING;
@@ -54,9 +55,9 @@ JSONRPC_STATUS CInputOperations::SendAction(int actionID, bool wakeScreensaver /
     g_application.ResetSystemIdleTimer();
     g_audioManager.PlayActionSound(actionID);
     if (waitResult)
-      CApplicationMessenger::GetInstance().SendMsg(TMSG_GUI_ACTION, WINDOW_INVALID, -1, static_cast<void*>(new CAction(actionID)));
+      CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_GUI_ACTION, WINDOW_INVALID, -1, static_cast<void*>(new CAction(actionID)));
     else
-      CApplicationMessenger::GetInstance().PostMsg(TMSG_GUI_ACTION, WINDOW_INVALID, -1, static_cast<void*>(new CAction(actionID)));
+      CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_GUI_ACTION, WINDOW_INVALID, -1, static_cast<void*>(new CAction(actionID)));
   }
   return ACK;
 }
@@ -64,7 +65,7 @@ JSONRPC_STATUS CInputOperations::SendAction(int actionID, bool wakeScreensaver /
 JSONRPC_STATUS CInputOperations::activateWindow(int windowID)
 {
   if(!handleScreenSaver())
-    CApplicationMessenger::GetInstance().SendMsg(TMSG_GUI_ACTIVATE_WINDOW, windowID, 0);
+    CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_GUI_ACTIVATE_WINDOW, windowID, 0);
 
   return ACK;
 }
@@ -81,7 +82,7 @@ JSONRPC_STATUS CInputOperations::SendText(const std::string &method, ITransportL
   CGUIMessage msg(GUI_MSG_SET_TEXT, 0, window->GetFocusedControlID());
   msg.SetLabel(parameterObject["text"].asString());
   msg.SetParam1(parameterObject["done"].asBoolean() ? 1 : 0);
-  CApplicationMessenger::GetInstance().SendGUIMessage(msg, window->GetID());
+  CServiceBroker::GetApplicationMessenger().SendGUIMessage(msg, window->GetID());
 
   return ACK;
 }

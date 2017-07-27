@@ -4373,7 +4373,7 @@ bool CVideoPlayer::OnAction(const CAction &action)
               return true;
             else
             {
-              CApplicationMessenger::GetInstance().PostMsg(TMSG_GUI_ACTION, WINDOW_INVALID, -1, static_cast<void*>(new CAction(ACTION_TRIGGER_OSD)));
+              CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_GUI_ACTION, WINDOW_INVALID, -1, static_cast<void*>(new CAction(ACTION_TRIGGER_OSD)));
               return false;
             }
           }

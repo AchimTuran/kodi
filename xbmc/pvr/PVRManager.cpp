@@ -337,7 +337,7 @@ void CPVRManager::Stop(void)
   if (IsPlaying())
   {
     CLog::Log(LOGNOTICE,"PVRManager - %s - stopping PVR playback", __FUNCTION__);
-    CApplicationMessenger::GetInstance().SendMsg(TMSG_MEDIA_STOP);
+    CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_MEDIA_STOP);
   }
 
   SetState(ManagerStateStopping);
@@ -501,7 +501,7 @@ void CPVRManager::Process(void)
   if (IsStarted())
   {
     CLog::Log(LOGNOTICE, "PVRManager - %s - no add-ons enabled anymore. restarting the pvrmanager", __FUNCTION__);
-    CApplicationMessenger::GetInstance().PostMsg(TMSG_SETPVRMANAGERSTATE, 1);
+    CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_SETPVRMANAGERSTATE, 1);
   }
 }
 

@@ -27,6 +27,7 @@
 #include "pictures/GUIWindowSlideShow.h"
 #include "pictures/PictureInfoTag.h"
 #include "utils/Variant.h"
+#include "ServiceBroker.h"
 
 using namespace JSONRPC;
 using namespace PLAYLIST;
@@ -79,7 +80,7 @@ JSONRPC_STATUS CPlaylistOperations::GetItems(const std::string &method, ITranspo
   {
     case PLAYLIST_VIDEO:
     case PLAYLIST_MUSIC:
-      CApplicationMessenger::GetInstance().SendMsg(TMSG_PLAYLISTPLAYER_GET_ITEMS, playlist, -1, static_cast<void*>(&list));
+      CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_PLAYLISTPLAYER_GET_ITEMS, playlist, -1, static_cast<void*>(&list));
       break;
 
     case PLAYLIST_PICTURE:
@@ -131,7 +132,7 @@ JSONRPC_STATUS CPlaylistOperations::Add(const std::string &method, ITransportLay
     {
       auto tmpList = new CFileItemList();
       tmpList->Copy(list);
-      CApplicationMessenger::GetInstance().SendMsg(TMSG_PLAYLISTPLAYER_ADD, playlist, -1, static_cast<void*>(tmpList));
+      CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_PLAYLISTPLAYER_ADD, playlist, -1, static_cast<void*>(tmpList));
       break;
     }
     case PLAYLIST_PICTURE:
@@ -166,7 +167,7 @@ JSONRPC_STATUS CPlaylistOperations::Insert(const std::string &method, ITransport
 
   auto tmpList = new CFileItemList();
   tmpList->Copy(list);
-  CApplicationMessenger::GetInstance().SendMsg(TMSG_PLAYLISTPLAYER_INSERT, GetPlaylist(parameterObject["playlistid"]),
+  CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_PLAYLISTPLAYER_INSERT, GetPlaylist(parameterObject["playlistid"]),
     static_cast<int>(parameterObject["position"].asInteger()), static_cast<void*>(tmpList));
 
   NotifyAll();
@@ -183,7 +184,7 @@ JSONRPC_STATUS CPlaylistOperations::Remove(const std::string &method, ITransport
   if (CServiceBroker::GetPlaylistPlayer().GetCurrentPlaylist() == playlist && CServiceBroker::GetPlaylistPlayer().GetCurrentSong() == position)
     return InvalidParams;
 
-  CApplicationMessenger::GetInstance().SendMsg(TMSG_PLAYLISTPLAYER_REMOVE, playlist, position);
+  CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_PLAYLISTPLAYER_REMOVE, playlist, position);
 
   NotifyAll();
   return ACK;
@@ -197,14 +198,14 @@ JSONRPC_STATUS CPlaylistOperations::Clear(const std::string &method, ITransportL
   {
     case PLAYLIST_MUSIC:
     case PLAYLIST_VIDEO:
-      CApplicationMessenger::GetInstance().SendMsg(TMSG_PLAYLISTPLAYER_CLEAR, playlist);
+      CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_PLAYLISTPLAYER_CLEAR, playlist);
       break;
 
     case PLAYLIST_PICTURE:
       slideshow = g_windowManager.GetWindow<CGUIWindowSlideShow>(WINDOW_SLIDESHOW);
       if (!slideshow)
         return FailedToExecute;
-      CApplicationMessenger::GetInstance().SendMsg(TMSG_GUI_ACTION, WINDOW_SLIDESHOW, -1, static_cast<void*>(new CAction(ACTION_STOP)));
+      CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_GUI_ACTION, WINDOW_SLIDESHOW, -1, static_cast<void*>(new CAction(ACTION_STOP)));
       slideshow->Reset();
       break;
   }
@@ -222,7 +223,7 @@ JSONRPC_STATUS CPlaylistOperations::Swap(const std::string &method, ITransportLa
   auto tmpVec = new std::vector<int>();
   tmpVec->push_back(static_cast<int>(parameterObject["position1"].asInteger()));
   tmpVec->push_back(static_cast<int>(parameterObject["position2"].asInteger()));
-  CApplicationMessenger::GetInstance().SendMsg(TMSG_PLAYLISTPLAYER_SWAP, playlist, -1, static_cast<void*>(tmpVec));
+  CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_PLAYLISTPLAYER_SWAP, playlist, -1, static_cast<void*>(tmpVec));
 
   NotifyAll();
   return ACK;
@@ -274,7 +275,7 @@ JSONRPC_STATUS CPlaylistOperations::GetPropertyValue(int playlist, const std::st
     {
       case PLAYLIST_MUSIC:
       case PLAYLIST_VIDEO:
-        CApplicationMessenger::GetInstance().SendMsg(TMSG_PLAYLISTPLAYER_GET_ITEMS, playlist, -1, static_cast<void*>(&list));
+        CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_PLAYLISTPLAYER_GET_ITEMS, playlist, -1, static_cast<void*>(&list));
         result = list.Size();
         break;
 

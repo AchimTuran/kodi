@@ -139,12 +139,12 @@ int NetworkAccessPoint::FreqToChannel(float frequency)
 
 CNetwork::CNetwork()
 {
-  CApplicationMessenger::GetInstance().PostMsg(TMSG_NETWORKMESSAGE, SERVICES_UP, 0);
+  CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_NETWORKMESSAGE, SERVICES_UP, 0);
 }
 
 CNetwork::~CNetwork()
 {
-  CApplicationMessenger::GetInstance().PostMsg(TMSG_NETWORKMESSAGE, SERVICES_DOWN, 0);
+  CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_NETWORKMESSAGE, SERVICES_DOWN, 0);
 }
 
 int CNetwork::ParseHex(char *str, unsigned char *addr)

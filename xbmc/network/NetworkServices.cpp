@@ -463,7 +463,7 @@ void CNetworkServices::OnSettingChanged(std::shared_ptr<const CSetting> setting)
     if (HELPERS::ShowYesNoDialogText(CVariant{14038}, CVariant{14039}) == DialogResponse::YES)
     {
       CServiceBroker::GetSettings().Save();
-      CApplicationMessenger::GetInstance().PostMsg(TMSG_RESTARTAPP);
+      CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_RESTARTAPP);
     }
   }
 }

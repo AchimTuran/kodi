@@ -21,6 +21,7 @@
 #include "CECBuiltins.h"
 
 #include "messaging/ApplicationMessenger.h"
+#include "ServiceBroker.h"
 
 using namespace KODI::MESSAGING;
 
@@ -29,7 +30,7 @@ using namespace KODI::MESSAGING;
  */
 static int ActivateSource(const std::vector<std::string>& params)
 {
-  CApplicationMessenger::GetInstance().PostMsg(TMSG_CECACTIVATESOURCE);
+  CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_CECACTIVATESOURCE);
 
   return 0;
 }
@@ -39,7 +40,7 @@ static int ActivateSource(const std::vector<std::string>& params)
  */
 static int Standby(const std::vector<std::string>& params)
 {
-  CApplicationMessenger::GetInstance().PostMsg(TMSG_CECSTANDBY);
+  CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_CECSTANDBY);
 
   return 0;
 }
@@ -50,7 +51,7 @@ static int Standby(const std::vector<std::string>& params)
 static int ToggleState(const std::vector<std::string>& params)
 {
   bool result;
-  CApplicationMessenger::GetInstance().SendMsg(TMSG_CECTOGGLESTATE, 0, 0, static_cast<void*>(&result));
+  CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_CECTOGGLESTATE, 0, 0, static_cast<void*>(&result));
 
   return 0;
 }

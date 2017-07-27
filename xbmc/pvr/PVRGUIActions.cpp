@@ -988,7 +988,7 @@ namespace PVR
 
   void CPVRGUIActions::StartPlayback(CFileItem *item, bool bFullscreen) const
   {
-    CApplicationMessenger::GetInstance().PostMsg(TMSG_MEDIA_PLAY, 0, 0, static_cast<void*>(item));
+    CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_MEDIA_PLAY, 0, 0, static_cast<void*>(item));
     CheckAndSwitchToFullscreen(bFullscreen);
   }
 
@@ -1502,7 +1502,7 @@ namespace PVR
     if (CServiceBroker::GetPVRManager().IsPlaying())
     {
       CLog::Log(LOGNOTICE,"CPVRGUIActions - %s - stopping playback", __FUNCTION__);
-      CApplicationMessenger::GetInstance().SendMsg(TMSG_MEDIA_STOP);
+      CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_MEDIA_STOP);
     }
 
     pDlgProgress->SetPercentage(10);
@@ -1645,7 +1645,7 @@ namespace PVR
           const CFileItemPtr channel(selectedGroup->GetByChannelNumber(iChannelNumber));
           if (channel && channel->HasPVRChannelInfoTag())
           {
-            CApplicationMessenger::GetInstance().PostMsg(
+            CServiceBroker::GetApplicationMessenger().PostMsg(
               TMSG_GUI_ACTION, WINDOW_INVALID, -1,
               static_cast<void*>(new CAction(ACTION_CHANNEL_SWITCH, static_cast<float>(iChannelNumber))));
           }
@@ -1668,7 +1668,7 @@ namespace PVR
           const CFileItemPtr channel(group->GetLastPlayedChannel(playingChannel->ChannelID()));
           if (channel && channel->HasPVRChannelInfoTag())
           {
-            CApplicationMessenger::GetInstance().SendMsg(
+            CServiceBroker::GetApplicationMessenger().SendMsg(
               TMSG_GUI_ACTION, WINDOW_INVALID, -1,
               static_cast<void*>(new CAction(ACTION_CHANNEL_SWITCH, static_cast<float>(channel->GetPVRChannelInfoTag()->ChannelNumber()))));
           }

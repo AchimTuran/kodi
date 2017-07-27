@@ -28,6 +28,7 @@
 #include "filesystem/File.h"
 #include "utils/StringUtils.h"
 #include "utils/Variant.h"
+#include "ServiceBroker.h"
 
 using namespace JSONRPC;
 using namespace ADDON;
@@ -213,9 +214,9 @@ JSONRPC_STATUS CAddonsOperations::ExecuteAddon(const std::string &method, ITrans
     cmd = StringUtils::Format("RunAddon(%s, %s)", id.c_str(), argv.c_str());
 
   if (params["wait"].asBoolean())
-    CApplicationMessenger::GetInstance().SendMsg(TMSG_EXECUTE_BUILT_IN, -1, -1, nullptr, cmd);
+    CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_EXECUTE_BUILT_IN, -1, -1, nullptr, cmd);
   else
-    CApplicationMessenger::GetInstance().PostMsg(TMSG_EXECUTE_BUILT_IN, -1, -1, nullptr, cmd);
+    CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_EXECUTE_BUILT_IN, -1, -1, nullptr, cmd);
   
   return ACK;
 }

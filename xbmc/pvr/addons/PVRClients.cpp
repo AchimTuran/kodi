@@ -201,7 +201,7 @@ bool CPVRClients::StopClient(const AddonPtr &client, bool bRestart)
 {
   /* stop playback if needed */
   if (IsPlaying())
-    CApplicationMessenger::GetInstance().SendMsg(TMSG_MEDIA_STOP);
+    CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_MEDIA_STOP);
 
   CSingleLock lock(m_critSection);
   int iId = GetClientId(client);
@@ -420,7 +420,7 @@ bool CPVRClients::SwitchChannel(const CPVRChannelPtr &channel)
     }
     else
     {
-      CApplicationMessenger::GetInstance().PostMsg(TMSG_MEDIA_PLAY, 0, 0, static_cast<void*>(new CFileItem(channel)));
+      CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_MEDIA_PLAY, 0, 0, static_cast<void*>(new CFileItem(channel)));
       bSwitchSuccessful = true;
     }
   }

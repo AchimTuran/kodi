@@ -297,7 +297,7 @@ void CRenderManager::FrameMove()
 
       if (m_flags & CONF_FLAGS_FULLSCREEN)
       {
-        CApplicationMessenger::GetInstance().PostMsg(TMSG_SWITCHTOFULLSCREEN);
+        CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_SWITCHTOFULLSCREEN);
       }
     }
 
@@ -427,7 +427,7 @@ bool CRenderManager::Flush(bool wait)
   else
   {
     m_flushEvent.Reset();
-    CApplicationMessenger::GetInstance().PostMsg(TMSG_RENDERER_FLUSH);
+    CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_RENDERER_FLUSH);
     if (wait)
     {
       if (!m_flushEvent.WaitMSec(1000))

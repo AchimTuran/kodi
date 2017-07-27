@@ -162,7 +162,7 @@ bool CGUIPassword::CheckStartUpLock()
   }
   else
   {
-    CApplicationMessenger::GetInstance().PostMsg(TMSG_SHUTDOWN); // Turn off the box
+    CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_SHUTDOWN); // Turn off the box
     return false;
   }
 }

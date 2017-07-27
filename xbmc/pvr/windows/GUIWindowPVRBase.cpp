@@ -114,7 +114,7 @@ void CGUIWindowPVRBase::Notify(const Observable &obs, const ObservableMessage ms
   if (IsActive())
   {
     CGUIMessage m(GUI_MSG_REFRESH_LIST, GetID(), 0, msg);
-    CApplicationMessenger::GetInstance().SendGUIMessage(m);
+    CServiceBroker::GetApplicationMessenger().SendGUIMessage(m);
   }
 }
 

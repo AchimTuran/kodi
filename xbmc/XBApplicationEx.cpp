@@ -35,11 +35,15 @@
 #include "linux/XTimeUtils.h"
 #endif
 #include "AppParamParser.h"
+#include "ServiceBroker.h"
 
 // Put this here for easy enable and disable
 #ifndef _DEBUG
 #define XBMC_TRACK_EXCEPTIONS
 #endif
+
+using namespace KODI::MESSAGING;
+
 
 CXBApplicationEx::CXBApplicationEx()
 {
@@ -73,7 +77,7 @@ INT CXBApplicationEx::Run(const CAppParamParser &params)
   {
     CServiceBroker::GetPlaylistPlayer().Add(0, params.Playlist());
     CServiceBroker::GetPlaylistPlayer().SetCurrentPlaylist(0);
-    KODI::MESSAGING::CApplicationMessenger::GetInstance().PostMsg(TMSG_PLAYLISTPLAYER_PLAY, -1);
+    CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_PLAYLISTPLAYER_PLAY, -1);
   }
 
   // Run xbmc

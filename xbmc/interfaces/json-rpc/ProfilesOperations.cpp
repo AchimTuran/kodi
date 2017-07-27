@@ -24,6 +24,7 @@
 #include "profiles/ProfilesManager.h"
 #include "utils/md5.h"
 #include "utils/Variant.h"
+#include "ServiceBroker.h"
 
 using namespace JSONRPC;
 using namespace KODI::MESSAGING;
@@ -130,7 +131,7 @@ JSONRPC_STATUS CProfilesOperations::LoadProfile(const std::string &method, ITran
 
   if (bLoadProfile)
   {
-    CApplicationMessenger::GetInstance().PostMsg(TMSG_LOADPROFILE, index);
+    CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_LOADPROFILE, index);
     return ACK;
   }
   return InvalidParams;

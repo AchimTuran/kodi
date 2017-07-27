@@ -33,6 +33,7 @@
 #include "messaging/ApplicationMessenger.h"
 #include "FileCache.h"
 #include "FileItem.h"
+#include "ServiceBroker.h"
 #include <climits>
 
 using namespace XFILE;
@@ -206,7 +207,7 @@ void CShoutcastFile::Process()
       while (!m_bStop && m_cacheReader->GetPosition() < m_tagPos)
         Sleep(20);
       CSingleLock lock(m_tagSection);
-      CApplicationMessenger::GetInstance().PostMsg(TMSG_UPDATE_CURRENT_ITEM, 1,-1, static_cast<void*>(new CFileItem(m_tag)));
+      CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_UPDATE_CURRENT_ITEM, 1,-1, static_cast<void*>(new CFileItem(m_tag)));
       m_tagPos = 0;
     }
   }

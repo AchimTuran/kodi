@@ -29,6 +29,7 @@
 #include "messaging/ApplicationMessenger.h"
 #include "utils/log.h"
 #include "utils/URIUtils.h"
+#include "ServiceBroker.h"
 
 #define CONTROL_BTNVIEWASICONS  2
 #define CONTROL_BTNSORTBY       3
@@ -313,7 +314,7 @@ bool CGUIAddonWindowDialog::OnMessage(CGUIMessage &message)
 void CGUIAddonWindowDialog::Show(bool show /* = true */)
 {
   unsigned int iCount = g_graphicsContext.exit();
-  CApplicationMessenger::GetInstance().SendMsg(TMSG_GUI_ADDON_DIALOG, 1, show ? 1 : 0, static_cast<void*>(this));
+  CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_GUI_ADDON_DIALOG, 1, show ? 1 : 0, static_cast<void*>(this));
   g_graphicsContext.restore(iCount);
 }
 

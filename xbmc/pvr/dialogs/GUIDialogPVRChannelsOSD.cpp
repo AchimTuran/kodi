@@ -307,7 +307,7 @@ CGUIControl *CGUIDialogPVRChannelsOSD::GetFirstFocusableControl(int id)
 void CGUIDialogPVRChannelsOSD::Notify(const Observable &obs, const ObservableMessage msg)
 {
   CGUIMessage m(GUI_MSG_REFRESH_LIST, GetID(), 0, msg);
-  CApplicationMessenger::GetInstance().SendGUIMessage(m);
+  CServiceBroker::GetApplicationMessenger().SendGUIMessage(m);
 }
 
 void CGUIDialogPVRChannelsOSD::SaveSelectedItemPath(int iGroupID)

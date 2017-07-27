@@ -23,6 +23,7 @@
 
 #include "messaging/ApplicationMessenger.h"
 #include "guilib/GUIWindowManager.h"
+#include "ServiceBroker.h"
 
 using namespace KODI::MESSAGING;
 
@@ -33,7 +34,7 @@ namespace XBMCAddon
     void WindowDialogMixin::show()
     {
       XBMC_TRACE;
-      CApplicationMessenger::GetInstance().SendMsg(TMSG_GUI_PYTHON_DIALOG, HACK_CUSTOM_ACTION_OPENING, 0, static_cast<void*>(w->window->get()));
+      CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_GUI_PYTHON_DIALOG, HACK_CUSTOM_ACTION_OPENING, 0, static_cast<void*>(w->window->get()));
     }
 
     void WindowDialogMixin::close()
@@ -42,7 +43,7 @@ namespace XBMCAddon
       w->bModal = false;
       w->PulseActionEvent();
 
-      CApplicationMessenger::GetInstance().SendMsg(TMSG_GUI_PYTHON_DIALOG, HACK_CUSTOM_ACTION_CLOSING, 0, static_cast<void*>(w->window->get()));
+      CServiceBroker::GetApplicationMessenger().SendMsg(TMSG_GUI_PYTHON_DIALOG, HACK_CUSTOM_ACTION_CLOSING, 0, static_cast<void*>(w->window->get()));
 
       w->iOldWindowId = 0;
     }

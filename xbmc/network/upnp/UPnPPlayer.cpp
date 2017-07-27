@@ -41,6 +41,7 @@
 #include "dialogs/GUIDialogBusy.h"
 #include "guilib/GUIWindowManager.h"
 #include "input/Key.h"
+#include "ServiceBroker.h"
 
 using namespace KODI::MESSAGING;
 
@@ -521,7 +522,7 @@ void CUPnPPlayer::DoAudioWork()
       m_current_meta = (const char*)meta;
       CFileItemPtr item = GetFileItem(uri, meta);
       g_application.CurrentFileItem() = *item;
-      CApplicationMessenger::GetInstance().PostMsg(TMSG_UPDATE_CURRENT_ITEM, 0, -1, static_cast<void*>(new CFileItem(*item)));
+      CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_UPDATE_CURRENT_ITEM, 0, -1, static_cast<void*>(new CFileItem(*item)));
     }
 
     NPT_CHECK_LABEL(m_delegate->m_transport->GetStateVariableValue("TransportState", data), failed);

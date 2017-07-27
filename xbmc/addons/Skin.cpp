@@ -39,6 +39,7 @@
 #include "utils/URIUtils.h"
 #include "utils/XMLUtils.h"
 #include "utils/Variant.h"
+#include "ServiceBroker.h"
 
 #define XML_SETTINGS      "settings"
 #define XML_SETTING       "setting"
@@ -388,7 +389,7 @@ void CSkinInfo::OnPostInstall(bool update, bool modal)
       toast->Close(true);
     }
     if (CServiceBroker::GetSettings().GetString(CSettings::SETTING_LOOKANDFEEL_SKIN) == ID())
-      CApplicationMessenger::GetInstance().PostMsg(TMSG_EXECUTE_BUILT_IN, -1, -1, nullptr, "ReloadSkin");
+      CServiceBroker::GetApplicationMessenger().PostMsg(TMSG_EXECUTE_BUILT_IN, -1, -1, nullptr, "ReloadSkin");
     else
       CServiceBroker::GetSettings().SetString(CSettings::SETTING_LOOKANDFEEL_SKIN, ID());
   }
