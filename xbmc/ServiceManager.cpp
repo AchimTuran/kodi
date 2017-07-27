@@ -38,6 +38,7 @@
 #include "interfaces/python/XBPython.h"
 #include "pvr/PVRManager.h"
 #include "settings/Settings.h"
+#include "messaging/ApplicationMessenger.h"
 
 using namespace KODI;
 
@@ -49,6 +50,8 @@ CServiceManager::~CServiceManager() = default;
 
 bool CServiceManager::InitStageOne()
 {
+  m_applicationMessenger.reset(new MESSAGING::CApplicationMessenger());
+
   m_announcementManager.reset(new ANNOUNCEMENT::CAnnouncementManager());
   m_announcementManager->Start();
 
@@ -195,8 +198,14 @@ void CServiceManager::DeinitStageOne()
   m_XBPython.reset();
 #endif
   m_announcementManager.reset();
+  m_applicationMessenger.reset();
 
   init_level = 0;
+}
+
+MESSAGING::CApplicationMessenger &CServiceManager::GetApplicationMessenger()
+{
+  return *m_applicationMessenger.get();
 }
 
 ADDON::CAddonMgr &CServiceManager::GetAddonMgr()

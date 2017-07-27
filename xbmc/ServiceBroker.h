@@ -48,6 +48,14 @@ namespace PLAYLIST
   class CPlayListPlayer;
 }
 
+namespace KODI
+{
+namespace MESSAGING
+{
+class CApplicationMessenger;
+}
+}
+
 class CContextMenuManager;
 class XBPython;
 class CDataCacheCore;
@@ -73,6 +81,7 @@ namespace PERIPHERALS
 class CServiceBroker
 {
 public:
+  static KODI::MESSAGING::CApplicationMessenger &GetApplicationMessenger();
   static ADDON::CAddonMgr &GetAddonMgr();
   static ADDON::CBinaryAddonManager &GetBinaryAddonManager();
   static ADDON::CBinaryAddonCache &GetBinaryAddonCache();

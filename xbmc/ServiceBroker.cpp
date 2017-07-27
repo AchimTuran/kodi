@@ -23,6 +23,11 @@
 
 using namespace KODI;
 
+MESSAGING::CApplicationMessenger &CServiceBroker::GetApplicationMessenger()
+{
+  return g_application.m_ServiceManager->GetApplicationMessenger();
+}
+
 ADDON::CAddonMgr &CServiceBroker::GetAddonMgr()
 {
   return g_application.m_ServiceManager->GetAddonMgr();

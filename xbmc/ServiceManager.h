@@ -50,7 +50,7 @@ class CPVRManager;
 
 namespace PLAYLIST
 {
-  class CPlayListPlayer;
+class CPlayListPlayer;
 }
 
 class CContextMenuManager;
@@ -66,14 +66,22 @@ namespace KODI
 {
 namespace GAME
 {
-  class CControllerManager;
-  class CGameServices;
+class CControllerManager;
+class CGameServices;
 }
 }
 
 namespace PERIPHERALS
 {
   class CPeripherals;
+}
+
+namespace KODI
+{
+namespace MESSAGING
+{
+class CApplicationMessenger;
+}
 }
 
 class CInputManager;
@@ -93,6 +101,7 @@ public:
   void DeinitStageThree();
   void DeinitStageTwo();
   void DeinitStageOne();
+  KODI::MESSAGING::CApplicationMessenger &GetApplicationMessenger();
   ADDON::CAddonMgr& GetAddonMgr();
   ADDON::CBinaryAddonManager& GetBinaryAddonManager();
   ADDON::CBinaryAddonCache& GetBinaryAddonCache();
@@ -142,6 +151,7 @@ protected:
     void operator()(CFavouritesService *p) const;
   };
 
+  std::unique_ptr<KODI::MESSAGING::CApplicationMessenger> m_applicationMessenger;
   std::unique_ptr<ADDON::CAddonMgr> m_addonMgr;
   std::unique_ptr<ADDON::CBinaryAddonManager> m_binaryAddonManager;
   std::unique_ptr<ADDON::CBinaryAddonCache> m_binaryAddonCache;
