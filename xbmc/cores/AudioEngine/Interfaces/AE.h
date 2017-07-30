@@ -260,6 +260,4 @@ public:
    * @return Returns true on success, else false.
    */
   virtual bool GetCurrentSinkFormat(AEAudioFormat &SinkFormat) { return false; }
-
-  virtual IAEAudioDSP& GetAudioDSP() = 0;
 };

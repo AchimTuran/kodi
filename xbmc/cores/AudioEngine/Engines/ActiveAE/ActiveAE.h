@@ -265,8 +265,6 @@ public:
   void OnResetDisplay() override;
   void OnAppFocusChange(bool focus) override;
 
-  virtual IAEAudioDSP& GetAudioDSP() { return m_audioDSP; }
-
 protected:
   void PlaySound(CActiveAESound *sound);
   static uint8_t **AllocSoundSample(SampleConfig &config, int &samples, int &bytes_per_sample, int &planes, int &linesize);
