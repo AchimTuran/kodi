@@ -184,14 +184,6 @@ public:
   virtual void SetAmplification(float amplify) = 0;
 
   /**
-   * Sets the stream ffmpeg informations if present.
-   + @param profile
-   * @param matrix_encoding
-   * @param audio_service_type
-   */
-  virtual void SetFFmpegInfo(int profile, enum AVMatrixEncoding matrix_encoding, enum AVAudioServiceType audio_service_type) = 0;
-
-  /**
    * Returns the size of one audio frame in bytes (channelCount * resolution)
    * @return The size in bytes of one frame
   */
@@ -265,10 +257,5 @@ public:
    * Slave a stream to resume when this stream has drained
    */
   virtual void RegisterSlave(IAEStream *stream) = 0;
-
-  /**
-   * Indicates if dsp addon system is active.
-   */
-  virtual bool HasDSP() = 0;
 };
 

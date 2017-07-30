@@ -28,18 +28,14 @@
 
 class CVariant;
 
-class CGUIDialogAudioSubtitleSettings : public CGUIDialogSettingsManualBase
+class CGUIDialogSubtitleSettings : public CGUIDialogSettingsManualBase
 {
 public:
-  CGUIDialogAudioSubtitleSettings();
-  ~CGUIDialogAudioSubtitleSettings() override;
+  CGUIDialogSubtitleSettings();
+  ~CGUIDialogSubtitleSettings() override;
 
   // specialization of CGUIWindow
   void FrameMove() override;
-
-  static std::string FormatDelay(float value, float interval);
-  static std::string FormatDecibel(float value);
-  static std::string FormatPercentAsDecibel(float value);
 
   static std::string BrowseForSubtitle();
 
@@ -56,10 +52,8 @@ protected:
   // specialization of CGUIDialogSettingsManualBase
   void InitializeSettings() override;
 
-  bool SupportsAudioFeature(int feature);
   bool SupportsSubtitleFeature(int feature);
 
-  void AddAudioStreams(std::shared_ptr<CSettingGroup> group, const std::string &settingId);
   void AddSubtitleStreams(std::shared_ptr<CSettingGroup> group, const std::string &settingId);
 
   static bool IsPlayingPassthrough(const std::string &condition, const std::string &value, std::shared_ptr<const CSetting> setting, void *data);
@@ -68,16 +62,10 @@ protected:
   static void SubtitleStreamsOptionFiller(std::shared_ptr<const CSetting> setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data);
   
   static std::string SettingFormatterDelay(std::shared_ptr<const CSettingControlSlider> control, const CVariant &value, const CVariant &minimum, const CVariant &step, const CVariant &maximum);
-  static std::string SettingFormatterPercentAsDecibel(std::shared_ptr<const CSettingControlSlider> control, const CVariant &value, const CVariant &minimum, const CVariant &step, const CVariant &maximum);
 
-  float m_volume;
-  int m_audioStream;
-  bool m_passthrough;
   int m_subtitleStream;
   bool m_subtitleVisible;
-  bool m_dspEnabled;
 
   typedef std::vector<int> Features;
-  Features m_audioCaps;
   Features m_subCaps;
 };

@@ -5,6 +5,20 @@ set(SOURCES AEResampleFactory.cpp
             Engines/ActiveAE/AudioDSPAddons/ActiveAEDSPDatabase.cpp
             Engines/ActiveAE/AudioDSPAddons/ActiveAEDSPMode.cpp
             Engines/ActiveAE/AudioDSPAddons/ActiveAEDSPProcess.cpp
+            
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioDSPKodiModes.cpp
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/CopyMode/AudioDSPCopyMode.cpp
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioConverter/AudioConverterCreator.cpp
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioConverter/AudioConverterModel.cpp
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioConverter/AudioDSPConverterFFMPEG.cpp
+            Engines/ActiveAE/ActiveAudioDSP/ActiveAudioDSP.cpp
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPAddonModeNode.cpp
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPController.cpp
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPNodeModel.cpp
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPProcessingBuffer.cpp
+            Engines/ActiveAE/ActiveAudioDSP/AddOns/AudioDSPAddonMode.cpp
+            Engines/ActiveAE/ActiveAudioDSP/AddOns/AudioDSPAddonUtils.cpp
+
             Encoders/AEEncoderFFmpeg.cpp
             Engines/ActiveAE/ActiveAE.cpp
             Engines/ActiveAE/ActiveAEBuffer.cpp
@@ -29,6 +43,25 @@ set(HEADERS AEResampleFactory.h
             Engines/ActiveAE/AudioDSPAddons/ActiveAEDSPDatabase.h
             Engines/ActiveAE/AudioDSPAddons/ActiveAEDSPMode.h
             Engines/ActiveAE/AudioDSPAddons/ActiveAEDSPProcess.h
+
+            Engines/ActiveAE/Interfaces/AudioDSPTypes.h
+            Engines/ActiveAE/Interfaces/AudioDSPObject.h
+            Engines/ActiveAE/ActiveAudioDSP/ActiveAudioDSP.h
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPAddonModeNode.h
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPController.h
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPKodiNodeCreator.h
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPNodeModel.h
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPProcessingBuffer.h
+            Engines/ActiveAE/ActiveAudioDSP/AudioDSPTypes.h
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioDSPKodiModes.h
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/CopyMode/AudioDSPCopyMode.h
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioConverter/AudioConverterCreator.h
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioConverter/AudioConverterModel.h
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioConverter/AudioConverterNodeCallback.h
+            Engines/ActiveAE/ActiveAudioDSP/KodiModes/AudioConverter/AudioDSPConverterFFMPEG.h
+            Engines/ActiveAE/ActiveAudioDSP/AddOns/AudioDSPAddonMode.h
+            Engines/ActiveAE/ActiveAudioDSP/AddOns/AudioDSPAddonUtils.h
+
             Encoders/AEEncoderFFmpeg.h
             Engines/ActiveAE/ActiveAE.h
             Engines/ActiveAE/ActiveAEBuffer.h
@@ -45,6 +78,7 @@ set(HEADERS AEResampleFactory.h
             Interfaces/AEStream.h
             Interfaces/IAudioCallback.h
             Interfaces/ThreadedAE.h
+            Interfaces/AEAudioDSP.h
             Sinks/AESinkNULL.h
             Utils/AEAudioFormat.h
             Utils/AEBitstreamPacker.h
@@ -56,6 +90,7 @@ set(HEADERS AEResampleFactory.h
             Utils/AERingBuffer.h
             Utils/AEStreamData.h
             Utils/AEStreamInfo.h
+            Utils/AEStreamProperties.h
             Utils/AEUtil.h)
 
 if(ALSA_FOUND)

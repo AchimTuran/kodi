@@ -20,13 +20,17 @@
  */
 
 #include "cores/AudioEngine/Interfaces/AEStream.h"
+#include "cores/AudioEngine/Engines/ActiveAE/Interfaces/ActiveAEProcessingBuffer.h"
 #include "cores/AudioEngine/Utils/AEAudioFormat.h"
 #include "cores/AudioEngine/Utils/AELimiter.h"
+#include "cores/AudioEngine/Engines/ActiveAE/ActiveAEBuffer.h"
 #include <atomic>
 
 namespace ActiveAE
 {
 class CActiveAE;
+class CActiveAudioDSP;
+class CActiveAEDataProtocol;
 
 class CSyncError
 {
@@ -90,33 +94,35 @@ protected:
   XbmcThreads::EndTime m_timer;
 };
 
-class CActiveAEStreamBuffers
+
+class CActiveAEStreamBuffers : public IActiveAEProcessingBuffer
 {
 public:
-  CActiveAEStreamBuffers(const AEAudioFormat& inputFormat, const AEAudioFormat& outputFormat, AEQuality quality);
+  CActiveAEStreamBuffers(AEAudioFormat inputFormat, AEAudioFormat outputFormat);
   virtual ~CActiveAEStreamBuffers();
-  bool Create(unsigned int totaltime, bool remap, bool upmix, bool normalize = true, bool useDSP = false);
-  void SetExtraData(int profile, enum AVMatrixEncoding matrix_encoding, enum AVAudioServiceType audio_service_type);
-  bool ProcessBuffers();
-  void ConfigureResampler(bool normalizelevels, bool dspenabled, bool stereoupmix, AEQuality quality);
-  bool HasInputLevel(int level);
-  float GetDelay();
-  void Flush();
-  void SetDrain(bool drain);
-  bool IsDrained();
-  void SetRR(double rr, double atempoThreshold);
-  double GetRR();
-  void FillBuffer();
-  bool DoesNormalize();
-  void ForceResampler(bool force);
-  void SetDSPConfig(bool usedsp, bool bypassdsp);
-  bool HasWork();
+
+  // IActiveAEProcessingBuffer interface methods
+  virtual bool Create(unsigned int totaltime, bool ForceOutputFormat = false) override;
+  virtual void Destroy() override {}
+  virtual bool ProcessBuffer() override;
+  virtual bool HasInputLevel(int level) override;
+  virtual float GetDelay() override;
+  virtual void Flush() override;
+  virtual void SetDrain(bool drain) override;
+  virtual bool IsDrained() override;
+  virtual void FillBuffer() override;
+  virtual bool HasWork() override;
+  virtual void SetOutputSampleRate(unsigned int OutputSampleRate) override;
+  
+  // specific methods
+  bool GetNormalize();
+  void SetResampleRatio(double resampleRatio, double atempoThreshold);
+  double GetResampleRatio();
+  void ConfigureResampler(bool normalize, bool stereoUpmix, AEQuality quality);
+  void SetExtraData(int profile, enum AVMatrixEncoding matrixEncoding, enum AVAudioServiceType audioServiceType);
+  void ForceResampler(bool forceResampler);
   CActiveAEBufferPool *GetResampleBuffers();
   CActiveAEBufferPool *GetAtempoBuffers();
-  
-  AEAudioFormat m_inputFormat;
-  std::deque<CSampleBuffer*> m_outputSamples;
-  std::deque<CSampleBuffer*> m_inputSamples;
 
 protected:
   CActiveAEBufferPoolResample *m_resampleBuffers;
@@ -128,8 +134,9 @@ class CActiveAEStream : public IAEStream
 protected:
   friend class CActiveAE;
   friend class CEngineStats;
-  CActiveAEStream(AEAudioFormat *format, unsigned int streamid, CActiveAE *ae);
+  friend class CActiveAudioDSP;
   ~CActiveAEStream() override;
+  CActiveAEStream(AEAudioFormat *format, unsigned int streamid, CActiveAE &ae);
   void FadingFinished();
   void IncFreeBuffers();
   void DecFreeBuffers();
@@ -141,12 +148,13 @@ protected:
 
 public:
   unsigned int GetSpace() override;
+  // public interface methods
   unsigned int AddData(const uint8_t* const *data, unsigned int offset, unsigned int frames, double pts = 0.0) override;
   double GetDelay() override;
-  CAESyncInfo GetSyncInfo() override;
   bool IsBuffering() override;
   double GetCacheTime() override;
   double GetCacheTotal() override;
+  CAESyncInfo GetSyncInfo() override;
 
   void Pause() override;
   void Resume() override;
@@ -155,13 +163,12 @@ public:
   bool IsDrained() override;
   void Flush() override;
 
-  float GetVolume() override;
-  float GetReplayGain() override;
-  float GetAmplification() override;
-  void SetVolume(float volume) override;
-  void SetReplayGain(float factor) override;
-  void SetAmplification(float amplify) override;
-  void SetFFmpegInfo(int profile, enum AVMatrixEncoding matrix_encoding, enum AVAudioServiceType audio_service_type) override;
+  virtual float GetVolume()  override;
+  virtual float GetReplayGain()  override;
+  virtual float GetAmplification()  override;
+  virtual void SetVolume(float volume)  override;
+  virtual void SetReplayGain(float factor)  override;
+  virtual void SetAmplification(float amplify)  override;
 
   const unsigned int GetFrameSize() const override;
   const unsigned int GetChannelCount() const override;
@@ -177,11 +184,9 @@ public:
   void FadeVolume(float from, float to, unsigned int time) override;
   bool IsFading() override;
   void RegisterSlave(IAEStream *stream) override;
-  bool HasDSP() override;
 
 protected:
-
-  CActiveAE *m_activeAE;
+  CActiveAE &m_activeAE;
   unsigned int m_id;
   AEAudioFormat m_format;
   float m_streamVolume;
@@ -196,7 +201,6 @@ protected:
   int m_streamFreeBuffers;
   bool m_streamIsBuffering;
   bool m_streamIsFlushed;
-  bool m_bypassDSP;
   IAEStream *m_streamSlave;
   CCriticalSection m_streamLock;
   CCriticalSection m_statsLock;
@@ -210,8 +214,9 @@ protected:
   std::atomic_int m_errorInterval;
 
   // only accessed by engine
+  IActiveAEProcessingBuffer *m_processingBuffers;
+
   CActiveAEBufferPool *m_inputBuffers;
-  CActiveAEStreamBuffers *m_processingBuffers;
   std::deque<CSampleBuffer*> m_processingSamples;
   CActiveAEDataProtocol *m_streamPort;
   CEvent m_inMsgEvent;
@@ -222,22 +227,20 @@ protected:
   float m_volume;
   float m_rgain;
   float m_amplify;
-  float m_bufferedTime;
+  double m_bufferedTime;
   int m_fadingSamples;
   float m_fadingBase;
   float m_fadingTarget;
   int m_fadingTime;
-  int m_profile;
   int m_resampleMode;
   double m_resampleIntegral;
   double m_clockSpeed;
-  enum AVMatrixEncoding m_matrixEncoding;
-  enum AVAudioServiceType m_audioServiceType;
   bool m_forceResampler;
   IAEClockCallback *m_pClock;
   CSyncError m_syncError;
   double m_lastSyncError;
   CAESyncInfo::AESyncState m_syncState;
+  AEStreamProperties m_streamProperties;
 };
 }
 

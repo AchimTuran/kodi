@@ -17,6 +17,8 @@ macro(add_cpack_workaround target version ext)
   add_custom_command(TARGET addon-package PRE_BUILD
                      COMMAND ${CMAKE_COMMAND} -E make_directory ${PACKAGE_DIR}
                      COMMAND ${CMAKE_COMMAND} -E copy ${CPACK_PACKAGE_DIRECTORY}/addon-${target}-${version}.${ext} ${PACKAGE_DIR}/${target}-${version}.${ext})
+  
+  add_dependencies(addon-package PACKAGE)
 endmacro()
 
 # Grab the version from a given add-on's addon.xml
@@ -255,8 +257,7 @@ macro (build_addon target prefix libs)
 
         if(CMAKE_BUILD_TYPE MATCHES Debug)
           # for debug builds also install the PDB file
-          get_filename_component(LIBRARY_DIR ${LIBRARY_LOCATION} DIRECTORY)
-          install(FILES ${LIBRARY_DIR}/${target}.pdb DESTINATION ${target}
+          install(FILES ${PROJECT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${target}.pdb DESTINATION ${target}
                   COMPONENT ${target}-${${prefix}_VERSION})
         endif()
       endif()

@@ -191,20 +191,40 @@ bool Protocol::SendOutMessageSync(int signal, Message **retMsg, int timeout, voi
   msg->event->Reset();
   SendOutMessage(signal, data, size, msg);
 
-  if (!msg->event->WaitMSec(timeout))
+  if (timeout <= 0)
   {
-    msg->origin->Lock();
-    if (msg->replyMessage)
-      *retMsg = msg->replyMessage;
-    else
+    if (!msg->event->Wait())
     {
-      *retMsg = NULL;
-      msg->isSyncTimeout = true;
+      msg->origin->Lock();
+      if (msg->replyMessage)
+        *retMsg = msg->replyMessage;
+      else
+      {
+        *retMsg = NULL;
+        msg->isSyncTimeout = true;
+      }
+      msg->origin->Unlock();
     }
-    msg->origin->Unlock();
+    else
+      *retMsg = msg->replyMessage;
   }
   else
-    *retMsg = msg->replyMessage;
+  {
+    if (!msg->event->WaitMSec(timeout))
+    {
+      msg->origin->Lock();
+      if (msg->replyMessage)
+        *retMsg = msg->replyMessage;
+      else
+      {
+        *retMsg = NULL;
+        msg->isSyncTimeout = true;
+      }
+      msg->origin->Unlock();
+    }
+    else
+      *retMsg = msg->replyMessage;
+  }
 
   msg->Release();
 
